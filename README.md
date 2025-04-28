@@ -3,14 +3,37 @@
 - Удалить модули vote, Push And Pull
 - удалить /bitrix/redirect.php
 
-# Аналитика битрикс
-выключить можно в settings.php
+# settings битрикс
 
 ```php
   'analytics_counter'  => array(
     'value' => array(
       'enabled' => false,
     ),
+  ),
+  'composer' => [
+    'value' => ['config_path' => 'composer.json']
+  ],
+    'exception_handling' =>
+  array(
+    'value' =>
+    array(
+      'debug' => true,
+      'handled_errors_types' => 4437,
+      'exception_errors_types' => 4437,
+      'ignore_silence' => false,
+      'assertion_throws_exception' => true,
+      'assertion_error_type' => 256,
+      'log' =>
+      array(
+        'settings' =>
+        array(
+          'file' => 'local/logs/error.log',
+          'log_size' => 1000000,
+        ),
+      ),
+    ),
+    'readonly' => false,
   ),
 ```
 
