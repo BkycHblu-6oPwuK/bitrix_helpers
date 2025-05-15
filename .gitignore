@@ -1,0 +1,87 @@
+### Bitrix template
+
+# Исключаем настройки PHPStorm, мы в нём работаем
+/.idea/
+
+# Исключаем настройки VSCode, мы в нём работаем
+/.vscode/
+
+# Исключаем из гита битриксовые файлы
+/bitrix/*
+
+/test.php
+/test2.php
+/test3.php
+/test4.php
+/test5.php
+
+# Исключаем дефолтную директорию медиафайлов
+/upload/*
+# различные системные папки и файлы хостингов и операционных систем
+/cgi-bin/
+/awstats/
+/webstat/
+.DS_Store
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# архивы, включая многотомные
+*.zip
+*.zip*
+*.tar
+*.tar*
+*.enc
+*.enc*
+*.gz
+*.gz*
+*.tgz
+*.tgz*
+*.sql
+*.rar
+.hg
+*.csv
+.ftpconfig
+*.doc
+*.gif
+*.docx
+*.pdf
+*.rtf
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.psd
+*.psb
+*.sketch
+
+# files ext
+*.tar.gz
+*.mp3
+*.mp4
+*.webm
+*.mov
+*.MOV
+*.wav
+*.flv
+*.db
+*.txt
+*.text
+*.log
+*.config
+*.xml
+*.tbk
+
+# однако храним robots.txt — он нужен
+!/robots.txt
+
+# исключаем всякое от node.js
+node_modules
+bower_components
+.grunt
+.npm
+.env
+
+# composer
+composer.phar

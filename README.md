@@ -14,7 +14,7 @@
   'composer' => [
     'value' => ['config_path' => 'composer.json']
   ],
-    'exception_handling' =>
+  'exception_handling' =>
   array(
     'value' =>
     array(
@@ -35,6 +35,45 @@
     ),
     'readonly' => false,
   ),
+  // 'cache' => 
+  // array (
+  //   'value' => 
+  //   array (
+  //     'type' => 'redis',
+  //     'redis' => 
+  //     array (
+  //       'host' => 'redis',
+  //       'port' => '6379',
+  //     ),
+  //     'sid' => $_SERVER["DOCUMENT_ROOT"] . '#01',
+  //   ),
+  // ),
+  // 'cache' => [
+  //   'value' => [
+  //     'type' => 'memcache',
+  //     'memcache' => [
+  //       'host' => 'memcached',
+  //       'port' => 11211,
+  //     ],
+  //     'sid' => $_SERVER["DOCUMENT_ROOT"] . "#01"
+  //   ],
+  // ],
+  // 'session' =>
+  // array(
+  //   'value' =>
+  //   array(
+  //     'mode' => 'default',
+  //     'handlers' =>
+  //     array(
+  //       'general' =>
+  //       array(
+  //         'type' => 'redis',
+  //         'port' => '6379',
+  //         'host' => 'redis',
+  //       ),
+  //     ),
+  //   ),
+  // ),
 ```
 
 ## after connect
@@ -63,7 +102,7 @@ define("CACHED_b_lang", 3600);
 define("CACHED_b_option", 3600);
 define("CACHED_b_lang_domain", 3600);
 define("CACHED_b_site_template", 3600);
-define("CACHED_b_event", 3600);
+define("CACHED_b_event", 3600); // или если крон define("CACHED_b_event", false);
 define("CACHED_b_agent", 3660);
 define("CACHED_menu", 3600);
 define("BX_UTF", true);
@@ -77,4 +116,13 @@ if(!(defined("CHK_EVENT") && CHK_EVENT===true))
 
 define("CACHED_b_search_tags", true);
 define("NO_AGENT_STATISTIC", true);
+```
+
+# cron
+можно просто модуль установить - агенты на кроне и перевести на крон.
+
+``` */1 * * * * /usr/bin/php -f /home/bitrix/www/bitrix/php_interface/cron_events.php ```
+
+```php
+php_sapi_name() == "cli"
 ```

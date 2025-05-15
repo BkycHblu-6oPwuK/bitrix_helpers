@@ -1,0 +1,28 @@
+{
+    "require": {
+        "php": "^8.1",
+        "symfony/var-dumper": "*",
+        "illuminate/collections": "*",
+        "vlucas/phpdotenv": "*",
+        "andreyryabin/sprint.migration": "dev-master",
+        "wikimedia/composer-merge-plugin": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "local/lib/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "wikimedia/composer-merge-plugin": true
+        }
+    },
+    "extra": {
+        "merge-plugin": {
+            "require": [
+                "bitrix/composer-bx.json"
+            ]
+        }
+    }
+}
