@@ -11,6 +11,8 @@
 
 под vite стоит использовать актуальную сборку из репозитория - example_template
 
+обновить пакеты npm composer
+
 иб статьи:
 - сим.код - articles
 - сим.код api - ArticlesApi
