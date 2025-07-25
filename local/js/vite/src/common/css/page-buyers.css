@@ -1,0 +1,360 @@
+.buyers-page {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    padding-bottom: 160px;
+}
+
+.section-buyers {
+    display: flex;
+    width: 100%;
+}
+
+.buyers-block {
+    display: flex;
+    max-width: 1780px;
+    width: 100%;
+    padding: 32px 20px 0;
+    box-sizing: border-box;
+    justify-content: space-between;
+    position: relative;
+    margin: 0 auto;
+    gap: 80px;
+}
+
+.buyers-content {
+    max-width: 1153px;
+    display: flex;
+    width: 100%;
+}
+
+.buyers-menu {
+    max-width: 420px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.buyers-menu a {
+    display: flex;
+    width: 100%;
+    border: 1.5px solid #EAECF0;
+    padding: 12px 16px 13px;
+    box-sizing: border-box;
+    font: 18px/25px Roboto, sans-serif;
+    color: #5C636E;
+    text-decoration: none;
+    transition: border .1s linear;
+}
+
+.buyers-menu a:hover {
+    border: 1.5px solid #A1A8B4;
+}
+
+.buyers-menu a.active {
+    border: 1.5px solid #111827;
+    color: #111827;
+}
+
+.how-to-block {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 72px;
+}
+
+.how-to__list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 32px;
+}
+
+.how-to__list h2 {
+    margin: 0;
+    padding: 0;
+    font: 28px/36px Roboto, sans-serif;
+    color: #111827;
+}
+
+.how-to__list ol {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.how-to__list ol li {
+    font: 18px/25px Roboto, sans-serif;
+    color: #5C636E;
+    display: flex;
+    gap: 23px;
+}
+
+.how-to__list ol li span {
+    font-weight: 500;
+    color: #111827;
+}
+
+.ask-btn-container {
+    display: flex;
+    max-width: 285px;
+    width: 100%;
+    height: max-content;
+}
+
+.ask-btn-container button {
+    display: flex;
+    width: 100%;
+    border: 1.5px solid #E5E7EB;
+    background-color: #FFF;
+    box-sizing: border-box;
+    height: 56px;
+    outline: none;
+    justify-content: center;
+    align-items: center;
+    font: 18px/25px Roboto, sans-serif;
+    color: #111827;
+    padding: 0;
+    transition: border .1s linear;
+}
+
+.ask-btn-container button:hover {
+    border: 1.5px solid #A1A8B4;
+}
+
+.ask-btn-container button:focus {
+    outline: none;
+}
+
+
+.payment-block {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 72px;
+}
+
+.delivery-block {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 72px;
+}
+
+.info-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+
+.info-container h2 {
+    margin: 0 0 32px;
+    padding: 0;
+    font: 28px/36px Roboto, sans-serif;
+    color: #111827;
+}
+
+.info-block {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 56px;
+}
+
+.info-block:first-of-type {
+    margin-top: 0;
+}
+
+.info-block h3 {
+    font: 500 20px/26px Roboto, sans-serif;
+    color: #111827;
+    margin: 0;
+}
+
+.info-block h4 {
+    font: 500 18px/25px Roboto, sans-serif;
+    color: #111827;
+    margin: 0;
+}
+
+.info-block p {
+    font: 18px/25px Roboto, sans-serif;
+    color: #5C636E;
+    margin: 0;
+    position: relative;
+}
+
+.info-block p span {
+    font-weight: 500;
+}
+
+.info-block p a {
+    color: #424CA0;
+    text-decoration: none;
+}
+
+.info-block-systems {
+    display: flex;
+    gap: 24px;
+}
+
+.info-block-system {
+    width: 92px;
+    height: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #EAECF0;
+}
+
+.info-block-notices {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.info-block-notice {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.info-block-notice svg {
+    flex-shrink: 0;
+}
+
+.info-block-notice span {
+    font: 16px/22px Roboto, sans-serif;
+    color: #5C636E;
+}
+
+.info-block ul {
+    margin: -8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-block ul li {
+    font: 18px/25px Roboto, sans-serif;
+    color: #5C636E;
+}
+
+
+@media screen and (max-width: 1640px) {}
+
+@media screen and (max-width: 1320px) {
+    .buyers-page {
+        padding-bottom: 120px;
+    }
+    .buyers-menu {
+        max-width: 360px;
+    }
+}
+
+@media screen and (max-width: 1100px) {
+    .buyers-page {
+        padding-bottom: 80px;
+    }
+    .buyers-menu {
+        max-width: 280px;
+    }
+    .buyers-menu a {
+        font: 16px/22px Roboto, sans-serif;
+    }
+    .how-to__list h2 {
+        font: 24px/30px Roboto, sans-serif;
+    }
+    .how-to__list ol li {
+        font: 16px/22px Roboto, sans-serif;
+        gap: 18px;
+    }
+    .info-container h2 {
+        font: 24px/30px Roboto, sans-serif;
+    }
+    .info-block p {
+        font: 16px/24px Roboto, sans-serif;
+    }
+    .info-block ul li {
+        font: 16px/22px Roboto, sans-serif;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    .buyers-menu {
+        max-width: 260px;
+    }
+    .how-to__list ol li {
+        font: 15px/20px Roboto, sans-serif;
+        gap: 12px;
+    }
+    .info-block h3 {
+        font: 18px/24px Roboto, sans-serif;
+    }
+    .info-block h4 {
+        font: 16px/22px Roboto, sans-serif;
+    }
+    .info-block p {
+        font: 15px/22px Roboto, sans-serif;
+    }
+    .info-block-systems {
+        gap: 18px;
+    }
+    .info-block ul li {
+        font: 15px/20px Roboto, sans-serif;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .buyers-block {
+        display: flex;
+        justify-content: unset;
+        gap: 40px;
+        flex-direction: column;
+    }
+    .buyers-menu {
+        max-width: 450px;
+        gap: 8px;
+    }
+    .buyers-menu a {
+        padding: 8px 16px;
+        font: 14px/20px Roboto, sans-serif;
+    }
+    .how-to__list h2 {
+        font: 20px/26px Roboto, sans-serif;
+    }
+    .how-to__list ol li {
+        font: 15px/20px Roboto, sans-serif;
+        gap: 12px;
+    }
+    .ask-btn-container {
+        max-width: 450px;
+    }
+    .info-container h2 {
+        font: 20px/26px Roboto, sans-serif;
+    }
+    .info-block {
+        margin-top: 40px;
+        padding-left: 16px;
+    }
+    .info-block h3 {
+        font: 18px/24px Roboto, sans-serif;
+    }
+    .info-block-systems {
+        gap: 12px;
+    }
+    .info-block-system {
+        width: 80px;
+        padding: 8px;
+        box-sizing: border-box;
+        height: 56px;
+    }
+    .info-block-notice span {
+        font: 14px/20px Roboto, sans-serif;
+    }
+}

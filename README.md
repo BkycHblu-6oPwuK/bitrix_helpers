@@ -3,6 +3,34 @@
 - Удалить модули vote, Push And Pull
 - удалить /bitrix/redirect.php
 
+установить
+- itb.core
+- itb.favorite
+- itb.reviews
+- по желанию webprostor.smtp (функция уже есть в init.php)
+
+иб статьи:
+- сим.код - articles
+- сим.код api - ArticlesApi
+
+иб каталог:
+- сим.код - catalog
+- сим.код api - CatalogApi
+
+иб предложений:
+- сим.код - offers
+- сим.код api - OffersApi
+
+свойства каталога:
+- PRICE_BY_SORT - число, цена для сортировки
+- MIN_PRICE - число, минимальная цена
+
+доп поля разделов каталога:
+- UF_SHOW_MENU - Да/Нет, Выводить в меню
+- UF_MENU_COLUMN - список (one, two, three - xml id), В какой колонке меню выводить
+- UF_CUSTOM_NAME - строка, Кастомное название
+- UF_MENU_ROOT - Да/Нет, Корневой раздел
+
 # settings битрикс
 
 ```php
