@@ -9,6 +9,8 @@
 - itb.reviews
 - по желанию webprostor.smtp (функция уже есть в init.php)
 
+под vite стоит использовать актуальную сборку из репозитория - example_template
+
 иб статьи:
 - сим.код - articles
 - сим.код api - ArticlesApi
