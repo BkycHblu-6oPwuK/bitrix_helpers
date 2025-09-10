@@ -6,6 +6,7 @@ use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
 use Itb\Checkout\Delivery\ExtraServices\MyPriceExtraService;
 use Itb\Enum\OrderStatuses;
+use Itb\Restrictions\UserRestriction;
 
 class Sale
 {
@@ -36,10 +37,33 @@ class Sale
 
     public static function onSaleDeliveryExtraServicesClassNamesBuildList()
     {
+        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', MyPriceExtraService::getCurDir());
         return new EventResult(
             EventResult::SUCCESS,
             [
-                MyPriceExtraService::class => str_replace($_SERVER['DOCUMENT_ROOT'], '', MyPriceExtraService::getCurDir() . '/MyPriceExtraService.php')
+                MyPriceExtraService::class => $dir . '/MyPriceExtraService.php'
+            ]
+        );
+    }
+
+    public static function onSalePaySystemRestrictionsClassNamesBuildList()
+    {
+        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', UserRestriction::getCurDir());
+        return new \Bitrix\Main\EventResult(
+            \Bitrix\Main\EventResult::SUCCESS,
+            [
+                UserRestriction::class => $dir . '/UserRestriction.php',
+            ]
+        );
+    }
+
+    public static function onSaleCashboxRestrictionsClassNamesBuildList()
+    {
+        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', UserRestriction::getCurDir());
+        return new \Bitrix\Main\EventResult(
+            \Bitrix\Main\EventResult::SUCCESS,
+            [
+                UserRestriction::class => $dir . '/UserRestriction.php',
             ]
         );
     }
