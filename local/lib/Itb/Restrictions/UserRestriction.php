@@ -7,7 +7,6 @@ use Bitrix\Sale\Payment;
 use Bitrix\Sale\Shipment;
 use Bitrix\Sale\Internals\Entity;
 use Bitrix\Sale\Services\Base\Restriction;
-use Sibirix\Main\Model\User;
 
 class UserRestriction extends Restriction
 {
@@ -21,8 +20,8 @@ class UserRestriction extends Restriction
         }
 
         if ($allowTestUsers) {
-            $user = new User();
-            if ($user->getBxUser()->IsAdmin() || $user->findById($current)?->isTest()) {
+            global $USER;
+            if ($USER->IsAdmin()) {
                 return true;
             }
         }
