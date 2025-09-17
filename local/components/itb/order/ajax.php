@@ -37,6 +37,12 @@ class ItbOrderController extends Controller
                     new Authentication()
                 ],
             ],
+            'getSdekPickupPointForCity' => [
+                'prefilters' => [
+                    new Csrf(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                ],
+            ],
         ];
     }
 
@@ -159,5 +165,48 @@ class ItbOrderController extends Controller
                 'success' => false,
             ];
         }
+    }
+
+    /**
+     * @todo было бы неплохо перенести этот метод в другой компонент, где будет не только сдек
+     */
+    public function getSdekPickupPointForCity(string $city = '')
+    {
+        global $APPLICATION, $SDEK_PICKUP_RESULT;
+
+        $city = trim(strip_tags($city));
+        if (empty($city)) {
+            return [
+                'success' => false,
+                'error' => 'Город не указан',
+            ];
+        }
+
+        $_SESSION['IPOLSDEK_city'] = $city;
+        $SDEK_PICKUP_RESULT = null;
+
+        $APPLICATION->IncludeComponent(
+            "ipol:ipol.sdekPickup",
+            "ajax",
+            [
+                "CNT_BASKET"      => "N",
+                "CNT_DELIV"       => "Y",
+                "COUNTRIES"       => [],
+                "FORBIDDEN"       => [],
+                "MODE"            => "both",
+                "NOMAPS"          => "N",
+                "PAYER"           => "1",
+                "PAYSYSTEM"       => "1",
+                "SEARCH_ADDRESS"  => "N",
+            ]
+        );
+
+        if (!empty($SDEK_PICKUP_RESULT)) {
+            return $SDEK_PICKUP_RESULT;
+        }
+
+        return [
+            'success' => false,
+        ];
     }
 }

@@ -87,26 +87,6 @@ export const getPvz = async (profileId, locationCode, paymentId) => {
     return result.data;
 };
 
-/**
- * @param {string} city 
- */
-export const getSdekPvz = async (city) => {
-    const params = new URLSearchParams({
-        sessid: bxSessid,
-        city: city
-    });
-
-    const response = await fetchHelper({
-        url: `/ajax/getSdekPoints.php?${params.toString()}`,
-        method: 'GET'
-    });
-    const result = await response.json();
-    if (!result.data || result.error) {
-        throw new Error;
-    }
-    return result.data;
-};
-
 export const cancel = async (id) => {
     const formData = new URLSearchParams({
         id: id,
@@ -132,6 +112,27 @@ export const initPay = async (orderId, sendSms = false) => {
     });
     const response = await fetchHelper({
         url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:order&action=initPay',
+        formData: formData, method: 'POST'
+    });
+    const result = await response.json();
+    if (!result.data || result.data.success === false) {
+        if(result.data?.error){
+            throw new ResultError(result.data.error);
+        }
+        throw new Error;
+    }
+    return result.data;
+}
+
+/**
+ * @param {string} city 
+ */
+export const getSdekPickupPointForCity = async (city) => {
+    const formData = new URLSearchParams({
+        city: city,
+    });
+    const response = await fetchHelper({
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:order&action=getSdekPickupPointForCity',
         formData: formData, method: 'POST'
     });
     const result = await response.json();

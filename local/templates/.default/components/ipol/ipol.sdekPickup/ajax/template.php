@@ -41,4 +41,6 @@ if($arResult['PVZ'][$arResult['city']]){
     $result['error'] = true;
 }
 
-WebHelper::jsonAnswer($result);
+global $SDEK_PICKUP_RESULT;
+
+$SDEK_PICKUP_RESULT = $result;
