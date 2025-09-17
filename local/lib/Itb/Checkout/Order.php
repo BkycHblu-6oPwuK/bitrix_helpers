@@ -260,4 +260,24 @@ class Order
             $curBasket->save();
         }
     }
+
+    public static function initPay(\Bitrix\Sale\Order $order, ?callable $filterPayment = null): \Bitrix\Sale\PaySystem\ServiceResult
+    {
+        $paymentCollection = $order->getPaymentCollection();
+        $payment = null;
+        if ($filterPayment) {
+            foreach ($paymentCollection as $paymentItem) {
+                if ($filterPayment($paymentItem)) {
+                    $payment = $paymentItem;
+                    break;
+                }
+            }
+        } else {
+            $payment = $paymentCollection[0];
+        }
+
+        if (!$payment) return (new \Bitrix\Sale\PaySystem\ServiceResult())->addError(new \Bitrix\Main\Error('not found payment'));
+        $service  = \Bitrix\Sale\PaySystem\Manager::getObjectById($payment->getPaymentSystemId());
+        return $service->initiatePay($payment, \Bitrix\Main\Context::getCurrent()->getRequest(), \Bitrix\Sale\PaySystem\BaseServiceHandler::STRING);
+    }
 }

@@ -140,4 +140,24 @@ class ItbOrderController extends Controller
             ];
         }
     }
+
+    public function initPayAction($orderId, $sendSms = 0)
+    {
+        try {
+            $order  = \Bitrix\Sale\Order::load($orderId);
+            $filter = $sendSms ? fn(\Bitrix\Sale\Payment $payment) => str_ends_with(strtolower($payment->getPaySystem()->getField('CODE') ?: ''), 'sms') : null;
+            $result = CheckoutOrder::initPay($order, $filter);
+            if (!$result->isResultApplied()) {
+                throw new \Exception();
+            }
+            return [
+                'url' => $sendSms ? '' : $result->getPaymentUrl(),
+                'success' => true,
+            ];
+        } catch (Throwable $e) {
+            return [
+                'success' => false,
+            ];
+        }
+    }
 }

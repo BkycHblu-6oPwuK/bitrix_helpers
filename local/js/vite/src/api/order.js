@@ -124,3 +124,22 @@ export const cancel = async (id) => {
     }
     return result.data;
 }
+
+export const initPay = async (orderId, sendSms = false) => {
+    const formData = new URLSearchParams({
+        orderId: orderId,
+        sendSms: sendSms ? 1 : 0,
+    });
+    const response = await fetchHelper({
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:order&action=initPay',
+        formData: formData, method: 'POST'
+    });
+    const result = await response.json();
+    if (!result.data || result.data.success === false) {
+        if(result.data?.error){
+            throw new ResultError(result.data.error);
+        }
+        throw new Error;
+    }
+    return result.data;
+}
