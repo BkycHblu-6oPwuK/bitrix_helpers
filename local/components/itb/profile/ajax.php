@@ -3,7 +3,7 @@
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Type\DateTime;
 use Itb\Core\Config;
-use Itb\Exceptions\UserNotFoundException;
+use Itb\User\Exceptions\UserNotFoundException;
 use Itb\User\Services\ProfileService;
 use Itb\User\Phone\Phone;
 use Itb\User\User;
@@ -102,7 +102,7 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     public function getOrdersAction()
     {
         try {
-            $result = (new \Itb\User\Profile\OrdersBuilder(new \Itb\Repository\OrderRepository))->build();
+            $result = (new \Itb\User\Profile\OrdersBuilder(new \Itb\Catalog\Repository\OrderRepository))->build();
             $result['success'] = true;
             return $result;
         } catch (\Exception $e) {
@@ -115,7 +115,7 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     public function getDressingAction()
     {
         try {
-            $result = (new \Itb\User\Profile\DressingBuilder(new \Itb\Repository\OrderRepository))->build();
+            $result = (new \Itb\User\Profile\DressingBuilder(new \Itb\Catalog\Repository\OrderRepository))->build();
             $result['success'] = true;
             return $result;
         } catch (\Exception $e) {
@@ -129,7 +129,7 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     {
         try {
             $result = [
-                'questions' => (new \Itb\User\Profile\QuestionsBuilder(new \Itb\Repository\Iblock\QuestionRepository))->build(),
+                'questions' => (new \Itb\User\Profile\QuestionsBuilder(new \Itb\Iblock\Repository\QuestionRepository))->build(),
                 'success' => true
             ];
             return $result;

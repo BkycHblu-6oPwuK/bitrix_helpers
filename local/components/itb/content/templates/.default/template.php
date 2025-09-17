@@ -1,7 +1,7 @@
 <?php
 
 use Itb\Core\Helpers\IblockHelper;
-use Itb\Enum\ContentTypes;
+use Itb\Main\Enum\ContentTypes;
 
 foreach ($arResult as $item) {
 	switch ($item['type']) {

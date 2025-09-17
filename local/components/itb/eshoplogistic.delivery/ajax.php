@@ -35,7 +35,7 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
             $dtoList = [];
             if (isset($result[0]['terminals']) && is_array($result[0]['terminals'])) {
                 foreach ($result[0]['terminals'] as $terminal) {
-                    $dto = new \Itb\Checkout\Delivery\PickPointDTO();
+                    $dto = new \Itb\Catalog\PickPointDTO();
                     $dto->id = $terminal['code'] ?? '';
                     $dto->name = $terminal['name'] ?? '';
                     $dto->city = $terminal['settlement'] ?? '';

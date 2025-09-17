@@ -3,9 +3,9 @@
 namespace Itb\User\Services;
 
 use Bitrix\Main\Application;
-use Itb\Exceptions\CheckwordValidationException;
-use Itb\Exceptions\IncorrectOldPasswordException;
-use Itb\Exceptions\UserNotFoundException;
+use Itb\User\Exceptions\CheckwordValidationException;
+use Itb\User\Exceptions\IncorrectOldPasswordException;
+use Itb\User\Exceptions\UserNotFoundException;
 use Itb\User\UserRepository;
 use Itb\User\PasswordValidator;
 use Itb\User\User;

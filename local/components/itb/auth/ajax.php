@@ -4,10 +4,10 @@ use Bitrix\Main\Context;
 use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Web\Uri;
-use Itb\Contracts\SmsCodeContract;
-use Itb\Exceptions\IncorrectOldPasswordException;
-use Itb\Exceptions\UserNotFoundException;
-use Itb\Helpers\PageHelper;
+use Itb\Notification\Contracts\SmsCodeContract;
+use Itb\User\Exceptions\IncorrectOldPasswordException;
+use Itb\User\Exceptions\UserNotFoundException;
+use Itb\Main\PageHelper;
 use Itb\User\UserRepository;
 use Itb\User\Services\AuthService;
 use Itb\User\Phone\Phone;
@@ -162,14 +162,14 @@ class ItbAuthController extends \Bitrix\Main\Engine\Controller
         try {
             $phone = new Phone($phoneNumber);
             /**
-             * @var SmsCodeContract|\Itb\Services\Sms\SmsCodeService $service
+             * @var SmsCodeContract|\Itb\Notification\Services\Sms\SmsCodeService $service
              */
             $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
             $service->sendCode($phone);
             return [
                 'success' => true
             ];
-        } catch (\Itb\Exceptions\SmsException $e) {
+        } catch (\Itb\Notification\Exceptions\SmsException $e) {
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -186,7 +186,7 @@ class ItbAuthController extends \Bitrix\Main\Engine\Controller
         try {
             $phone = new Phone($phoneNumber);
             /**
-             * @var SmsCodeContract|\Itb\Services\Sms\SmsCodeService $service
+             * @var SmsCodeContract|\Itb\Notification\Services\Sms\SmsCodeService $service
              */
             $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
             $result = $service->checkCode($phone, (int)$code);

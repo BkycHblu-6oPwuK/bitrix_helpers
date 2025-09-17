@@ -1,5 +1,5 @@
 <?
-use Itb\Enum\Gender;
+use Itb\User\Enum;
 if (empty($arResult['menu'])) return;
 $isWoman = $arParams['gender'] === Gender::WOMAN;
 $title = $isWoman ? 'Женщинам' : 'Мужчинам';

@@ -8,7 +8,7 @@ use Bitrix\Sale\Basket;
 use Bitrix\Sale\Order;
 use Itb\Catalog\BasketFacade;
 use Itb\Catalog\PersonType;
-use Itb\Checkout\Order as CheckoutOrder;
+use Itb\Catalog\Order as CatalogOrder;
 use Itb\Dressing\Options;
 use Itb\User\Services\AuthService;
 use Itb\User\Phone\Phone;
@@ -71,8 +71,8 @@ class DressingService
         $order->setPersonTypeId(PersonType::getIndividualPersonId());
         $order->setBasket($basket);
 
-        CheckoutOrder::addShipment($order);
-        CheckoutOrder::addPayment($order, $this->options->pay);
+        CatalogOrder::addShipment($order);
+        CatalogOrder::addPayment($order, $this->options->pay);
 
         $this->setOrderProperties($order, $user);
 
@@ -87,11 +87,11 @@ class DressingService
     {
         $propertyCollection = $order->getPropertyCollection();
 
-        CheckoutOrder::setProperty($propertyCollection, 'NAME', $user->getName());
-        CheckoutOrder::setProperty($propertyCollection, 'LAST_NAME', $user->getLastName() ?: '');
-        CheckoutOrder::setProperty($propertyCollection, 'EMAIL', $user->getEmail());
-        CheckoutOrder::setProperty($propertyCollection, 'PHONE', $user->getPhoneAsString());
-        CheckoutOrder::setProperty($propertyCollection, 'IS_DRESSING', 'Y');
+        CatalogOrder::setProperty($propertyCollection, 'NAME', $user->getName());
+        CatalogOrder::setProperty($propertyCollection, 'LAST_NAME', $user->getLastName() ?: '');
+        CatalogOrder::setProperty($propertyCollection, 'EMAIL', $user->getEmail());
+        CatalogOrder::setProperty($propertyCollection, 'PHONE', $user->getPhoneAsString());
+        CatalogOrder::setProperty($propertyCollection, 'IS_DRESSING', 'Y');
     }
 
     public function toggleBasketItem(int $offerId): string

@@ -3,9 +3,9 @@
 global $APPLICATION;
 use Bitrix\Main\Page\Asset;
 use Itb\Core\Assets\Vite;
-use Itb\Enum\Gender;
-use Itb\Helpers\CatalogHelper;
-use Itb\Helpers\PageHelper;
+use Itb\User\Enum;
+use Itb\Catalog\CatalogHelper;
+use Itb\Main\PageHelper;
 use Itb\User\User;
 
 $curPage = $APPLICATION->GetCurPage();

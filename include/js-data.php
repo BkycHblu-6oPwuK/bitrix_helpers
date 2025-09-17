@@ -1,7 +1,7 @@
 <?php
 
 use Itb\Core\Config;
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 ?>
 <script id="js-data" type="application/json">
 	<?= \Bitrix\Main\Web\Json::encode([

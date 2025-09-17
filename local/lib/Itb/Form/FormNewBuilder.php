@@ -4,7 +4,7 @@ namespace Itb\Form;
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Web\Uri;
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 
 class FormNewBuilder
 {

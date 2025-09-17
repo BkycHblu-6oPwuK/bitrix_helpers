@@ -1,8 +1,8 @@
 <?php
 namespace Itb\User\Services;
 
-use Itb\Exceptions\ChangePasswordException;
-use Itb\Exceptions\InvalidPasswordException;
+use Itb\User\Exceptions\ChangePasswordException;
+use Itb\User\Exceptions\InvalidPasswordException;
 use Itb\User\UserRepository;
 use Itb\User\User;
 use Itb\User\UserValidator;

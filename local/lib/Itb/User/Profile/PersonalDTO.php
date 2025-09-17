@@ -1,7 +1,7 @@
 <?php
 namespace Itb\User\Profile;
 
-use Itb\Enum\Gender;
+use Itb\User\Enum;
 
 class PersonalDTO 
 {

@@ -8,7 +8,7 @@ use Bitrix\Main\Request;
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
 use Itb\Dressing\Services\DressingService;
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 
 class DressingController extends Controller
 {

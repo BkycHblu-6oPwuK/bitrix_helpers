@@ -1,7 +1,7 @@
 <?php
 global $APPLICATION;
 
-use Itb\Checkout\Delivery\PickPointDTO;
+use Itb\Catalog\PickPointDTO;
 use Itb\Core\Helpers\WebHelper;
 
 $result = [

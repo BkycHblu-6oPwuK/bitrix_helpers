@@ -1,6 +1,6 @@
 <?
 
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 $APPLICATION->SetTitle("Оформление заказа");

@@ -1,6 +1,6 @@
 <?php
 
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 ?>
 <div id="vue-dressing-header">
     <a class="header__main-dressing">

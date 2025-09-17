@@ -3,7 +3,7 @@
 use Illuminate\Support\Collection;
 use Itb\Catalog\Products;
 use Itb\Core\Helpers\IblockHelper;
-use Itb\Enum\ContentTypes;
+use Itb\Main\Enum\ContentTypes;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();

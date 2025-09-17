@@ -1,6 +1,6 @@
 <?php
 
-use Itb\Helpers\CatalogHelper;
+use Itb\Catalog\CatalogHelper;
 
 class ItbCatalogSectionList extends \CBitrixComponent
 {

@@ -6,8 +6,8 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Web\Uri;
 use Itb\Catalog\Products;
 use Itb\Catalog\Sorting;
-use Itb\Helpers\CatalogHelper;
-use Itb\Helpers\PageHelper;
+use Itb\Catalog\CatalogHelper;
+use Itb\Main\PageHelper;
 
 class CatalogSection
 {

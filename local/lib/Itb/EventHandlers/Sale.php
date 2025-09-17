@@ -4,8 +4,8 @@ namespace Itb\EventHandlers;
 
 use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
-use Itb\Checkout\Delivery\ExtraServices\MyPriceExtraService;
-use Itb\Enum\OrderStatuses;
+use Itb\Catalog\ExtraServices\MyPriceExtraService;
+use Itb\Catalog\Enum\OrderStatuses;
 use Itb\Restrictions\UserRestriction;
 
 class Sale

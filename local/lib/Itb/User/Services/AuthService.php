@@ -2,9 +2,9 @@
 
 namespace Itb\User\Services;
 
-use Itb\Exceptions\IncorrectOldPasswordException;
-use Itb\Exceptions\RegistrationException;
-use Itb\Exceptions\UserNotFoundException;
+use Itb\User\Exceptions\IncorrectOldPasswordException;
+use Itb\User\Exceptions\RegistrationException;
+use Itb\User\Exceptions\UserNotFoundException;
 use Itb\User\UserRepository;
 use Itb\User\PasswordValidator;
 use Itb\User\User;

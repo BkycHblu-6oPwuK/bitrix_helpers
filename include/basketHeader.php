@@ -1,6 +1,6 @@
 <?php
 
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 ?>
 <div id="vue-header-cart">
     <a class="header__main-cart">

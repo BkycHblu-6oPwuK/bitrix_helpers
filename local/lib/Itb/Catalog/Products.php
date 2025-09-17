@@ -7,8 +7,8 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\ORM\Fields\ExpressionField;
 use Bitrix\Main\Type\DateTime;
 use Itb\Catalog\Discount\ProductsDiscount;
-use Itb\Helpers\CatalogHelper;
-use Itb\Repository\StoreRepository;
+use Itb\Catalog\CatalogHelper;
+use Itb\Catalog\Repository\StoreRepository;
 
 class Products
 {

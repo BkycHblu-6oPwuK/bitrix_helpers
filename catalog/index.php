@@ -1,6 +1,6 @@
 <?
 
-use Itb\Helpers\CatalogHelper;
+use Itb\Catalog\CatalogHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 

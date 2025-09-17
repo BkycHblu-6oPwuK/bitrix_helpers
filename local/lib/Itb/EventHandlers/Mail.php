@@ -4,8 +4,8 @@ namespace Itb\EventHandlers;
 
 use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Sale\Order;
-use Itb\Checkout\Order as CheckoutOrder;
-use Itb\Contracts\SmsContract;
+use Itb\Catalog\Order as CatalogOrder;
+use Itb\Notification\Contracts\SmsContract;
 use Itb\Notification\Enum\Channels;
 use Itb\Notification\Enum\NotificationStatuses;
 use Itb\Notification\Services\NotificationPreferenceService;
@@ -24,7 +24,7 @@ class Mail
         $result = new \Bitrix\Main\Entity\EventResult();
         $order = static::getOrder($cFields);
         if ($order) {
-            $propertyValues = CheckoutOrder::getPropertyValues($order->getPropertyCollection());
+            $propertyValues = CatalogOrder::getPropertyValues($order->getPropertyCollection());
             $cFields['TRACK_NUMBER'] = $propertyValues['TRACK_NUMBER'] ?? '';
             $cFields['ORDER_USER'] = static::getUserName($propertyValues, $user);
         }

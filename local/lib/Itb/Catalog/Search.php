@@ -4,7 +4,7 @@ namespace Itb\Catalog;
 
 use Bitrix\Main\Loader;
 use CSearch;
-use Itb\Helpers\CatalogHelper;
+use Itb\Catalog\CatalogHelper;
 
 class Search
 {

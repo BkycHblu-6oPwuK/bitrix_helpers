@@ -9,7 +9,7 @@
  */
 
 use Bitrix\Main\Context;
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();

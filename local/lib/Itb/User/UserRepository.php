@@ -2,7 +2,7 @@
 
 namespace Itb\User;
 
-use Itb\Exceptions\ValidationException;
+use Itb\User\Exceptions\ValidationException;
 use Itb\User\Phone\Phone;
 use Itb\User\Phone\PhoneFormatter;
 

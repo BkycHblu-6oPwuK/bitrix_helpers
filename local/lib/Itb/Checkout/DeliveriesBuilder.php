@@ -6,8 +6,8 @@ use Bitrix\Sale\Order;
 use Illuminate\Support\Collection;
 use Itb\Catalog\Price;
 use Itb\Checkout\Delivery\BaseDelivery;
-use Itb\Checkout\Order as CheckoutOrder;
-use Itb\Repository\StoreRepository;
+use Itb\Catalog\Order as CatalogOrder;
+use Itb\Catalog\Repository\StoreRepository;
 
 class DeliveriesBuilder
 {
@@ -113,7 +113,7 @@ class DeliveriesBuilder
 
     private function buildLocation(DeliveryiesDTO $dto)
     {
-        $props = CheckoutOrder::getPropertyValues($this->orderProperties);
+        $props = CatalogOrder::getPropertyValues($this->orderProperties);
         $dto->location = $props['LOCATION'] ?? '';
         $dto->city = $props['CITY'] ?? '';
         $dto->address = $props['ADDRESS'] ?? '';

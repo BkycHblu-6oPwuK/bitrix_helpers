@@ -5,7 +5,7 @@ namespace Itb\User;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Type\DateTime;
 use Itb\Core\Config;
-use Itb\Enum\Gender;
+use Itb\User\Enum;
 use Itb\User\UserRepository;
 use Itb\User\Phone\Phone;
 

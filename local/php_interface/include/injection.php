@@ -1,10 +1,10 @@
 <?php
 
 use Bitrix\Main\DI\ServiceLocator;
-use Itb\Contracts\SmsCodeContract;
-use Itb\Contracts\SmsContract;
-use Itb\Services\Sms\SmsAeroService;
-use Itb\Services\Sms\SmsCodeService;
+use Itb\Notification\Contracts\SmsCodeContract;
+use Itb\Notification\Contracts\SmsContract;
+use Itb\Notification\Services\Sms\SmsAeroService;
+use Itb\Notification\Services\Sms\SmsCodeService;
 
 ServiceLocator::getInstance()->addInstanceLazy(SmsContract::class, [
     'className' => SmsAeroService::class

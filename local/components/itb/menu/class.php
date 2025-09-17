@@ -4,9 +4,9 @@ use Bitrix\Iblock\SectionElementTable;
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\Loader;
 use Itb\Core\Helpers\IblockHelper;
-use Itb\Enum\Gender;
-use Itb\Helpers\CatalogHelper;
-use Itb\Helpers\PageHelper;
+use Itb\User\Enum;
+use Itb\Catalog\CatalogHelper;
+use Itb\Main\PageHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();

@@ -2,7 +2,7 @@
 
 use Bitrix\Main\Page\Asset;
 use Itb\Core\Assets\Vite;
-use Itb\Helpers\PageHelper;
+use Itb\Main\PageHelper;
 ?>
 <!DOCTYPE html>
 

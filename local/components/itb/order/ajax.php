@@ -6,8 +6,8 @@ use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Order;
-use Itb\Checkout\Order as CheckoutOrder;
-use Itb\Enum\OrderStatuses;
+use Itb\Catalog\Order as CatalogOrder;
+use Itb\Catalog\Enum\OrderStatuses;
 use Itb\User\User;
 
 class ItbOrderController extends Controller
@@ -61,8 +61,8 @@ class ItbOrderController extends Controller
             return [
                 'success' => true,
                 'data' => [
-                    'status' => CheckoutOrder::getStatusName($order),
-                    'date' => CheckoutOrder::getDateFormatted($order)
+                    'status' => CatalogOrder::getStatusName($order),
+                    'date' => CatalogOrder::getDateFormatted($order)
                 ] // или сделать builder для заказа чтобы возвращать весь заказ
             ];
         } catch (\Exception $e) {
@@ -78,7 +78,7 @@ class ItbOrderController extends Controller
             if (!Loader::includeModule('sale')) {
                 throw new \Exception('Модуль sale не подключен');
             }
-            CheckoutOrder::copyOrder($orderId);
+            CatalogOrder::copyOrder($orderId);
             return [
                 'success' => true,
             ];
@@ -146,7 +146,7 @@ class ItbOrderController extends Controller
         try {
             $order  = \Bitrix\Sale\Order::load($orderId);
             $filter = $sendSms ? fn(\Bitrix\Sale\Payment $payment) => str_ends_with(strtolower($payment->getPaySystem()->getField('CODE') ?: ''), 'sms') : null;
-            $result = CheckoutOrder::initPay($order, $filter);
+            $result = CatalogOrder::initPay($order, $filter);
             if (!$result->isResultApplied()) {
                 throw new \Exception();
             }

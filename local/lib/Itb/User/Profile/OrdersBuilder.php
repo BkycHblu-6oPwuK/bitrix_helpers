@@ -4,11 +4,11 @@ namespace Itb\User\Profile;
 
 use Illuminate\Support\Collection;
 use Itb\Catalog\BasketFacade;
-use Itb\Checkout\Order as CheckoutOrder;
+use Itb\Catalog\Order as CatalogOrder;
 use Itb\Checkout\TotalBuilder;
 use Itb\Core\Helpers\PaginationHelper;
-use Itb\Enum\OrderStatuses;
-use Itb\Repository\OrderRepository;
+use Itb\Catalog\Enum\OrderStatuses;
+use Itb\Catalog\Repository\OrderRepository;
 use Itb\User\Phone\PhoneFormatter;
 use Itb\User\User;
 use Bitrix\Main\ORM\Query\Query;
@@ -109,7 +109,7 @@ class OrdersBuilder
         $user = User::current();
         $totalBuilder = new TotalBuilder;
         foreach ($orders as $order) {
-            $props = CheckoutOrder::getPropertyValues($order->getPropertyCollection());
+            $props = CatalogOrder::getPropertyValues($order->getPropertyCollection());
             $phone = $phoneFormatter->formatForSite($props['PHONE']) ?? $user->getPhone()?->getFormatted() ?? '';
             $name = $props['NAME'] ?: $user->getName();
             $basketData = (new BasketFacade($order->getBasket()))->getBasketData();
@@ -119,8 +119,8 @@ class OrdersBuilder
             $dto->isPaid = $order->isPaid();
             $dto->isCanceled = $order->isCanceled();
             $dto->isSuccess = !$dto->isCanceled && $dto->isPaid && $order->getField('STATUS_ID') == OrderStatuses::SUCCESS->value;
-            $dto->status = CheckoutOrder::getStatusName($order);
-            $dto->date = CheckoutOrder::getDateFormatted($order);
+            $dto->status = CatalogOrder::getStatusName($order);
+            $dto->date = CatalogOrder::getDateFormatted($order);
             $dto->items = $basketData['items'];
             $dto->summary = $basketData['summary'];
             $dto->recipient = "{$name}, {$phone}";

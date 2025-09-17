@@ -4,7 +4,7 @@ namespace Itb\Agents;
 
 use Bitrix\Main\Loader;
 use Itb\Catalog\Price;
-use Itb\Helpers\CatalogHelper;
+use Itb\Catalog\CatalogHelper;
 
 class SetMinPrice
 {

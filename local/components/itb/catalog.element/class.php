@@ -11,7 +11,7 @@ use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Web\Json;
 use Itb\Catalog\Products;
 use Itb\Core\Helpers\DateHelper;
-use Itb\Helpers\CatalogHelper;
+use Itb\Catalog\CatalogHelper;
 use Itb\Reviews\Options;
 use Itb\Reviews\Services\ReviewsService;
 use Itb\User\User;

@@ -2,7 +2,7 @@
 
 namespace Itb\User\Profile;
 
-use Itb\Repository\Iblock\QuestionRepository;
+use Itb\Iblock\Repository\QuestionRepository;
 
 class QuestionsBuilder
 {

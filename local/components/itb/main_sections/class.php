@@ -6,7 +6,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 use Bitrix\Main\FileTable;
 use Bitrix\Main\ORM\Fields\ExpressionField;
 use Itb\Core\Helpers\IblockHelper;
-use Itb\Helpers\CatalogHelper;
+use Itb\Catalog\CatalogHelper;
 
 class ItbMainSections extends \CBitrixComponent
 {

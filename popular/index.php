@@ -2,8 +2,8 @@
 
 use Bitrix\Main\Data\Cache;
 use Itb\Catalog\Products;
-use Itb\Helpers\CatalogHelper;
-use Itb\Helpers\PageHelper;
+use Itb\Catalog\CatalogHelper;
+use Itb\Main\PageHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 
