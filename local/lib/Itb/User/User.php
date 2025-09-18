@@ -4,7 +4,7 @@ namespace Itb\User;
 
 use Bitrix\Main\UserTable;
 use Bitrix\Main\Type\Date;
-use Itb\User\Enum;
+use Itb\User\Enum\Gender;
 use Itb\User\UserRepository;
 use Itb\User\Phone\Phone;
 
