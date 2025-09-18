@@ -22,6 +22,7 @@ import '../css/page-favourites.css';
 import '../css/page-offer.css';
 import '../css/page-sizing.css';
 import '../css/yandex-maps.css';
+import '../css/animation.css';
 
 // общие vue приложения
 import '@/app/auth/index.js'
@@ -31,6 +32,7 @@ import '@/app/favouriteSmallHeader/index.js';
 import '@/app/cartHeader/index.js';
 import '@/app/dressingHeader/index.js';
 import '@/app/searchHeader/index.js';
+import '@/app/cookieNotice/index.js';
 import './vueAppsInit';
 
 import './main';
