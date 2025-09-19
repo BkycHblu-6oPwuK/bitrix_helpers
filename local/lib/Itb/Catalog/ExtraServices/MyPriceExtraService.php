@@ -34,11 +34,6 @@ class MyPriceExtraService extends Base
         );
     }
 
-    public static function getCurDir(): string
-    {
-        return __DIR__;
-    }
-
     protected function getEditHtml($selectedId, $prefix)
     {
         return '';

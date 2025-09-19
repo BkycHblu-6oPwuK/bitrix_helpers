@@ -140,7 +140,7 @@ class OrdersBuilder
             /** @var ?\Bitrix\Sale\Shipment */
             $shipment = $order->getShipmentCollection()[0];
             if ($shipment) {
-                $dto->delivery = $shipment->getDeliveryName();
+                $dto->delivery = $shipment->getDelivery()->getName();
             }
 
             $result[] = $dto;

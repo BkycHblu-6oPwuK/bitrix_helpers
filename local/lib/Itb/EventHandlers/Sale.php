@@ -4,9 +4,12 @@ namespace Itb\EventHandlers;
 
 use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
+use Itb\Catalog\Cashbox\CashboxAtolFarm;
+use Itb\Catalog\Cashbox\PrepaymentCheck;
 use Itb\Catalog\ExtraServices\MyPriceExtraService;
 use Itb\Catalog\Enum\OrderStatuses;
 use Itb\Restrictions\UserRestriction;
+use Bitrix\Main\EventResult;
 
 class Sale
 {
@@ -37,33 +40,56 @@ class Sale
 
     public static function onSaleDeliveryExtraServicesClassNamesBuildList()
     {
-        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', MyPriceExtraService::getCurDir());
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(MyPriceExtraService::class));
         return new EventResult(
             EventResult::SUCCESS,
             [
-                MyPriceExtraService::class => $dir . '/MyPriceExtraService.php'
+                MyPriceExtraService::class => $filepath
             ]
         );
     }
 
     public static function onSalePaySystemRestrictionsClassNamesBuildList()
     {
-        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', UserRestriction::getCurDir());
-        return new \Bitrix\Main\EventResult(
-            \Bitrix\Main\EventResult::SUCCESS,
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(UserRestriction::class));
+        return new EventResult(
+            EventResult::SUCCESS,
             [
-                UserRestriction::class => $dir . '/UserRestriction.php',
+                UserRestriction::class => $filepath,
             ]
         );
     }
 
     public static function onSaleCashboxRestrictionsClassNamesBuildList()
     {
-        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', UserRestriction::getCurDir());
-        return new \Bitrix\Main\EventResult(
-            \Bitrix\Main\EventResult::SUCCESS,
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(UserRestriction::class));
+        return new EventResult(
+            EventResult::SUCCESS,
             [
-                UserRestriction::class => $dir . '/UserRestriction.php',
+                UserRestriction::class => $filepath,
+            ]
+        );
+    }
+
+    /*
+    public static function onGetCustomCashboxHandlers()
+    {
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(YourCashboxClass::class);
+        return new EventResult(
+            EventResult::SUCCESS,
+            [
+                CashboxAtolFarm::class => $filepath,
+            ]
+        );
+    }*/
+
+    public static function onGetCustomCheckList()
+    {
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(PrepaymentCheck::class));
+        return new EventResult(
+            EventResult::SUCCESS,
+            [
+                PrepaymentCheck::class => $filepath,
             ]
         );
     }

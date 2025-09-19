@@ -9,6 +9,9 @@ use Itb\User\Phone\Phone;
 use Itb\User\User;
 use Itb\User\UserValidator;
 
+/**
+ * @todo перенести бы c m1 функционалльную часть соединив с этой
+ */
 class ItbProfileController extends \Bitrix\Main\Engine\Controller
 {
     public function configureActions()
