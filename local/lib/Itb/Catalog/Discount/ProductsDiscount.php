@@ -20,7 +20,6 @@ class ProductsDiscount extends Discount
      */
     public function __construct(array $productsIds, array $catalogTypePrices)
     {
-        $this->initCurrency()->initSiteId();
         $this->productsIds = $productsIds;
         $this->catalogTypePrices = $catalogTypePrices;
         parent::__construct($this->makeBasket());
@@ -28,7 +27,7 @@ class ProductsDiscount extends Discount
 
     protected function makeBasket(): BasketBase
     {
-        $basket = Basket::create(static::$siteId);
+        $basket = Basket::create($this->getSiteId());
         $priceRows = $this->getProductPriceRows();
         foreach ($this->productsIds as $productId) {
             try {
@@ -42,7 +41,7 @@ class ProductsDiscount extends Discount
                     'BASE_PRICE' => $priceRow['PRICE'],
                     'CURRENCY' => $priceRow['CURRENCY'],
                     'PRODUCT_PRICE_ID' => $priceRow['ID'],
-                    'LID' => static::$siteId,
+                    'LID' => $this->getSiteId(),
                     'CAN_BUY' => 'Y',
                     'DELAY' => 'N',
                     'PRICE_TYPE_ID' => $priceRow['CATALOG_GROUP_ID'],
@@ -64,13 +63,13 @@ class ProductsDiscount extends Discount
             'filter' => ['@PRODUCT_ID' => $this->productsIds, '@CATALOG_GROUP_ID' => $this->catalogTypePrices]
         ]);
         while ($priceRow = $dbPrice->fetch()) {
-            if (static::$currency != $priceRow['CURRENCY']) {
+            if (Price::getBaseCurrency() != $priceRow['CURRENCY']) {
                 $priceRow['PRICE'] = \CCurrencyRates::ConvertCurrency(
                     $priceRow['PRICE'],
                     $priceRow['CURRENCY'],
-                    static::$currency
+                    Price::getBaseCurrency()
                 );
-                $priceRow['CURRENCY'] = static::$currency;
+                $priceRow['CURRENCY'] = Price::getBaseCurrency();
             }
             $rows[(int)$priceRow['PRODUCT_ID']] = $priceRow;
         }

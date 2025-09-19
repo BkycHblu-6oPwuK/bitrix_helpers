@@ -21,7 +21,6 @@ class ProductDiscount extends Discount
      */
     public function __construct(int $productId, int $priceTypeId)
     {
-        $this->initCurrency()->initSiteId();
         $this->productId = $productId;
         $this->priceTypeId = $priceTypeId;
         parent::__construct($this->makeBasket());
@@ -29,7 +28,7 @@ class ProductDiscount extends Discount
 
     protected function makeBasket(): BasketBase
     {
-        $basket = Basket::create(static::$siteId);
+        $basket = Basket::create($this->getSiteId());
         try {
             $priceRow = $this->getProductPriceRow();
             $item = $basket->createItem('catalog', $this->productId);
@@ -40,7 +39,7 @@ class ProductDiscount extends Discount
                 'BASE_PRICE' => $priceRow['PRICE'],
                 'CURRENCY' => $priceRow['CURRENCY'],
                 'PRODUCT_PRICE_ID' => $priceRow['ID'],
-                'LID' => static::$siteId,
+                'LID' => $this->getSiteId(),
                 'CAN_BUY' => 'Y',
                 'DELAY' => 'N',
                 'PRICE_TYPE_ID' => $this->priceTypeId
@@ -58,13 +57,13 @@ class ProductDiscount extends Discount
         if (empty($priceRow)) {
             throw new \Exception();
         }
-        if (static::$currency != $priceRow['CURRENCY']) {
+        if (Price::getBaseCurrency() != $priceRow['CURRENCY']) {
             $priceRow['PRICE'] = \CCurrencyRates::ConvertCurrency(
                 $priceRow['PRICE'],
                 $priceRow['CURRENCY'],
-                static::$currency
+                Price::getBaseCurrency()
             );
-            $priceRow['CURRENCY'] = static::$currency;
+            $priceRow['CURRENCY'] = Price::getBaseCurrency();
         }
         return $priceRow;
     }

@@ -10,37 +10,26 @@ use Bitrix\Sale\Discount as SaleDiscount;
 use Bitrix\Sale\Order;
 
 Loader::includeModule('sale');
-Loader::includeModule('currency');
 
 class Discount
 {
-    protected static string $currency = '';
-    protected static string $siteId = '';
     protected readonly ?Order $order;
     protected readonly BasketBase $basket;
     protected ?array $discounts = null;
 
     public function __construct(BasketBase $basket)
     {
-        $this->initCurrency()->initSiteId();
         $this->basket = $basket;
         $this->order = $basket->getOrder();
     }
 
-    protected function initCurrency()
+    protected function getSiteId()
     {
-        if (!static::$currency) {
-            static::$currency = CurrencyManager::getBaseCurrency();
+        static $siteId = null;
+        if($siteId === null) {
+            $siteId = Context::getCurrent()->getSite() ?? $this->order?->getSiteId() ?? 's1';
         }
-        return $this;
-    }
-
-    protected function initSiteId()
-    {
-        if (!static::$siteId) {
-            static::$siteId = Context::getCurrent()->getSite();
-        }
-        return $this;
+        return $siteId;
     }
 
     public function getPrice(int|string $basketCode): ?float

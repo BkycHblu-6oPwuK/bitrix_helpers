@@ -73,7 +73,7 @@ class Price
         $oldPrice = $basePrice;
 
         $priceTypeId = static::getBasePriceId();
-        if($isDiscount) {
+        if ($isDiscount) {
             $priceTypeId = static::getDiscountPriceId();
         }
 
@@ -92,5 +92,15 @@ class Price
         $price['priceValue'] = $finalPrice;
         $price['priceFormatted'] = static::format($finalPrice);
         $price['discountPercent'] = static::getSalePercent($price['oldPriceValue'], $finalPrice);
+    }
+
+    public static function getBaseCurrency()
+    {
+        static $currency = null;
+        if ($currency === null) {
+            Loader::includeModule('currency');
+            $currency = \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+        }
+        return $currency;
     }
 }
