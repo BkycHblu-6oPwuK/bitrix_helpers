@@ -2,7 +2,6 @@
 
 namespace Itb\Catalog\Discount;
 
-use Bitrix\Main\Loader;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 
