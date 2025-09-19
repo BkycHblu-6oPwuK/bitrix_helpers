@@ -6,8 +6,6 @@ use Bitrix\Main\Loader;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 
-Loader::includeModule('catalog');
-
 class ProductsDiscount extends Discount
 {
     protected array $productsIds = [];

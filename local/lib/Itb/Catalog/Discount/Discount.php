@@ -2,7 +2,6 @@
 
 namespace Itb\Catalog\Discount;
 
-use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\BasketBase;
