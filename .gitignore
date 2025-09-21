@@ -76,6 +76,10 @@ ehthumbs.db
 # однако храним robots.txt — он нужен
 !/robots.txt
 
+# не файлы миграций
+!/local/php_interface/migrations/**/
+!/local/php_interface/migrations/**/*.xml
+
 # исключаем всякое от node.js
 node_modules
 bower_components
