@@ -1,13 +1,18 @@
 <?php
 
+
 namespace Itb\Checkout;
+
 
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\PropertyValueCollectionBase;
+use Itb\Catalog\Order;
+use Itb\Catalog\Price;
 use Itb\Checkout\CheckoutDTO;
 
 class CheckoutDTOBuilder
 {
+    const DELIVERY_EXTRA_SERVICES_REQUEST_KEY = 'DELIVERY_EXTRA_SERVICES';
     /**
      * @var \Bitrix\Sale\Order
      */
@@ -43,6 +48,7 @@ class CheckoutDTOBuilder
      */
     private $rules;
 
+
     /**
      * @param bool $rules
      *
@@ -53,6 +59,7 @@ class CheckoutDTOBuilder
         $this->rules = $rules;
         return $this;
     }
+
 
     /**
      * @param \Bitrix\Sale\Order $order
@@ -70,6 +77,7 @@ class CheckoutDTOBuilder
         return $this;
     }
 
+
     /**
      * @param string $profileId
      *
@@ -80,6 +88,7 @@ class CheckoutDTOBuilder
         $this->profileId = $profileId;
         return $this;
     }
+
 
     /**
      * @param PaymentsBuilder $paymentsBuilder
@@ -98,6 +107,7 @@ class CheckoutDTOBuilder
         return $this;
     }
 
+
     /**
      * @param DeliveriesBuilder $builder
      *
@@ -109,6 +119,7 @@ class CheckoutDTOBuilder
         return $this;
     }
 
+
     /**
      * @return CheckoutDTO
      */
@@ -117,7 +128,7 @@ class CheckoutDTOBuilder
         $dto = new CheckoutDTO();
 
         $basketData = $this->buildBasket();
-        (new TotalBuilder)->build($this->order, $basketData['summary']);  
+        $this->buildTotal($basketData['summary']);  
 
         $dto->items = $basketData['items'];
 
@@ -140,6 +151,7 @@ class CheckoutDTOBuilder
 
         return $dto;
     }
+
 
     private function buildDeliveries(DeliveriesBuilder $builder): DeliveryiesDTO
     {
@@ -176,6 +188,16 @@ class CheckoutDTOBuilder
         ];
     }
 
+    private function buildTotal(array &$basketSummary)
+    {
+        $basketSummary['deliveryPrice'] = $this->order->getDeliveryPrice();
+        $basketSummary['deliveryPriceFormatted'] = Price::format($basketSummary['deliveryPrice']);
+        $basketSummary['totalItemsPrice'] = $basketSummary['totalPrice'];
+        $basketSummary['totalItemsPriceFormatted'] = $basketSummary['totalPriceFormatted'];
+        $basketSummary['totalPrice'] = $basketSummary['deliveryPrice'] + $basketSummary['totalItemsPrice'];
+        $basketSummary['totalPriceFormatted'] = Price::format($basketSummary['totalPrice']);
+    }
+
     private function buildPropIdsMap(
         PaymentsBuilder $paymentsBuilder,
         PersonTypeBuilder $personTypeBuilder,
@@ -189,7 +211,7 @@ class CheckoutDTOBuilder
             'delivery' => 'DELIVERY_ID',
             'profileId' => 'PROFILE_ID',
             'profileChange' => 'profile_change',
-            'extraServices' => 'DELIVERY_EXTRA_SERVICES',
+            'extraServices' => static::DELIVERY_EXTRA_SERVICES_REQUEST_KEY,
             'locationType' => 'location_type', // code
             'locationModeSteps' => 'PERMANENT_MODE_STEPS', // 0|1
 
@@ -220,7 +242,9 @@ class CheckoutDTOBuilder
             'eshoplogisticAddress' => $props['ESHOPLOGISTIC_FULL_ADDRESS'] ? 'ORDER_PROP_' . $props['ESHOPLOGISTIC_FULL_ADDRESS']->getPropertyId() : '',
             'completionDate' => $props['COMPLETION_DATE'] ? 'ORDER_PROP_' . $props['COMPLETION_DATE']->getPropertyId() : '',
             'coordinates' => $props['COORDINATES'] ? 'ORDER_PROP_' . $props['COORDINATES']->getPropertyId() : '',
-            'postCodeChanged' => 'ZIP_PROPERTY_CHANGED' // Y|N
+            'postCodeChanged' => 'ZIP_PROPERTY_CHANGED', // Y|N
+            'distance' => $props['DISTANCE'] ? 'ORDER_PROP_' . $props['DISTANCE']->getPropertyId() : '',
+            'duration' => $props['DURATION'] ? 'ORDER_PROP_' . $props['DURATION']->getPropertyId() : '',
         ];
         return $map;
     }

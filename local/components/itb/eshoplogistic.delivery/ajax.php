@@ -35,7 +35,7 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
             $dtoList = [];
             if (isset($result[0]['terminals']) && is_array($result[0]['terminals'])) {
                 foreach ($result[0]['terminals'] as $terminal) {
-                    $dto = new \Itb\Catalog\PickPointDTO();
+                    $dto = new \Itb\Checkout\Delivery\PickPointDTO();
                     $dto->id = $terminal['code'] ?? '';
                     $dto->name = $terminal['name'] ?? '';
                     $dto->city = $terminal['settlement'] ?? '';
@@ -78,6 +78,12 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
     public static function calculateDeliveryDistanceAction(float $distance, float $duration)
     {
         try {
+            if ($distance <= 0 || $duration <= 0) {
+                return [
+                    'success' => true,
+                    'price' => 0,
+                ];
+            }
             $settings = Option::getForModule(Config::MODULE_ID);
             $weightDefault = $settings['weight_default'] ?: 5;
             $widthDefault = $settings['width_default'] ?: 100;
@@ -100,7 +106,7 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
             }
 
             $payload = [
-                'zone' => '6878b27a21c5c',
+                'zone' => '68d0e82be2649', // код зоны, можно будет переделать на передачу в запросе
                 'distance' => $distance,
                 'duration' => $duration,
                 'offers' => Json::encode($offers),
@@ -118,6 +124,10 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
                     throw new \RuntimeException($result['errors'][0]);
                 }
                 $cache->endDataCache($result);
+            }
+
+            if ($result['data']['price']['value']) {
+                $result['data']['price']['value'] = ceil($result['data']['price']['value'] / 100) * 100;
             }
 
             return [

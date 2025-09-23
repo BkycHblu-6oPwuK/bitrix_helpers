@@ -31,7 +31,7 @@ if (props.useScroll) {
 </script>
 
 <template>
-    <div v-if="show && items.length" ref="containerRef" class="location-list">
+    <div v-if="show" v-show="items.length" ref="containerRef" class="location-list">
         <div v-for="(item, key) in items" :key="key" @click="emits('select', item)" class="location-item">
             {{ item.display + (item.pathFormatted ? ', ' + item.pathFormatted : '') }}
         </div>

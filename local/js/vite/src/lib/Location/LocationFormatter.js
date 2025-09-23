@@ -5,14 +5,14 @@ class BitrixLocationFormatter {
             typeId: item.TYPE_ID,
             value: item.VALUE,
             path: item.PATH,
-            pathFormatted: this.getFullPath(item.PATH, pathItems),
+            pathFormatted: this.getFullPath(item.PATH),
             display: item.DISPLAY,
             isParent: item.IS_PARENT || false,
         }
     }
 
-    static getFullPath(path, pathItems) {
-        return path.map(id => pathItems[id]?.DISPLAY || id).join(', ');
+    static getFullPath(path) {
+        return path.map(item => item.DISPLAY).join(', ');
     }
 }
 

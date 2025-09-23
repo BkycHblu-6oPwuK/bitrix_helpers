@@ -7,17 +7,8 @@ class YandexMapPvzHandler extends BaseYandexMapHandler {
     }
 
     async initMap(pvzList) {
-        return new Promise((resolve, reject) => {
-            window.ymaps.ready(async () => {
-                try {
-                    await this.initMapBase(14, []);
-                    this.updatePlacemarks(pvzList);
-                    resolve();
-                } catch (err) {
-                    reject(err);
-                }
-            });
-        });
+        await this.initMapBase(14, []);
+        this.updatePlacemarks(pvzList);
     }
 
     updatePlacemarks(pvzList) {

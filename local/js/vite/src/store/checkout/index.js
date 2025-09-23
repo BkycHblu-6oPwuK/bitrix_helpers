@@ -93,6 +93,12 @@ const store = createStore({
         setSelectedStoreId(state, id) {
             state.delivery.storeSelectedId = id;
         },
+        setDistance(state, distance) {
+            state.delivery.distance = distance;
+        },
+        setDuration(state, duration) {
+            state.delivery.duration = duration;
+        },
         setErrors(state, errors) {
             state.errors = errors;
         },
@@ -192,6 +198,7 @@ const store = createStore({
         resetLocation({ commit }) {
             commit('setDeliveryPvzId', "");
             commit('setAddress', '');
+            commit('setCity', '');
             commit('setCoordinates', '');
         },
     },
@@ -205,12 +212,12 @@ const store = createStore({
         getPriceExtraService: (state) => {
             const delivery = state.delivery.deliveries[state.delivery.selectedId];
             if (!delivery || !delivery.extraServices.length) return null;
-            return delivery.extraServices.find((element) => element.code === 'DISTANCE_PRICE_SERVICE') || null
+            return delivery.extraServices.find((element) => element.isPriceService) || null
         },
         getExtraServices: (state) => {
             const delivery = state.delivery.deliveries[state.delivery.selectedId];
             if (!delivery || !delivery.extraServices.length) return null;
-            return delivery.extraServices.filter((element) => element.code !== 'DISTANCE_PRICE_SERVICE') || null
+            return delivery.extraServices.filter((element) => !element.isPriceService) || null
         },
         getPayments: (state) => state.payments,
         getActivePay: (state) => state.activePay,

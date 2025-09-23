@@ -36,33 +36,71 @@ class DeliveryDistanceMapHandler extends AbstractPlacemarkMapHandler {
     onMapClick(e) {
         const coords = e.get('coords');
         this.createOrUpdatePlacemark(coords);
+        if (this.mapClickHandler) {
+            this.mapClickHandler(e);
+        }
     }
 
-    drawRestrictPolygon() {
-        if (!Array.isArray(this.restrictArea) || this.restrictArea.length === 0) return;
+    async drawRestrictPolygon() {
+        if (Array.isArray(this.restrictArea) && this.restrictArea.length > 0) {
+            this.restrictPolygon = new window.ymaps.Polygon(
+                [this.restrictArea],
+                {
+                    hintContent: 'Зона доставки',
+                    balloonContent: 'Ограниченная зона доставки',
+                },
+                {
+                    fillColor: '#00FF0033',
+                    strokeColor: '#00AA00',
+                    strokeOpacity: 0.7,
+                    strokeWidth: 3,
+                    fillOpacity: 0.4,
+                }
+            );
+        } else {
+            try {
+                const result = await window.ymaps.borders.load('RU', {
+                    lang: 'ru',
+                    quality: 2,
+                });
+                // координаты всей россии (каждой области)
+                const allCoords = [];
 
-        this.restrictPolygon = new window.ymaps.Polygon(
-            [this.restrictArea],
-            {
-                hintContent: 'Зона доставки',
-                balloonContent: 'Ограниченная зона доставки',
-            },
-            {
-                fillColor: '#00FF0033',
-                strokeColor: '#00AA00',
-                strokeOpacity: 0.7,
-                strokeWidth: 3,
-                fillOpacity: 0.4,
+                result.features.forEach(f => {
+                    const coords = f.geometry.coordinates;
+                    coords.forEach(polygon => {
+                        allCoords.push(polygon);
+                    });
+                });
+
+                this.restrictPolygon = new window.ymaps.Polygon(allCoords, {
+                    hintContent: 'Россия',
+                    balloonContent: 'Единая зона доставки по РФ',
+                }, {
+                    fillColor: '#00FF0033',
+                    strokeColor: '#00AA00',
+                    strokeOpacity: 0.7,
+                    strokeWidth: 3,
+                    fillOpacity: 0.4,
+                });
+            } catch (e) {
+                showErrorNotification('Ошибка загрузки границ России');
+                return;
             }
-        );
+        }
+
+        if (!this.restrictPolygon) return;
 
         this.restrictPolygon.events.add('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
             const coords = e.get('coords');
-            let [_, name] = await YandexLocation.geocode(coords)
+            let [_, name] = await YandexLocation.geocode(coords);
             this.createOrUpdatePlacemark(coords);
-            this.locationSelectEmit(name, coords)
+            this.locationSelectEmit(name, coords);
+            if (this.mapClickHandler) {
+                this.mapClickHandler(e);
+            }
         });
 
         this.map.geoObjects.add(this.restrictPolygon);
@@ -75,6 +113,7 @@ class DeliveryDistanceMapHandler extends AbstractPlacemarkMapHandler {
     }
 
     routeMaker(coords) {
+        if (!this.enableRouteMaker) return;
         this.removeCurrentRoute();
         window.ymaps.route([this.center, coords]).then((route) => {
             this.currentRoute = route;
@@ -97,7 +136,6 @@ class DeliveryDistanceMapHandler extends AbstractPlacemarkMapHandler {
             if (!this.isPointInRestrictArea(coords)) {
                 isValid = false;
             }
-
             let caption = `Расстояние: ${readableDistance}, Время: ${readableDuration}`;
 
             if (!isValid) {

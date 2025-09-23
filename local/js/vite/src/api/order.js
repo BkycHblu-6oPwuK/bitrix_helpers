@@ -20,21 +20,6 @@ export const send = async (action, formData) => {
     return result.order;
 }
 
-export const getClient = async () => {
-    const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:eshoplogistic.delivery&action=getClient',
-        method: 'POST'
-    });
-    const result = await response.json();
-    if (!result.data || result.data.success === false) {
-        if (result.data?.error) {
-            throw new ResultError(result.data.error);
-        }
-        throw new Error;
-    }
-    return result.data;
-};
-
 /**
  * 
  * @param {*} distance расстояние в км
@@ -66,7 +51,7 @@ export const calculateDeliveryDistance = async (distance, duration) => {
  * @param {string} locationCode 
  * @param {Number} paymentId 
  */
-export const getPvz = async (profileId, locationCode, paymentId) => {
+export const getEshopLogisticPvzList = async (profileId, locationCode, paymentId) => {
     const params = new URLSearchParams({
         profileId: profileId,
         locationCode: locationCode,
@@ -76,6 +61,21 @@ export const getPvz = async (profileId, locationCode, paymentId) => {
     const response = await fetchHelper({
         url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:eshoplogistic.delivery&action=getPvzList',
         formData: params, method: 'POST'
+    });
+    const result = await response.json();
+    if (!result.data || result.data.success === false) {
+        if (result.data?.error) {
+            throw new ResultError(result.data.error);
+        }
+        throw new Error;
+    }
+    return result.data;
+};
+
+export const getEshopLogisticClient = async () => {
+    const response = await fetchHelper({
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:eshoplogistic.delivery&action=getClient',
+        method: 'POST'
     });
     const result = await response.json();
     if (!result.data || result.data.success === false) {

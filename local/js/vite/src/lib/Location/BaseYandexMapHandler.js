@@ -9,6 +9,7 @@ class BaseYandexMapHandler {
         this.map = null;
         this.currentRoute = null;
         this.userRouteLength = 0;
+        this.enableRouteMaker = true;
     }
 
     async getCoordinatesFromCityName(cityName) {
@@ -89,6 +90,7 @@ class BaseYandexMapHandler {
     }
 
     multiRouteMaker(coords, from = null) {
+        if(!this.enableRouteMaker) return;
         this.removeCurrentRoute();
         const multiRoute = new window.ymaps.multiRouter.MultiRoute({
             referencePoints: [from ?? this.center, coords],
@@ -102,6 +104,7 @@ class BaseYandexMapHandler {
     }
 
     routeMaker(coords, from = null) {
+        if(!this.enableRouteMaker) return;
         this.removeCurrentRoute();
         window.ymaps.route([from ?? this.center, coords]).then((route) => {
             this.currentRoute = route;
@@ -116,6 +119,11 @@ class BaseYandexMapHandler {
             this.map.geoObjects.remove(this.currentRoute);
             this.currentRoute = null;
         }
+    }
+
+    disableRouteMaker() {
+        this.enableRouteMaker = false;
+        this.removeCurrentRoute();
     }
 
     getDist() {

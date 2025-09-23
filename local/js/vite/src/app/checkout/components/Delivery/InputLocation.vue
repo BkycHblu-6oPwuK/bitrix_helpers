@@ -7,6 +7,7 @@ import Input from '../Input.vue';
 import LocationList from './LocationList.vue';
 
 const store = useStore();
+const emits = defineEmits(['selectAddress']);
 const city = computed({
     get: () => isInputFocused.value ? store.getters.getDelivery.city : store.getters.getDisplayAddress,
     set: (val) => store.commit('setCity', val)
@@ -21,7 +22,7 @@ let oldCityName = '';
 const citySearch = debounce(async () => {
     if (!city.value || city.value.length < 2 || !isNextPageAvailable.value) return;
 
-    const result = await getLocation(city.value, { page, pageSize });
+    const result = await getLocation(city.value, pageSize, page);
     if (result.items.length < pageSize) {
         isNextPageAvailable.value = false;
     }
@@ -36,6 +37,7 @@ const locationSelect = (item) => {
     store.commit('setLocation', item.code);
     store.dispatch('refresh');
     isInputFocused.value = false;
+    emits('selectAddress', item)
 };
 
 const focusHandler = () => {

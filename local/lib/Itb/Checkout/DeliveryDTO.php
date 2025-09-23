@@ -75,4 +75,6 @@ class DeliveryDTO
     public $deliveryPeriod = '';
 
     public $isTransport = false;
+    public $isDoor = false;
+    public $isOwnDelivery = false;
 }

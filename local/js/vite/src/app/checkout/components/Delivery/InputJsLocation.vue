@@ -34,7 +34,7 @@ const locationSelect = (item) => {
         coords.value = item.coords;
     }
     isInputFocused.value = false;
-    emits('selectAddress', item.coords && item.coords.length ? item.coords : item.value);
+    store.dispatch('refresh').then(() => emits('selectAddress', item.coords && item.coords.length ? item.coords : item.value));
 };
 
 const focusHandler = () => {

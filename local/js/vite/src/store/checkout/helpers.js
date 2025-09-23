@@ -71,6 +71,8 @@ export const getOrderParams = (getters) => {
     }
     formData.append(`${propsIdsMap.coordinates}`, delivery.coordinates.length ? delivery.coordinates.join(',') : '');
     formData.append(`${propsIdsMap.postCode}`, delivery.postCode);
+    formData.append(`${propsIdsMap.distance}`, delivery.distance);
+    formData.append(`${propsIdsMap.duration}`, delivery.duration);
 
     // formData.append(`${propsIdsMap.profileChange}`, 'Y|N');
     // formData.append(`${propsIdsMap.postCodeChanged}`, 'Y|N');
@@ -187,7 +189,7 @@ export const isExtaServiceSkipValue = (value) => {
 }
 
 export const isOwnDelivery = (delivery) => {
-    return delivery?.code === 'own_delivery' ?? false;
+    return delivery?.isOwnDelivery ?? false;
 }
 
 export const isShopDelivery = (delivery) => {

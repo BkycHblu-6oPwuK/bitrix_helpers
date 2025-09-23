@@ -2,6 +2,7 @@
 import { computed, defineAsyncComponent, nextTick, ref, useTemplateRef, watch } from 'vue';
 import { useStore } from 'vuex';
 import LoadingMapComponent from './Map/LoadingMapComponent.vue';
+import Socials from '@/common/components/Socials.vue';
 import { getImagePublicPath, wait } from '@/common/js/helpers';
 
 const store = useStore();
@@ -86,6 +87,9 @@ watch(storeSelectedItem, (newVal) => {
                         <a @click="showPhone = true" v-if="!showPhone">Показать телефон</a>
                         <a v-if="showPhone" :href="`tel:${storeSelectedItem.phone}`">{{ storeSelectedItem.phone }}</a>
                     </div>
+                </div>
+                <div class="pickup-content-row">
+                    <Socials :socials="['ok', 'vk', 'wa', 'tg']"></Socials>
                 </div>
             </div>
         </div>

@@ -24,9 +24,14 @@ const buildRouteToPvz = (pvzCoords) => mapHandler?.buildRouteToUserCoords(pvzCoo
 const selectPvz = (pvz) => emits('selectPvz', pvz);
 
 onMounted(async () => {
-    mapHandler = new YandexMapPvzHandler(mapContainer, props.center, selectPvz);
-    await mapHandler.initMap(normalizedPvzList.value);
-    isInited = true
+    try {
+        mapHandler = new YandexMapPvzHandler(mapContainer, props.center, selectPvz);
+        console.log(111)
+        await mapHandler.initMap(normalizedPvzList.value);
+        isInited = true;
+    } catch (error) {
+        console.error('Ошибка при инициализации карты:', error);
+    }
 });
 
 onUnmounted(() => {
@@ -34,13 +39,17 @@ onUnmounted(() => {
 });
 
 watch(normalizedPvzList, async (newPvzList) => {
-    await wait(() => isInited)
-    if (mapHandler) {
-        mapHandler.destroyMap();
-        mapHandler = null;
+    try {
+        await wait(() => isInited)
+        if (mapHandler) {
+            mapHandler.destroyMap();
+            mapHandler = null;
+        }
+        mapHandler = new YandexMapPvzHandler(mapContainer, props.center, selectPvz);
+        mapHandler.initMap(newPvzList);
+    } catch (error) {
+        console.error('Ошибка при обновлении карты:', error);
     }
-    mapHandler = new YandexMapPvzHandler(mapContainer, props.center, selectPvz);
-    mapHandler.initMap(newPvzList);
 });
 
 defineExpose({

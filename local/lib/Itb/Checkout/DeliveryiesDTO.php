@@ -68,4 +68,14 @@ class DeliveryiesDTO
      * @var int
      */
     public $storeSelectedId = 0;
+
+    /**
+     * @var float
+     */
+    public $distance = 0;
+
+    /**
+     * @var float
+     */
+    public $duration = 0;
 }

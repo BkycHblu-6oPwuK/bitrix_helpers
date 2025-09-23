@@ -4,7 +4,8 @@ class AbstractPlacemarkMapHandler extends BaseYandexMapHandler {
     constructor(containerRef, center, pointUrl) {
         super(containerRef, center);
         this.placemark = null;
-        this.pointUrl = pointUrl
+        this.pointUrl = pointUrl;
+        this.mapClickHandler = null;
     }
 
     createPlacemark(coords, caption = 'Метка') {
@@ -28,6 +29,10 @@ class AbstractPlacemarkMapHandler extends BaseYandexMapHandler {
         }
 
         this.routeMaker(coords);
+    }
+
+    setMapClickHandler(handler) {
+        this.mapClickHandler = handler;
     }
 
     removePlacemark() {

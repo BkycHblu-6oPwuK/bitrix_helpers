@@ -2,6 +2,7 @@
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Order as SaleOrder;
+use Itb\Catalog\Location\Contracts\BitrixLocationResolverInterface;
 use Itb\Checkout\CheckoutDTOBuilder;
 use Itb\Checkout\DeliveriesBuilder;
 use Itb\Catalog\Order;
@@ -27,8 +28,11 @@ class ItbSaleOrderAjax extends SaleOrderAjax
      */
     protected $deliveriesBuilder;
 
+    protected ?BitrixLocationResolverInterface $locationResolver = null;
+
     public function executeComponent()
     {
+        $this->locationResolver = \Bitrix\Main\DI\ServiceLocator::getInstance()->get(BitrixLocationResolverInterface::class);
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         $eventManager->addEventHandler('sale', 'OnSaleComponentOrderProperties', [$this, 'modifyOrderPropsBeforeDelivery']);
         parent::executeComponent();
@@ -157,8 +161,31 @@ class ItbSaleOrderAjax extends SaleOrderAjax
             ->mapWithKeys(function ($prop) {
                 return [$prop['CODE'] => $prop];
             });
-
+        $requestProperties = $this->getPropertyValuesFromRequest();
         $user = User::current();
+
+        if ($this->locationResolver) {
+            $variants = [];
+            $city = $requestProperties[$props->get('CITY')['ID']] ?? $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] ?? '';
+            $address = $requestProperties[$props->get('ADDRESS')['ID']] ?? $arUserResult['ORDER_PROP'][$props->get('ADDRESS')['ID']] ?? '';
+            if ($address) {
+                if (mb_strpos(mb_strtolower($address), mb_strtolower($city)) === false) {
+                    $address .= ', ' . $city;
+                }
+                $variants[] = $address;
+            }
+            if ($city) {
+                $variants[] = $city;
+            }
+            foreach ($variants as $variant) {
+                $location = $this->locationResolver->getBitrixLocationByAddress($variant);
+                if ($location) {
+                    $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['city'];
+                    $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['code'];
+                    break;
+                }
+            }
+        }
 
         // заполняем данные по умолчанию из полей пользователя
 

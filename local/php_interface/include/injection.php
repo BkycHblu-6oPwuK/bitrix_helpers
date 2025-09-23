@@ -1,6 +1,8 @@
 <?php
 
 use Bitrix\Main\DI\ServiceLocator;
+use Itb\Catalog\Location\Contracts\BitrixLocationResolverInterface;
+use Itb\Catalog\Location\Services\DadataService;
 use Itb\Notification\Contracts\SmsCodeContract;
 use Itb\Notification\Contracts\SmsContract;
 use Itb\Notification\Services\Sms\SmsAeroService;
@@ -14,4 +16,8 @@ ServiceLocator::getInstance()->addInstanceLazy(SmsCodeContract::class, [
     'constructorParams' => static function () {
         return [ServiceLocator::getInstance()->get(SmsContract::class)];
     },
+]);
+
+ServiceLocator::getInstance()->addInstanceLazy(BitrixLocationResolverInterface::class, [
+    'className' => DadataService::class
 ]);
