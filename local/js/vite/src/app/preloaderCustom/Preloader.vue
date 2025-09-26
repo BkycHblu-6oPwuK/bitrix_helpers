@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { usePreloader } from "@/lib/Composables/usePreloader.js";
+import { usePreloader } from "./usePreloader.js";
 const { isLoading } = usePreloader();
 </script>
 
