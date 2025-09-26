@@ -1,7 +1,6 @@
 <script setup>
 import { useStore } from "vuex";
 import RadioCard from "../RadioCard.vue";
-import InputLocation from "./InputLocation.vue";
 import {
   computed,
   defineAsyncComponent,
@@ -64,23 +63,31 @@ const initPoints = async () => {
 const initClientMapData = async () => {
   if (mapClientData.value !== null) return;
   await getClientMapData();
-  mapClientData.value.restrictArea = null;
-  mapClientData.value.maxDistance = 0;
-  mapClientData.value.maxDuration = 0;
+  if (mapClientData.value) {
+    mapClientData.value.restrictArea = null;
+    mapClientData.value.maxDistance = 0;
+    mapClientData.value.maxDuration = 0;
+  }
 };
 
 const selectPoint = (point) => {
   store.commit("setAddress", point.address);
   store.commit("setDeliveryPvzId", point.id);
 };
-const showMapHandler = () => showMap.value = !showMap.value;
-const selectBitrixLocation = () => {
+const showMapHandler = () => (showMap.value = !showMap.value);
+const selectPvzLocation = () => {
   points.value = null;
   initPoints();
-}
+};
 const distanceMapClickHandler = debounce(() => {
   store.dispatch("refresh");
 }, 300);
+const changeDeliveryHandler = () => {
+  if (!deliveryMarkShow.value) {
+    store.dispatch("resetLocation");
+  }
+  store.dispatch("refresh");
+};
 
 onMounted(() => {
   if (deliveryMarkShow.value) {
@@ -104,17 +111,15 @@ watch(deliveryMarkShow, (newValue) => {
     <Subtitle>Где вы хотите получить заказ:</Subtitle>
     <template v-if="!deliveryMarkShow">
       <div class="checkout-transport-service__location">
-        <InputJsLocation @selectAddress="selectBitrixLocation"></InputJsLocation>
+        <InputJsLocation @selectAddress="selectPvzLocation"></InputJsLocation>
         <ShowMapBtn @showMap="showMapHandler" :showMap="showMap"></ShowMapBtn>
         <YandexMapPvz
-          v-if="points && city"
           v-show="showMap"
           :pvzList="points"
           :center="city"
           @selectPvz="selectPoint"
         >
         </YandexMapPvz>
-        <LoadingMapComponent v-else-if="showMap"></LoadingMapComponent>
       </div>
     </template>
     <template v-else>
@@ -141,7 +146,11 @@ watch(deliveryMarkShow, (newValue) => {
       <Subtitle>Транспортная компания</Subtitle>
       <div class="checkout-radio-group">
         <template v-for="delivery in deliveries" :key="delivery.id">
-          <RadioCard :value="delivery.id" v-model="selectedId">
+          <RadioCard
+            :value="delivery.id"
+            v-model="selectedId"
+            @change="changeDeliveryHandler"
+          >
             <img v-if="delivery.logotip" :src="delivery.logotip" />
             <div class="checkout-transport-service_name">
               <span>{{ delivery.ownName }}</span>

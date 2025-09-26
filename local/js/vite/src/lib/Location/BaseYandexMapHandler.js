@@ -67,6 +67,7 @@ class BaseYandexMapHandler {
     }
 
     async initMapBase(zoom = 14, controls = []) {
+        if (!this.containerRef.value || !this.center) return;
         await window.ymaps.ready();
         this.center = await this.getCoordsFromCenter(this.center);
         this.map = new window.ymaps.Map(this.containerRef.value, {
@@ -90,7 +91,7 @@ class BaseYandexMapHandler {
     }
 
     multiRouteMaker(coords, from = null) {
-        if(!this.enableRouteMaker) return;
+        if (!this.enableRouteMaker) return;
         this.removeCurrentRoute();
         const multiRoute = new window.ymaps.multiRouter.MultiRoute({
             referencePoints: [from ?? this.center, coords],
@@ -104,7 +105,7 @@ class BaseYandexMapHandler {
     }
 
     routeMaker(coords, from = null) {
-        if(!this.enableRouteMaker) return;
+        if (!this.enableRouteMaker) return;
         this.removeCurrentRoute();
         window.ymaps.route([from ?? this.center, coords]).then((route) => {
             this.currentRoute = route;
@@ -128,7 +129,7 @@ class BaseYandexMapHandler {
 
     getDist() {
         if (!this.currentRoute) return 0;
-        
+
         if (typeof this.currentRoute.getLength === 'function') {
             this.userRouteLength = this.currentRoute.getLength();
         } else if (this.currentRoute.getActiveRoute) {
@@ -148,6 +149,21 @@ class BaseYandexMapHandler {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    setMapCenter(center, zoom = null) {
+        if (!this.map || !center) return;
+
+        this.getCoordsFromCenter(center).then(coords => {
+            this.center = coords;
+            if (zoom !== null) {
+                this.map.setCenter(coords, zoom);
+            } else {
+                this.map.setCenter(coords);
+            }
+        }).catch(err => {
+            console.error('Не удалось изменить центр карты:', err);
+        });
     }
 }
 

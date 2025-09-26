@@ -9,11 +9,14 @@ const props = defineProps({
 const model = defineModel()
 const isControlledExternally = computed(() => model.value === undefined && props.checked !== undefined)
 const isSelected = computed(() => isControlledExternally.value ? props.checked : model.value === props.value)
+const emits = defineEmits(['change', 'click']);
 
 const select = () => {
     if (!isControlledExternally.value && model) {
-        model.value = props.value
+        model.value = props.value;
     }
+    emits('click');
+    emits('change');
 }
 </script>
 

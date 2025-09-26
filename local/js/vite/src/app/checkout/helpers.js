@@ -1,5 +1,6 @@
 import { getEshopLogisticClient } from "@/api/order";
 import { ref } from "vue";
+import { showErrorNotification } from "../notify";
 
 export const formattedDate = (date) => {
     if (date instanceof Date) {
@@ -15,6 +16,7 @@ export function useEshopLogisticClientData() {
             const result = await getEshopLogisticClient()
             mapClientData.value = result.data
         } catch (error) {
+            showErrorNotification('Произошла непредвиденная ошибка, попробуйте позже')
             console.error(error)
         }
     }

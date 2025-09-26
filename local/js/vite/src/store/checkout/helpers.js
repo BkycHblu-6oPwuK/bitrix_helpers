@@ -5,6 +5,7 @@ export const getOrderParams = (getters) => {
     const propsIdsMap = getters.getPropIdsMap;
     const form = getters.getForm;
     const delivery = getters.getDelivery;
+    const oldLocation = getters.getOldLocation;
 
     const formData = new URLSearchParams();
 
@@ -73,6 +74,7 @@ export const getOrderParams = (getters) => {
     formData.append(`${propsIdsMap.postCode}`, delivery.postCode);
     formData.append(`${propsIdsMap.distance}`, delivery.distance);
     formData.append(`${propsIdsMap.duration}`, delivery.duration);
+    formData.append(`${propsIdsMap.oldLocation}`, oldLocation.location);
 
     // formData.append(`${propsIdsMap.profileChange}`, 'Y|N');
     // formData.append(`${propsIdsMap.postCodeChanged}`, 'Y|N');

@@ -17,11 +17,13 @@ const selectedId = computed({
     get: () => delivery.value.selectedId,
     set: (val) => {
         if (delivery.value.selectedId === val) return;
-        store.dispatch('resetLocation');
         store.commit('setDeliverySelectedId', val);
-        store.dispatch('refresh');
     }
 });
+const changeDeliveryHandler = () => {
+        store.dispatch('resetLocation');
+    store.dispatch('refresh');
+}
 const selectedTransportDelivery = computed(() => store.getters.selectedTransportDelivery);
 const selectedOwnDelivery = computed(() => store.getters.selectedOwnDelivery);
 const selectedShopDelivery = computed(() => store.getters.selectedShopDelivery);
@@ -42,7 +44,7 @@ const selectTransport = () => {
         <Subtitle>2. Где и как вы хотите получить заказ?</Subtitle>
         <div class="checkout-radio-group checkout-delivery__radio-group">
             <template v-for="deliveryItem in delivery.deliveries" :key="deliveryItem.id">
-                <RadioCard v-if="!deliveryItem.isTransport" :value="deliveryItem.id" v-model="selectedId">
+                <RadioCard v-if="!deliveryItem.isTransport" :value="deliveryItem.id" v-model="selectedId" @change="changeDeliveryHandler">
                     <img v-if="deliveryItem.logotip" :src="deliveryItem.logotip" />
                     <span>{{ deliveryItem.name }}</span>
                 </RadioCard>
@@ -53,7 +55,7 @@ const selectTransport = () => {
                 </template>
             </template>
 
-            <RadioCard :checked="selectedTransportDelivery" @click="selectTransport">
+            <RadioCard :checked="selectedTransportDelivery" @click="selectTransport" @change="changeDeliveryHandler">
                 <img :src="getImagePublicPath('/checkout/truck.png')" />
                 <span>Транспортной компанией</span>
             </RadioCard>

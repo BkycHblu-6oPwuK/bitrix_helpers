@@ -21,7 +21,10 @@ const store = createStore({
         comment: '',
         siteId: '',
         signedParams: '',
-        errors: {}
+        errors: {},
+        oldLocation: {
+            location: ''
+        }
     },
     mutations: {
         setItems(state, items) {
@@ -130,7 +133,6 @@ const store = createStore({
             dispatch('setCheckoutDTO', data.checkoutDTO);
             commit('setSiteId', data.siteId);
             commit('setSignedParams', data.signedParams);
-            console.log(state)
         },
         setCheckoutDTO({ commit }, checkoutDTO) {
             commit('setItems', checkoutDTO.items);
@@ -195,12 +197,17 @@ const store = createStore({
             const errors = validateCheckout(getters);
             commit('setErrors', errors);
         },
-        resetLocation({ commit }) {
+        resetLocation({ commit, dispatch }) {
+            dispatch('setOldLocation')
             commit('setDeliveryPvzId', "");
             commit('setAddress', '');
             commit('setCity', '');
             commit('setCoordinates', '');
         },
+        setOldLocation({state, getters}) {
+            const delivery = getters.getDelivery
+            state.oldLocation.location = delivery.location
+        }
     },
     getters: {
         getItems: (state) => state.items,
@@ -242,6 +249,7 @@ const store = createStore({
         getSiteId: (state) => state.siteId,
         getSignedParams: (state) => state.signedParams,
         getErrors: (state) => state.errors,
+        getOldLocation: (state) => state.oldLocation, 
         errorsIsEmpty: (state) => Object.values(state.errors).length === 0,
     },
 });

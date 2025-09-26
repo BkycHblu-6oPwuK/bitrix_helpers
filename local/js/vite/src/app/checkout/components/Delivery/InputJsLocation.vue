@@ -45,10 +45,8 @@ const focusHandler = () => {
 const blurHandler = () => {
     setTimeout(() => {
         isInputFocused.value = false;
-        if (oldAddress !== false) {
-            address.value = oldAddress;
-            oldAddress = '';
-        }
+        store.dispatch('refresh').then(() => emits('selectAddress'))
+        return;
     }, 200);
 };
 

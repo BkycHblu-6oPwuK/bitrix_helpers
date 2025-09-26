@@ -37,17 +37,26 @@ class DadataService implements BitrixLocationResolverInterface
     public function getBitrixLocationByAddress(string|array $location): ?array
     {
         $cacheKey = is_string($location) ? $location : Json::encode($location);
-        $cacheSettings = new CacheSettings(3600000, md5($cacheKey), 'dadata/location');
+        $cacheSettings = new CacheSettings(BitrixLocationResolverInterface::CACHE_TIME, md5($cacheKey), 'dadata/location');
 
         try {
             return $this->getCached($cacheSettings, function () use ($location) {
                 $result = null;
-                $cityVariants = $areaVariants = $regionVariants = $fullAddressVariants = [];
+                $cityVariants = $areaVariants = $regionVariants = [];
                 $foundItems = [];
 
                 $makeName = static function ($base, $type, $typeFull): array {
                     if (!$base) {
                         return [];
+                    }
+                    if ($typeFull === 'город') {
+                        return [
+                            $base,
+                            trim("$base $typeFull"),
+                            trim("$typeFull $base"),
+                            trim("$base $type"),
+                            trim("$type $base"),
+                        ];
                     }
                     return [
                         trim("$base $typeFull"),
@@ -59,11 +68,12 @@ class DadataService implements BitrixLocationResolverInterface
                 };
 
                 $parseSuggestion = static function (array $s) use ($makeName): array {
-                    $cityVariants = $areaVariants = $regionVariants = $fullAddressVariants = [];
-
+                    $settlement = $cityVariants = $areaVariants = $regionVariants = [];
                     if ($s['settlement']) {
-                        $cityVariants = $makeName($s['settlement'], $s['settlement_type'], $s['settlement_type_full']);
-                    } elseif ($s['city']) {
+                        $settlement = $makeName($s['settlement'], $s['settlement_type'], $s['settlement_type_full']);
+                    }
+
+                    if ($s['city']) {
                         $cityVariants = $makeName($s['city'], $s['city_type'], $s['city_type_full']);
                     }
 
@@ -71,30 +81,20 @@ class DadataService implements BitrixLocationResolverInterface
                         $areaVariants = $makeName($s['area'], $s['area_type'], $s['area_type_full']);
                     }
 
-                    if ($s['region']) {
+                    if ($s['region'] && $s['city'] != $s['region']) {
                         $regionVariants = $makeName($s['region'], $s['region_type'], $s['region_type_full']);
                     }
 
-                    $fullParts = array_filter([
-                        $s['region_with_type'] ?? null,
-                        $s['area_with_type'] ?? null,
-                        $s['city_with_type'] ?? null,
-                        $s['settlement_with_type'] ?? null,
-                    ]);
-
-                    if (!empty($fullParts)) {
-                        $fullAddressVariants[] = implode(', ', $fullParts);
-                    }
-
-                    return [$cityVariants, $areaVariants, $regionVariants, $fullAddressVariants];
+                    return [$settlement, $cityVariants, $areaVariants, $regionVariants];
                 };
+
 
                 $searchInBitrix = static function (array $variants): array {
                     foreach ($variants as $variant) {
                         $variant = trim(mb_strtolower($variant));
                         if ($variant === '') continue;
 
-                        $items = LocationHelper::find($variant, 50, 0);
+                        $items = LocationHelper::find($variant, 20, 0);
                         if (!empty($items)) {
                             return $items;
                         }
@@ -104,7 +104,6 @@ class DadataService implements BitrixLocationResolverInterface
 
                 $matchRegionAndArea = static function (array $items, array $regionVariants, array $areaVariants): ?array {
                     $matched = null;
-
                     foreach ($regionVariants as $regionVariant) {
                         $regionLower = mb_strtolower(trim($regionVariant));
                         if ($regionLower === '') continue;
@@ -134,12 +133,16 @@ class DadataService implements BitrixLocationResolverInterface
 
                     return $matched;
                 };
-
                 if (is_string($location)) {
-                    $suggestion = $this->client->clean("address", $location);
-                    if (!empty($suggestion)) {
-                        [$cityVariants, $areaVariants, $regionVariants, $fullAddressVariants] = $parseSuggestion($suggestion);
-                    }
+                    $suggestions = $this->client->suggest("address", $location, 1);
+                    if (!empty($suggestions) && isset($suggestions[0]['data'])) {
+                        [$settlement, $cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($suggestions[0]['data']);
+                    } /*else {
+                        $suggestion = $this->client->clean("address", $location);
+                        if (!empty($suggestion) && !empty($suggestion['result'])) {
+                            [$cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($suggestion);
+                        }
+                    }*/
                 } elseif (is_array($location)) {
                     $lat = $location['lat'] ?? $location['latitude'] ?? $location[0] ?? null;
                     $lon = $location['lon'] ?? $location['longitude'] ?? $location[1] ?? null;
@@ -147,15 +150,14 @@ class DadataService implements BitrixLocationResolverInterface
                     if ($lat && $lon) {
                         $suggestions = $this->client->geolocate("address", $lat, $lon, 100, 3);
                         foreach ($suggestions as $s) {
-                            [$cityVariants, $areaVariants, $regionVariants, $fullAddressVariants] = $parseSuggestion($s['data']);
-                            if ($cityVariants) break;
+                            [$settlement, $cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($s['data']);
+                            if ($settlement || $cityVariants) break;
                         }
                     } else {
                         throw new \Exception('Invalid array $location');
                     }
                 }
-
-                $foundItems = $searchInBitrix($fullAddressVariants);
+                $foundItems = $searchInBitrix($settlement);
                 if (empty($foundItems)) {
                     $foundItems = $searchInBitrix($cityVariants);
                     if (empty($foundItems)) {

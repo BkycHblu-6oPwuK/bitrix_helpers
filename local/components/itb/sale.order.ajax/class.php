@@ -166,23 +166,32 @@ class ItbSaleOrderAjax extends SaleOrderAjax
 
         if ($this->locationResolver) {
             $variants = [];
-            $city = $requestProperties[$props->get('CITY')['ID']] ?? $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] ?? '';
-            $address = $requestProperties[$props->get('ADDRESS')['ID']] ?? $arUserResult['ORDER_PROP'][$props->get('ADDRESS')['ID']] ?? '';
-            if ($address) {
-                if (mb_strpos(mb_strtolower($address), mb_strtolower($city)) === false) {
-                    $address .= ', ' . $city;
+            $oldLocation = $this->request->get(BitrixLocationResolverInterface::OLD_LOCATION_REQUEST_KEY);
+            $requestAddress = $requestProperties[$props->get('ADDRESS')['ID']];
+            if (empty($requestAddress) && !empty($oldLocation)) {
+                $location = LocationHelper::getNearestCityByLocationCode($oldLocation, BitrixLocationResolverInterface::CACHE_TIME);
+                if (!empty($location)) {
+                    $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['LOCATION_NAME_NAME'];
+                    $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['CODE'];
                 }
-                $variants[] = $address;
-            }
-            if ($city) {
-                $variants[] = $city;
-            }
-            foreach ($variants as $variant) {
-                $location = $this->locationResolver->getBitrixLocationByAddress($variant);
-                if ($location) {
-                    $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['city'];
-                    $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['code'];
-                    break;
+            } else {
+                $requestCity = $requestProperties[$props->get('CITY')['ID']];
+                $city = firstNotEmpty('', $requestCity, $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']]);
+                $address = firstNotEmpty('', $requestAddress, $arUserResult['ORDER_PROP'][$props->get('ADDRESS')['ID']]);
+                if ($address) {
+                    $variants[] = $address;
+                }
+                if ($city) {
+                    $variants[] = $city;
+                }
+
+                foreach ($variants as $variant) {
+                    $location = $this->locationResolver->getBitrixLocationByAddress($variant);
+                    if ($location) {
+                        $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['city'];
+                        $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['code'];
+                        break;
+                    }
                 }
             }
         }

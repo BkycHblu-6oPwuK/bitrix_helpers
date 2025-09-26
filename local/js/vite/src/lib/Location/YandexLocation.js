@@ -6,7 +6,6 @@ class YandexLocation {
         if (!query || query.length < 3) return [];
 
         const suggestions = await window.ymaps.suggest(query);
-        console.log(suggestions)
         return suggestions.map((item) => YandexLocationFormatter.format(item));
     }
 

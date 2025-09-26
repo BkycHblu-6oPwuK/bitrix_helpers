@@ -1,6 +1,6 @@
-import BaseYandexMapHandler from "./BaseYandexMapHandler";
+import AbstractPlacemarkMapHandler from "./AbstractPlacemarkMapHandler";
 
-class YandexMapPvzHandler extends BaseYandexMapHandler {
+class YandexMapPvzHandler extends AbstractPlacemarkMapHandler {
     constructor(containerRef, center, selectPvzEmit) {
         super(containerRef, center);
         this.selectPvz = selectPvzEmit;
@@ -13,6 +13,8 @@ class YandexMapPvzHandler extends BaseYandexMapHandler {
 
     updatePlacemarks(pvzList) {
         if (!this.map) return;
+        
+        this.map.geoObjects.removeAll();
 
         if (!pvzList || pvzList.length === 0) {
             console.warn('pvzList is empty or undefined');
@@ -20,16 +22,17 @@ class YandexMapPvzHandler extends BaseYandexMapHandler {
         }
 
         pvzList.forEach(pvz => {
-            if (!pvz.location || !pvz.location.latitude || !pvz.location.longitude) {
+            if (!pvz.location?.latitude || !pvz.location?.longitude) {
                 console.warn('Invalid coordinates for PVZ', pvz);
                 return;
             }
 
             const coords = [pvz.location.latitude, pvz.location.longitude];
 
-            const placemark = new window.ymaps.Placemark(
+            const placemark = this.createPlacemark(
                 coords,
                 {
+                    caption: pvz.name,
                     balloonContentHeader: `<b>${pvz.name}</b>`,
                     balloonContentBody: `
                         <p><b>Адрес:</b> ${pvz.address}</p>
@@ -58,7 +61,7 @@ class YandexMapPvzHandler extends BaseYandexMapHandler {
                 }, 0);
             });
 
-            this.map.geoObjects.add(placemark);
+            this.addObjectToMap(placemark);
         });
     }
 }

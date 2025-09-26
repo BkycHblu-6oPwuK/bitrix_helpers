@@ -8,21 +8,36 @@ class AbstractPlacemarkMapHandler extends BaseYandexMapHandler {
         this.mapClickHandler = null;
     }
 
-    createPlacemark(coords, caption = 'Метка') {
-        return new window.ymaps.Placemark(coords, {
-            iconCaption: caption,
-            balloonContent: caption
-        });
+    createPlacemark(coords, properties = {}, options = {}) {
+        return new window.ymaps.Placemark(
+            coords,
+            {
+                iconCaption: properties.caption || 'Метка',
+                balloonContent: properties.caption || 'Метка',
+                ...properties
+            },
+            {
+                ...options
+            }
+        );
     }
 
-    async createOrUpdatePlacemark(coords, caption = 'Вы здесь') {
+    async createOrUpdatePlacemark(coords, properties = {}, options = {}) {
         await this.awaitMapInit();
+
+        const defaultProperties = {
+            caption: 'Вы здесь',
+            balloonContent: 'Вы здесь',
+        };
+
         if (!this.placemark) {
-            this.placemark = this.createPlacemark(coords, caption);
+            this.placemark = this.createPlacemark(coords, { ...defaultProperties, ...properties }, options);
             this.map.geoObjects.add(this.placemark);
         } else {
             this.placemark.geometry.setCoordinates(coords);
-            this.placemark.properties.set({ iconCaption: caption, balloonContent: caption });
+            this.placemark.properties.set({ ...defaultProperties, ...properties });
+            this.placemark.options.set({ ...options });
+
             if (this.pointUrl) {
                 this.placemark.options.set('iconImageHref', this.pointUrl);
             }
@@ -54,7 +69,7 @@ class AbstractPlacemarkMapHandler extends BaseYandexMapHandler {
 
     async selectAddress(address, name) {
         let coords = await this.getCoordsFromCenter(address)
-        this.createOrUpdatePlacemark(coords, name);
+        this.createOrUpdatePlacemark(coords, {caption: name});
     }
 }
 
