@@ -72,6 +72,7 @@ ehthumbs.db
 *.config
 *.xml
 *.tbk
+*:Zone.Identifier
 
 # однако храним robots.txt — он нужен
 !/robots.txt
