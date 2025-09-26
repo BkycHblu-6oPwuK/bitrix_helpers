@@ -1,4 +1,4 @@
-import { usePreloader } from "./usePreloader.js";
+import { usePreloader } from "@/lib/Composables/usePreloader.js";
 import './index.js';
 
 const { show, hide } = usePreloader();

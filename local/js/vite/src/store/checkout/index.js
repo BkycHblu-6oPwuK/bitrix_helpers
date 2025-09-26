@@ -4,6 +4,9 @@ import { createStore } from 'vuex';
 import { getOrderParams, isOwnDelivery, isShopDelivery, isTransportDelivery, processErrorsComponent, validateCheckout } from './helpers';
 import { showErrorNotification } from '@/app/notify';
 import ResultError from '@/lib/ResultError';
+import { useActionGuard } from '@/lib/Composables/useActionGuard';
+
+const { runAction } = useActionGuard();
 
 const store = createStore({
     state: {
@@ -24,7 +27,7 @@ const store = createStore({
         errors: {},
         oldLocation: {
             location: ''
-        }
+        },
     },
     mutations: {
         setItems(state, items) {
@@ -149,48 +152,52 @@ const store = createStore({
             commit('setComment', checkoutDTO.comment);
         },
         async refresh({ getters, dispatch }, isShowPreloader = true) {
-            try {
-                if (isShowPreloader) {
-                    showPreloader();
+            await runAction(async () => {
+                try {
+                    if (isShowPreloader) {
+                        showPreloader();
+                    }
+                    const formData = getOrderParams(getters)
+                    const result = await send('refreshOrderAjax', formData);
+                    dispatch('setCheckoutDTO', result.checkoutDTO);
+                } catch (error) {
+                    if (error instanceof ResultError) {
+                        showErrorNotification(error.message);
+                    } else {
+                        showErrorNotification();
+                    }
+                    console.error('Ошибка при обновлении заказа', error);
+                } finally {
+                    closePreloader();
                 }
-                const formData = getOrderParams(getters)
-                const result = await send('refreshOrderAjax', formData);
-                dispatch('setCheckoutDTO', result.checkoutDTO);
-            } catch (error) {
-                if (error instanceof ResultError) {
-                    showErrorNotification(error.message);
-                } else {
-                    showErrorNotification();
-                }
-                console.error('Ошибка при обновлении заказа', error);
-            } finally {
-                closePreloader();
-            }
+            })
         },
         async confirm({ getters, dispatch }) {
             dispatch('validate');
             if (!getters.errorsIsEmpty) {
                 return;
             }
-            try {
-                showPreloader();
-                const formData = getOrderParams(getters)
-                const result = await send('saveOrderAjax', formData);
-                if (result.ERROR) {
-                    processErrorsComponent(result.ERROR)
-                } else if (result.REDIRECT_URL) {
-                    window.location.href = result.REDIRECT_URL
+            runAction(async () => {
+                try {
+                    showPreloader();
+                    const formData = getOrderParams(getters)
+                    const result = await send('saveOrderAjax', formData);
+                    if (result.ERROR) {
+                        processErrorsComponent(result.ERROR)
+                    } else if (result.REDIRECT_URL) {
+                        window.location.href = result.REDIRECT_URL
+                    }
+                } catch (error) {
+                    if (error instanceof ResultError) {
+                        showErrorNotification(error.message);
+                    } else {
+                        showErrorNotification();
+                    }
+                    console.error('Ошибка при сохранении заказа', error);
+                } finally {
+                    closePreloader();
                 }
-            } catch (error) {
-                if (error instanceof ResultError) {
-                    showErrorNotification(error.message);
-                } else {
-                    showErrorNotification();
-                }
-                console.error('Ошибка при сохранении заказа', error);
-            } finally {
-                closePreloader();
-            }
+            })
         },
         validate({ getters, commit }) {
             commit('setErrors', {});
@@ -204,7 +211,7 @@ const store = createStore({
             commit('setCity', '');
             commit('setCoordinates', '');
         },
-        setOldLocation({state, getters}) {
+        setOldLocation({ state, getters }) {
             const delivery = getters.getDelivery
             state.oldLocation.location = delivery.location
         }
@@ -249,7 +256,7 @@ const store = createStore({
         getSiteId: (state) => state.siteId,
         getSignedParams: (state) => state.signedParams,
         getErrors: (state) => state.errors,
-        getOldLocation: (state) => state.oldLocation, 
+        getOldLocation: (state) => state.oldLocation,
         errorsIsEmpty: (state) => Object.values(state.errors).length === 0,
     },
 });
