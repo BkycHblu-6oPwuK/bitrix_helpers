@@ -68,9 +68,9 @@ class DadataService implements BitrixLocationResolverInterface
                 };
 
                 $parseSuggestion = static function (array $s) use ($makeName): array {
-                    $settlement = $cityVariants = $areaVariants = $regionVariants = [];
+                    $settlementVariants = $cityVariants = $areaVariants = $regionVariants = [];
                     if ($s['settlement']) {
-                        $settlement = $makeName($s['settlement'], $s['settlement_type'], $s['settlement_type_full']);
+                        $settlementVariants = $makeName($s['settlement'], $s['settlement_type'], $s['settlement_type_full']);
                     }
 
                     if ($s['city']) {
@@ -85,7 +85,7 @@ class DadataService implements BitrixLocationResolverInterface
                         $regionVariants = $makeName($s['region'], $s['region_type'], $s['region_type_full']);
                     }
 
-                    return [$settlement, $cityVariants, $areaVariants, $regionVariants];
+                    return [$settlementVariants, $cityVariants, $areaVariants, $regionVariants];
                 };
 
 
@@ -134,15 +134,19 @@ class DadataService implements BitrixLocationResolverInterface
                     return $matched;
                 };
                 if (is_string($location)) {
-                    $suggestions = $this->client->suggest("address", $location, 1);
-                    if (!empty($suggestions) && isset($suggestions[0]['data'])) {
-                        [$settlement, $cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($suggestions[0]['data']);
-                    } /*else {
-                        $suggestion = $this->client->clean("address", $location);
-                        if (!empty($suggestion) && !empty($suggestion['result'])) {
-                            [$cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($suggestion);
+                    $suggestions = $this->client->suggest("address", $location, 5);
+
+                    foreach ($suggestions as $s) {
+                        if (!isset($s['data'])) {
+                            continue;
                         }
-                    }*/
+
+                        [$settlementVariants, $cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($s['data']);
+
+                        if (!empty($cityVariants) || !empty($settlementVariants)) {
+                            break;
+                        }
+                    }
                 } elseif (is_array($location)) {
                     $lat = $location['lat'] ?? $location['latitude'] ?? $location[0] ?? null;
                     $lon = $location['lon'] ?? $location['longitude'] ?? $location[1] ?? null;
@@ -150,14 +154,14 @@ class DadataService implements BitrixLocationResolverInterface
                     if ($lat && $lon) {
                         $suggestions = $this->client->geolocate("address", $lat, $lon, 100, 3);
                         foreach ($suggestions as $s) {
-                            [$settlement, $cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($s['data']);
-                            if ($settlement || $cityVariants) break;
+                            [$settlementVariants, $cityVariants, $areaVariants, $regionVariants] = $parseSuggestion($s['data']);
+                            if ($settlementVariants || $cityVariants) break;
                         }
                     } else {
                         throw new \Exception('Invalid array $location');
                     }
                 }
-                $foundItems = $searchInBitrix($settlement);
+                $foundItems = $searchInBitrix($settlementVariants);
                 if (empty($foundItems)) {
                     $foundItems = $searchInBitrix($cityVariants);
                     if (empty($foundItems)) {
@@ -167,7 +171,6 @@ class DadataService implements BitrixLocationResolverInterface
                         }
                     }
                 }
-
                 if (!empty($foundItems)) {
                     $matched = $matchRegionAndArea($foundItems, $regionVariants, $areaVariants);
                     $final = $matched ?: reset($foundItems);
