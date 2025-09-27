@@ -1,6 +1,6 @@
 <?php
 
-namespace Itb\Prefilters;
+namespace Itb\Main\Prefilters;
 
 use Bitrix\Main\Application;
 use Bitrix\Main\Engine\Controller;
