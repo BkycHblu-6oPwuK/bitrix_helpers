@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, useTemplateRef } from 'vue';
-import { isHoveredWithOverlay } from '@/common/js/helpers.js';
 import { useStore } from 'vuex';
 import SortingItem from './SortingItem.vue';
 const sortContainer = useTemplateRef('sortContainer');
@@ -10,9 +9,6 @@ const sorting = computed(() => store.getters['catalogFilter/getSorting']);
 const sortingItemClickHandler = (fieldId) => {
     store.dispatch('catalogFilter/sorting', fieldId)
 }
-onMounted(() => {
-    isHoveredWithOverlay(sortDesctopBtn.value, sortContainer.value);
-});
 </script>
 
 

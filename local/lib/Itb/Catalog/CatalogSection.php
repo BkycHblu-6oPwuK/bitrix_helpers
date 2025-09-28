@@ -73,7 +73,7 @@ class CatalogSection
     {
         $sections = [];
 
-        $sectionEntity = \Bitrix\Iblock\Model\Section::compileEntityByIblock(CatalogHelper::getCatalogIblockId());
+        $sectionEntity = CatalogHelper::getCalogSectionsEntity();
         while ($sectionId) {
             $res = $sectionEntity::query()->setSelect(['IBLOCK_SECTION_ID', 'NAME', 'CODE', 'ID', 'UF_CUSTOM_NAME', 'ACTIVE'])->where('ID', $sectionId)->setCacheTtl(86400)->cacheJoins(true)->exec()->fetch();
             if($res['ACTIVE'] === 'Y') {

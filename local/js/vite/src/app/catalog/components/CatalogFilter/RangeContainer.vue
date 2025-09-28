@@ -1,7 +1,6 @@
 <script setup>
-import { onMounted, watch, computed, useTemplateRef } from 'vue';
+import {watch, computed, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
-import { closeModal, isHoveredWithOverlay, openModal } from '@/common/js/helpers.js';
 import Range from './Range.vue';
 import storeAbout from '@/store/about';
 
@@ -56,10 +55,8 @@ if (isMobile.value) {
     watch(() => props.mobileItemsBlockIsOpen, (newValue) => {
         if (!filterMenuMobile.value) return;
         if (!newValue) {
-            closeModal(filterMenuMobile.value);
             props.filterItemContainer.querySelector('svg').style.transform = 'rotate(0deg)';
         } else {
-            openModal(filterMenuMobile.value);
             props.filterItemContainer.querySelector('svg').style.transform = 'rotate(180deg)';
         }
     });
@@ -68,9 +65,6 @@ if (isMobile.value) {
         store.dispatch('catalogFilter/updateFilter', props.item.VALUES);
         store.dispatch('catalogFilter/applyFilter');
     }
-    onMounted(() => {
-        isHoveredWithOverlay(props.filterItemContainer, item.value, null, applyFilter);
-    });
 }
 </script>
 

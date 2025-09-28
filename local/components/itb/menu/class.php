@@ -2,10 +2,10 @@
 
 use Bitrix\Iblock\SectionElementTable;
 use Bitrix\Iblock\SectionTable;
+use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Loader;
-use Itb\Core\Helpers\IblockHelper;
-use Itb\User\Enum;
 use Itb\Catalog\CatalogHelper;
+use Itb\Catalog\Types\Contracts\CatalogContextContract;
 use Itb\Main\PageHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
@@ -14,12 +14,14 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 
 class ItbMenu extends CBitrixComponent
 {
+    protected CatalogContextContract $catalogContext;
     /** @inheritDoc */
     public function executeComponent()
     {
+        $this->catalogContext = ServiceLocator::getInstance()->get(CatalogContextContract::class);
         if ($this->startResultCache()) {
             Loader::includeModule('iblock');
-            $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl() . CatalogHelper::getSectionCodeByGender($this->arParams['gender']);
+            $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl() . $this->catalogContext->getRootSectionCode();
             $menu = $this->getMenu();
             $this->arResult['menu'] = $menu;
             // Если шаблон не задан — кешируем только arResult
@@ -37,7 +39,7 @@ class ItbMenu extends CBitrixComponent
             'IBLOCK_ID' => $this->arParams['iblockId'],
             'ACTIVE' => 'Y',
             '=AVAILABLE' => 'Y',
-            'SECTION_ID' => CatalogHelper::getSectionIdByGender($this->arParams['gender']),
+            //'SECTION_ID' => CatalogHelper::getSectionIdByGender($this->arParams['type']),
             'INCLUDE_SUBSECTIONS' => 'Y',
         ];
     }
@@ -81,7 +83,7 @@ class ItbMenu extends CBitrixComponent
      */
     protected function getSectionMenu(): array
     {
-        $menu = \Bitrix\Iblock\Model\Section::compileEntityByIblock(CatalogHelper::getCatalogIblockId())::query()
+        $menu = CatalogHelper::getCalogSectionsEntity()::query()
             ->setSelect([
                 'ID',
                 'DEPTH_LEVEL',
@@ -115,7 +117,7 @@ class ItbMenu extends CBitrixComponent
     {
         $section = SectionTable::query()
             ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN'])
-            ->setFilter(['ID' => CatalogHelper::getSectionIdByGender($this->arParams['gender'])])
+            //->setFilter(['ID' => CatalogHelper::getSectionIdByGender($this->arParams['type'])])
             ->exec()
             ->fetch();
 

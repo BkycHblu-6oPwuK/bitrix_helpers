@@ -67,7 +67,7 @@ class Search
 
     protected static function getSections($productsIds)
     {
-        $section = \Bitrix\Iblock\Model\Section::compileEntityByIblock(CatalogHelper::getCatalogIblockId());
+        $section = CatalogHelper::getCalogSectionsEntity();
         $dbResult = CatalogHelper::getCatalogTableEntity()::query()
             ->setSelect(
                 [

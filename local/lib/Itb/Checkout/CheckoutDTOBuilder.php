@@ -6,7 +6,7 @@ namespace Itb\Checkout;
 
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\PropertyValueCollectionBase;
-use Itb\Catalog\Location\Contracts\BitrixLocationResolverInterface;
+use Itb\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Itb\Catalog\Order;
 use Itb\Catalog\Price;
 use Itb\Checkout\CheckoutDTO;
@@ -246,7 +246,7 @@ class CheckoutDTOBuilder
             'postCodeChanged' => 'ZIP_PROPERTY_CHANGED', // Y|N
             'distance' => $props['DISTANCE'] ? 'ORDER_PROP_' . $props['DISTANCE']->getPropertyId() : '',
             'duration' => $props['DURATION'] ? 'ORDER_PROP_' . $props['DURATION']->getPropertyId() : '',
-            'oldLocation' => BitrixLocationResolverInterface::OLD_LOCATION_REQUEST_KEY,
+            'oldLocation' => BitrixLocationResolverContract::OLD_LOCATION_REQUEST_KEY,
         ];
         return $map;
     }

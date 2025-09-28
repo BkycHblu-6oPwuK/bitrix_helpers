@@ -2,12 +2,13 @@
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Order as SaleOrder;
-use Itb\Catalog\Location\Contracts\BitrixLocationResolverInterface;
+use Itb\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Itb\Checkout\CheckoutDTOBuilder;
 use Itb\Checkout\DeliveriesBuilder;
 use Itb\Catalog\Order;
 use Itb\Checkout\PaymentsBuilder;
 use Itb\Checkout\PersonTypeBuilder;
+use Itb\Core\Helpers\LocationHelper;
 use Itb\User\Exceptions\ValidationException;
 use Itb\User\Services\AuthService;
 use Itb\User\Phone\Phone;
@@ -28,11 +29,11 @@ class ItbSaleOrderAjax extends SaleOrderAjax
      */
     protected $deliveriesBuilder;
 
-    protected ?BitrixLocationResolverInterface $locationResolver = null;
+    protected ?BitrixLocationResolverContract $locationResolver = null;
 
     public function executeComponent()
     {
-        $this->locationResolver = \Bitrix\Main\DI\ServiceLocator::getInstance()->get(BitrixLocationResolverInterface::class);
+        $this->locationResolver = \Bitrix\Main\DI\ServiceLocator::getInstance()->get(BitrixLocationResolverContract::class);
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         $eventManager->addEventHandler('sale', 'OnSaleComponentOrderProperties', [$this, 'modifyOrderPropsBeforeDelivery']);
         parent::executeComponent();
@@ -166,10 +167,10 @@ class ItbSaleOrderAjax extends SaleOrderAjax
 
         if ($this->locationResolver) {
             $variants = [];
-            $oldLocation = $this->request->get(BitrixLocationResolverInterface::OLD_LOCATION_REQUEST_KEY);
+            $oldLocation = $this->request->get(BitrixLocationResolverContract::OLD_LOCATION_REQUEST_KEY);
             $requestAddress = $requestProperties[$props->get('ADDRESS')['ID']];
             if (empty($requestAddress) && !empty($oldLocation)) {
-                $location = LocationHelper::getNearestCityByLocationCode($oldLocation, BitrixLocationResolverInterface::CACHE_TIME);
+                $location = LocationHelper::getNearestCityByLocationCode($oldLocation, BitrixLocationResolverContract::CACHE_TIME);
                 if (!empty($location)) {
                     $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['LOCATION_NAME_NAME'];
                     $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['CODE'];

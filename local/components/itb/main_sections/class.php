@@ -29,7 +29,7 @@ class ItbMainSections extends \CBitrixComponent
         $count = 0;
         $elementIds = $this->arParams['ELEMENT_IDS'];
         $catalogId = CatalogHelper::getCatalogIblockId();
-        $section = \Bitrix\Iblock\Model\Section::compileEntityByIblock($catalogId);
+        $section = CatalogHelper::getCalogSectionsEntity();
 
         $elements = collect(
             IblockHelper::getElementApiTableByCode('mainSections')::query()

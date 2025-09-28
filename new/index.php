@@ -20,7 +20,7 @@ $APPLICATION->IncludeComponent(
 	"bitrix:catalog", 
 	"main-catalog", 
 	array(
-		"IBLOCK_TYPE" => "1c_catalog",
+		"IBLOCK_TYPE" => "catalog",
 		"IBLOCK_ID" => CatalogHelper::getCatalogIblockId(),
 		"TEMPLATE_THEME" => "blue",
 		"HIDE_NOT_AVAILABLE" => "Y",

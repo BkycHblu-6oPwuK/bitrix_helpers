@@ -2,22 +2,22 @@
 
 namespace Itb\Catalog\Location;
 
-use Itb\Catalog\Location\Contracts\BitrixLocationResolverInterface;
-use Itb\Catalog\Location\Contracts\LocationApiClientInterface;
+use Itb\Catalog\Location\Contracts\LocationApiClientContract;
+use Itb\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Itb\Core\Entity\CacheSettings;
 use Itb\Core\Helpers\LocationHelper;
 use Itb\Core\Traits\Cacheable;
 use Psr\Log\LoggerInterface;
 use Bitrix\Main\Web\Json;
 
-class BitrixLocationResolver implements BitrixLocationResolverInterface
+class BitrixLocationResolver implements BitrixLocationResolverContract
 {
     use Cacheable;
 
-    private LocationApiClientInterface $client;
+    private LocationApiClientContract $client;
     private LoggerInterface $logger;
 
-    public function __construct(LocationApiClientInterface $client, LoggerInterface $logger)
+    public function __construct(LocationApiClientContract $client, LoggerInterface $logger)
     {
         $this->client = $client;
         $this->logger = $logger;
@@ -26,7 +26,7 @@ class BitrixLocationResolver implements BitrixLocationResolverInterface
     public function getBitrixLocationByAddress(string|array $location): ?array
     {
         $cacheKey = is_string($location) ? $location : Json::encode($location);
-        $cacheSettings = new CacheSettings(BitrixLocationResolverInterface::CACHE_TIME, md5($cacheKey), 'dadata/location');
+        $cacheSettings = new CacheSettings(BitrixLocationResolverContract::CACHE_TIME, md5($cacheKey), 'dadata/location');
         try {
             return $this->getCached($cacheSettings, function () use ($location) {
                 $variants = $this->getVariantsFromLocation($location);

@@ -1,7 +1,5 @@
 <script setup>
 import { computed, inject, useTemplateRef } from 'vue';
-import { headerModals } from '@/common/js/variables';
-import { checkModal, isHoveredWithOverlay, toggleModalVisibility } from '@/common/js/helpers';
 import storeAbout from '@/store/about';
 const count = computed(() => storeAbout.getters['dressing/getDressingCount']);
 const dressingModal = useTemplateRef('dressingModal');
@@ -10,9 +8,6 @@ const clickHandler = () => {
     if (count.value) {
         window.location.href = pathToDressing;
     } else if (dressingModal.value) {
-        checkModal(headerModals, dressingModal.value)
-        toggleModalVisibility(dressingModal.value)
-        isHoveredWithOverlay(dressingModal.value, dressingModal.value)
     }
 }
 </script>

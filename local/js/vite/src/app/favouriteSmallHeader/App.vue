@@ -1,7 +1,6 @@
 <script setup>
 import { computed, inject, useTemplateRef } from 'vue';
 import store from '@/store/about';
-import { checkModal, isHoveredWithOverlay, toggleModalVisibility } from '@/common/js/helpers';
 import { headerModals } from '@/common/js/variables';
 const count = computed(() => store.getters['favourite/getFavouriteCount']);
 const favouritesModal = useTemplateRef('favouritesModal');
@@ -10,9 +9,7 @@ const clickHandler = () => {
     if (count.value) {
         window.location.href = pathToFavourites;
     } else if (favouritesModal.value) {
-        checkModal(headerModals, favouritesModal.value)
-        toggleModalVisibility(favouritesModal.value)
-        isHoveredWithOverlay(favouritesModal.value, favouritesModal.value)
+
     }
 }
 </script>

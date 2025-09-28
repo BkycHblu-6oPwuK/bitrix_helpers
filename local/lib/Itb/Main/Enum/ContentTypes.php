@@ -12,4 +12,5 @@ enum ContentTypes : string
     case VKONTAKTE = 'vkontakte';
     case ARTICLES = 'slider_articles';
     case CATALOG_RAZDEL = 'catalog_razdel';
+    case MAIN_BANNER = 'main_banner';
 }

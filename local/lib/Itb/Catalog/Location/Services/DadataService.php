@@ -3,9 +3,9 @@
 namespace Itb\Catalog\Location\Services;
 
 use Dadata\DadataClient;
-use Itb\Catalog\Location\Contracts\LocationApiClientInterface;
+use Itb\Catalog\Location\Contracts\LocationApiClientContract;
 
-class DadataService implements LocationApiClientInterface
+class DadataService implements LocationApiClientContract
 {
     private DadataClient $client;
     

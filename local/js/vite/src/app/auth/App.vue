@@ -6,8 +6,8 @@ import LoginTelCode from './components/LoginTelCode.vue';
 import RegEmail from './components/RegEmail.vue';
 import RegSuccess from './components/RegSuccess.vue';
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
-import { headerModals, mobileMenu } from '@/common/js/variables';
-import { checkModal, closeByEscAndOverlay, closeModal, isHoveredWithOverlay, openForm, openModal, startCountdown, toggleModalVisibility } from '@/common/js/helpers';
+import { mobileMenu } from '@/common/js/variables';
+import { startCountdown } from '@/common/js/helpers';
 import storeAbout from '@/store/about';
 import ProfileMobileMenu from './components/ProfileMobileMenu.vue';
 
@@ -40,38 +40,28 @@ const clickLink = () => {
     if (params.isAuth) {
         window.location.href = params.profilePageUrl;
     } else if (headerAuth.value) {
-        checkModal(headerModals, headerAuth.value)
-        toggleModalVisibility(headerAuth.value)
-        isHoveredWithOverlay(headerAuth.value, headerAuth.value)
+
     }
 }
 
 const mobileMenuAuth = () => {
-    closeModal(mobileMenu)
     mobileMenu.querySelector('.m-header__menu-container').style.transform = 'translateX(-254px)'
-    openModal(loginPopup.value)
-    openForm(popupForms.value, popups.loginEmail.value.popupForm, 'hidden')
 }
 
 const clickRegBtn = () => {
-    openModal(loginPopup.value);
-    openForm(popupForms.value, popups.regEmail.value.popupForm, 'hidden')
-    closeByEscAndOverlay(loginPopup.value, 'form-modal');
+
 }
 
 const clickAuthBtn = () => {
-    openModal(loginPopup.value);
-    openForm(popupForms.value, popups.loginEmail.value.popupForm, 'hidden')
-    closeByEscAndOverlay(loginPopup.value, 'form-modal');
+
 }
 
-const closeModalEmit = () => closeModal(loginPopup.value);
+const closeModalEmit = () => null;
 
-const swithToLoginTel = () => openForm(popupForms.value, popups.loginTel.value.popupForm, 'hidden');
-const swithToRegEmail = () => openForm(popupForms.value, popups.regEmail.value.popupForm, 'hidden');
-const swithToLoginEmail = () => openForm(popupForms.value, popups.loginEmail.value.popupForm, 'hidden');
+const swithToLoginTel = () => null;
+const swithToRegEmail = () => null;
+const swithToLoginEmail = () => null;
 const swithToLoginTelCode = () => {
-    openForm(popupForms.value, popups.loginTelCode.value.popupForm, 'hidden')
     if (popups.loginTelCode.value.countDownBtn) {
         startCountdown(popups.loginTelCode.value.countDownBtn)
     }

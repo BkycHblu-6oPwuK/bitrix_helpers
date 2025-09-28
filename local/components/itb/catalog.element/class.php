@@ -12,6 +12,7 @@ use Bitrix\Main\Web\Json;
 use Itb\Catalog\Products;
 use Itb\Core\Helpers\DateHelper;
 use Itb\Catalog\CatalogHelper;
+use Itb\Reviews\ComponentParams;
 use Itb\Reviews\Options;
 use Itb\Reviews\Services\ReviewsService;
 use Itb\User\User;
@@ -147,7 +148,7 @@ class ItbCatalogElement extends \CBitrixComponent implements Controllerable
         $arResult['properties'] = $this->getFormattedProperties($arResult['propertiesDefault']);
         $arResult['reviews'] = null;
         if (Loader::includeModule('itb.reviews')) {
-            $options = Options::createInstance([
+            $options = new ComponentParams([
                 'PRODUCT_ID' => $arResult['product']['id'],
                 'PAGINATION_LIMIT' => 5,
             ]);
@@ -266,7 +267,7 @@ class ItbCatalogElement extends \CBitrixComponent implements Controllerable
         if (!$highload) return [];
         $colors = [];
         $elements = CatalogHelper::addCatalogToQuery(CatalogHelper::getCatalogTableEntity()::query())->setSelect(['ID', 'TSVET_ID' => 'TSVET_NA_SAYTE.VALUE'])
-            ->where('CML2_ARTICLE.VALUE', $acticle)
+            //->where('CML2_ARTICLE.VALUE', $acticle)
             ->where('ACTIVE', 'Y')
             ->where('CATALOG.AVAILABLE', 'Y')
             ->exec();

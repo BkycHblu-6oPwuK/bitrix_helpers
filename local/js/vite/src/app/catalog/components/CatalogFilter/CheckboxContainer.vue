@@ -1,7 +1,6 @@
 <script setup>
-import { onMounted, ref, computed, watch, useTemplateRef } from 'vue';
+import { ref, computed, watch, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
-import { closeModal, isHoveredWithOverlay, openModal } from '@/common/js/helpers.js';
 import Checkbox from './Checkbox.vue';
 import storeAbout from '@/store/about/index.js';
 
@@ -55,10 +54,8 @@ if (isMobile.value) {
     watch(() => props.mobileItemsBlockIsOpen, (newValue) => {
         if (!filterMenuMobile.value) return;
         if (!newValue) {
-            closeModal(filterMenuMobile.value, false);
             props.filterItemContainer.querySelector('svg').style.transform = 'rotate(0deg)';
         } else {
-            openModal(filterMenuMobile.value);
             props.filterItemContainer.querySelector('svg').style.transform = 'rotate(180deg)';
         }
     });
@@ -67,9 +64,6 @@ if (isMobile.value) {
         store.dispatch('catalogFilter/updateFilter', props.item.VALUES);
         store.dispatch('catalogFilter/applyFilter');
     }
-    onMounted(() => {
-        isHoveredWithOverlay(props.filterItemContainer, item.value, null, applyFilter);
-    });
 }
 
 const changeCallback = () => {

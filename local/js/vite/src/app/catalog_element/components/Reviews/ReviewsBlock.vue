@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue';
 import ReviewsForm from './ReviewsForm.vue';
-import { closeModal, openModal, plural } from '@/common/js/helpers';
+import { plural } from '@/common/js/helpers';
 import { useStore } from 'vuex';
 import ReviewsStars from '@/common/components/ReviewsStars.vue';
 import Swiper from 'swiper';
@@ -19,7 +19,6 @@ const closeFromDocument = (e) => {
 }
 const openForm = () => {
     if (reviewsForm.value.reviewsFormOverlay) {
-        openModal(reviewsForm.value.reviewsFormOverlay)
         document.addEventListener('keydown', closeKeydownHandler);
         document.addEventListener('click', closeFromDocument)
     }
@@ -27,7 +26,6 @@ const openForm = () => {
 }
 const closeForm = () => {
     if (reviewsForm.value.reviewsFormOverlay) {
-        closeModal(reviewsForm.value.reviewsFormOverlay)
         document.removeEventListener('keydown', closeKeydownHandler);
         document.removeEventListener('click', closeFromDocument)
     }

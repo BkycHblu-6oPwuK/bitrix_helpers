@@ -36,5 +36,3 @@ import '@/app/cookieNotice/index.js';
 import './vueAppsInit';
 
 import './main';
-import './sliders';
-import './ymaps';

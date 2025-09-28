@@ -4,7 +4,7 @@ namespace Itb\Catalog;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ORM\Query\Query;
 use Itb\Core\Helpers\IblockHelper;
-use Itb\User\Enum;
+use Itb\User\Enum\Gender;
 
 class CatalogHelper
 {
@@ -31,16 +31,13 @@ class CatalogHelper
         return IblockHelper::getElementApiTableByCode('offers');
     }
 
-    public static function getSectionCodeByGender(Gender $gender): string
+    public static function getCalogSectionsEntity()
     {
-        switch ($gender) {
-            case Gender::MAN:
-                return 'muzhskaya_verkhnyaya_odezhda';
-            case Gender::WOMAN:
-                return 'zhenskaya_verkhnyaya_odezhda';
-            default:
-                return '';
+        static $entity = null;
+        if (null === $entity) {
+            $entity = \Itb\Iblock\Model\SectionModel::compileEntityByIblock(static::getCatalogIblockId());
         }
+        return $entity;
     }
 
     public static function getProdQuantity($ID)
@@ -53,18 +50,6 @@ class CatalogHelper
                 return 'N';
             }
         }
-    }
-
-    public static function getSectionIdByGender(Gender $gender): int
-    {
-        return \CIBlockSection::GetList(
-            [],
-            [
-                'CODE' => self::getSectionCodeByGender($gender),
-            ],
-            false,
-            ['ID']
-        )->Fetch()['ID'] ?? 0;
     }
 
     /**

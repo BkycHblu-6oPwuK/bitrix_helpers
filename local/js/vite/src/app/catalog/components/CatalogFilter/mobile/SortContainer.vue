@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
-import { closeByEscAndOverlay, openModal } from '@/common/js/helpers.js';
 import SortingItem from '../SortingItem.vue';
 const props = defineProps({
     sortBtn: {
@@ -19,8 +18,7 @@ const sortingItemClickHandler = (fieldId) => {
 const sortingApply = () => store.dispatch('catalogFilter/sorting', selectedSortId.value);
 onMounted(() => {
     props.sortBtn && props.sortBtn.addEventListener('click', () => {
-        openModal(mobileSortContainer.value);
-        closeByEscAndOverlay(mobileSortContainer.value, 'filter-modal')
+
     })
 });
 </script>

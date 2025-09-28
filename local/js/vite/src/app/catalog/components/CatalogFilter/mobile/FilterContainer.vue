@@ -1,6 +1,5 @@
 <script setup>
 import { onMounted, computed, useTemplateRef } from 'vue';
-import { closeByEscAndOverlay, openModal } from '@/common/js/helpers.js';
 import FilterItemContainer from './FilterItemContainer.vue';
 import { useStore } from 'vuex';
 
@@ -15,8 +14,7 @@ const items = computed(() => store.getters['catalogFilter/getItems']);
 const mobileFilterContainer = useTemplateRef('mobileFilterContainer');
 onMounted(() => {
     props.filterBtn && props.filterBtn.addEventListener('click', () => {
-        openModal(mobileFilterContainer.value);
-        closeByEscAndOverlay(mobileFilterContainer.value, 'filter-modal')
+
     })
 });
 const filterApply = () => {

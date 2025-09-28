@@ -11,7 +11,7 @@ class ItbCatalogSectionList extends \CBitrixComponent
 
     public function onPrepareComponentParams($params)
     {
-        $this->sectionEntity = \Bitrix\Iblock\Model\Section::compileEntityByIblock(CatalogHelper::getCatalogIblockId());
+        $this->sectionEntity = CatalogHelper::getCalogSectionsEntity();
         if (!$params['SMART_FILTER_NAME']) {
             throw new \RuntimeException("not found smart filter name in params");
         }

@@ -1,7 +1,6 @@
 <script setup>
 import { computed, inject, useTemplateRef } from 'vue';
 import { headerModals } from '@/common/js/variables';
-import { checkModal, isHoveredWithOverlay, toggleModalVisibility } from '@/common/js/helpers';
 import store from '@/store/about';
 const pathToBasket = inject('pathToBasket');
 const count = computed(() => store.getters['basket/getCount']);
@@ -10,9 +9,7 @@ const clickHandler = () => {
     if (count.value) {
         window.location.href = pathToBasket;
     } else if (basketModal.value) {
-        checkModal(headerModals, basketModal.value)
-        toggleModalVisibility(basketModal.value)
-        isHoveredWithOverlay(basketModal.value, basketModal.value)
+
     }
 }
 </script>

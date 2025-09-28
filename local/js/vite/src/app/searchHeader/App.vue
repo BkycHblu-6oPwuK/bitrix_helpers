@@ -1,7 +1,7 @@
 <script setup>
 import { nextTick, ref, computed, useTemplateRef } from 'vue';
 import { catalogPageUrl, headerModals } from '@/common/js/variables';
-import { checkModal, debounce, isHoveredWithOverlay, toggleModalVisibility } from '@/common/js/helpers';
+import { debounce } from '@/common/js/helpers';
 import { search } from '@/api/catalog';
 import Swiper from 'swiper';
 import storeAbout from '@/store/about';
@@ -13,9 +13,7 @@ const products = ref(null);
 const query = ref('');
 const catalogUrl = computed(() => `${catalogPageUrl}?q=${encodeURIComponent(query.value)}`)
 const clickHandler = () => {
-    checkModal(headerModals, searchModal.value)
-    toggleModalVisibility(searchModal.value)
-    isHoveredWithOverlay(searchCatalog.value, searchModal.value)
+
 }
 const queryHandler = debounce(async () => {
     try {

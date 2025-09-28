@@ -1,7 +1,10 @@
 <?php
 
+use Bitrix\Main\DI\ServiceLocator;
 use Illuminate\Support\Collection;
 use Itb\Catalog\Products;
+use Itb\Catalog\Types\Contracts\CatalogSwitcherContract;
+use Itb\Core\Config;
 use Itb\Core\Helpers\IblockHelper;
 use Itb\Main\Enum\ContentTypes;
 
@@ -22,7 +25,8 @@ class ItbContent extends \CBitrixComponent
 
     protected function getContent(): array
     {
-        return collect(IblockHelper::getElementApiTableByCode('content')::query()->where('ACTIVE', 'Y')->setSelect(
+        $isEnableCatalogType = Config::getInstance()->enableSwitchCatalogType;
+        $query = IblockHelper::getElementApiTableByCode('content')::query()->where('ACTIVE', 'Y')->setSelect(
             [
                 'ID',
                 'NAME',
@@ -39,14 +43,25 @@ class ItbContent extends \CBitrixComponent
                 'TWO_ARTICLES_IDS_VALUE' => 'TWO_ARTICLES_IDS.VALUE',
                 'ARTICLES_IDS_VALUE' => 'ARTICLES_IDS.VALUE',
                 'ARTICLES_TITLE_VALUE' => 'ARTICLES_TITLE.VALUE',
-                'CATALOG_RAZDEL_IDS_VALUE' => 'CATALOG_RAZDEL_IDS.VALUE'
+                'CATALOG_RAZDEL_IDS_VALUE' => 'CATALOG_RAZDEL_IDS.VALUE',
+                'MAIN_BANNER_VALUE' => 'MAIN_BANNER.VALUE'
             ]
         )
-            ->setOrder(['SORT' => 'ASC'])
-            ->fetchAll())->groupBy('ID')
+            ->setOrder(['SORT' => 'ASC']);
+        if($isEnableCatalogType) {
+            /**
+             * @var CatalogSwitcherContract
+             */
+            $swither = ServiceLocator::getInstance()->get(CatalogSwitcherContract::class);
+            $query->where('CATALOG_TYPE.ITEM.XML_ID', $swither->get()->value);
+        }
+        return collect($query->exec()->fetchAll())->groupBy('ID')
             ->map(function (Collection $item) {
                 $firstItem = $item->first();
                 $type = $firstItem['TYPE_VALUE'];
+                $getIdsFromProperty = static function (string $property) use (&$item) {
+                    return $item->pluck([$property])->filter(fn($id) => isset($id))->unique()->map(fn($item) => (int)$item)->toArray();
+                };
                 switch ($type) {
                     case ContentTypes::SLIDER->value:
                         $ids = match ($firstItem['PRODUCTS_TYPE_VALUE']) {
@@ -54,12 +69,10 @@ class ItbContent extends \CBitrixComponent
                             ContentTypes::PRODUCTS_POPULAR->value => $this->getPopularProductsIds(),
                             default => null
                         };
-                        $getIdsFromProperty = static function () use (&$item) {
-                            return $item->pluck(['PRODUCTS_IDS_VALUE'])->filter(fn($id) => isset($id))->unique()->map(fn($item) => (int)$item)->toArray();
-                        };
+                        
                         if($ids){
                             if($ids->count() < Products::SLIDER_COUNT){
-                                $propertyIds = $getIdsFromProperty();
+                                $propertyIds = $getIdsFromProperty('PRODUCTS_IDS_VALUE');
                                 if(!empty($propertyIds)) {
                                     $ids = $ids->merge($propertyIds)->slice(0, Products::SLIDER_COUNT);
                                     $firstItem['LINK_VALUE'] = '';
@@ -69,10 +82,15 @@ class ItbContent extends \CBitrixComponent
                         }
                         return [
                             'type' =>  ContentTypes::SLIDER,
-                            'ids' => $ids ?? $getIdsFromProperty(),
+                            'ids' => $ids ?? $getIdsFromProperty('PRODUCTS_IDS_VALUE'),
                             'title' => $firstItem['TITLE'] ? $firstItem['TITLE'] : $firstItem['NAME'],
                             'bigId' => $firstItem['BIG'] ? (int)$firstItem['BIG'] : 0,
                             'link' => $firstItem['LINK_VALUE'],
+                        ];
+                    case ContentTypes::MAIN_BANNER->value:
+                        return [
+                            'type' => ContentTypes::MAIN_BANNER,
+                            'ids' => $getIdsFromProperty('MAIN_BANNER_VALUE'),
                         ];
                     case ContentTypes::VIDEO->value:
                         return [
