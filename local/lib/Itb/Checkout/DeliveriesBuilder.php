@@ -90,7 +90,7 @@ class DeliveriesBuilder
         return $dto;
     }
 
-    private function buildDeliveryDTO(BaseDelivery $delivery, DeliveryiesDTO $deliveryesDto): DeliveryDTO
+    private function buildDeliveryDTO(BaseDelivery $delivery): DeliveryDTO
     {
         $dto = new DeliveryDTO();
         $dto->id = $delivery->getId();
@@ -103,7 +103,7 @@ class DeliveriesBuilder
         $dto->logotip = $delivery->getLogotip();
         $dto->price = $delivery->getPrice();
         $dto->isSelected = $delivery->isSelected();
-        $dto->extraServices = $dto->isSelected ? $this->getExtraServices($delivery->getExtraServices(), $deliveryesDto) : [];
+        $dto->extraServices = $dto->isSelected ? $this->getExtraServices($delivery->getExtraServices()) : [];
         $dto->isStoreDelivery = $delivery->isStoreDelivery();
         $dto->isTransport = in_array($delivery->getCode(), self::TRANSPORT_DELIVERIES);
         $dto->isDoor = in_array($delivery->getCode(), self::DOOR_DELIVERIES);
@@ -112,17 +112,6 @@ class DeliveriesBuilder
             $dto->storeList = $this->getStoreData($delivery);
         }
         return $dto;
-    }
-
-    /**
-     * @return bool
-     */
-    public function haveAvailableDeliveries(): bool
-    {
-        return $this->deliveries
-            ->contains(function (BaseDelivery $delivery) {
-                return $delivery->isAvailable();
-            });
     }
 
     private function buildLocation(DeliveryiesDTO $dto)
@@ -137,6 +126,17 @@ class DeliveriesBuilder
         $dto->completionDate = $props['COMPLETION_DATE'] ?? '';
         $dto->distance = (float)$props['DISTANCE'] ?? 0;
         $dto->duration = (float)$props['DURATION'] ?? 0;
+    }
+
+    /**
+     * @return bool
+     */
+    public function haveAvailableDeliveries(): bool
+    {
+        return $this->deliveries
+            ->contains(function (BaseDelivery $delivery) {
+                return $delivery->isAvailable();
+            });
     }
 
     private function getExtraServices(array $extraServices): array
@@ -164,7 +164,7 @@ class DeliveriesBuilder
                 }
                 $code = $extraService->getCode();
                 $isPriceService = $code === static::DISTANCE_PRICE_SERVICE_CODE;
-                
+
                 $extraServicesFormatted[] = [
                     'id' => $extraServiceId,
                     'code' => $extraService->getCode(),

@@ -2,6 +2,7 @@
 namespace Itb\Checkout;
 
 use Bitrix\Sale\PropertyValueCollectionBase;
+use Itb\Catalog\Order;
 
 class FormBuilder
 {

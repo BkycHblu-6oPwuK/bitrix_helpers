@@ -71,6 +71,7 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
     }
 
     /**
+     * расчет доставки собственной службой в заданной зоне
      * @param float $distance км
      * @param float $duration часы
      * @param float $zone код зоны доставки
@@ -105,8 +106,11 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
                 ];
             }
 
+            /**
+             * @todo код зоны, можно будет переделать на передачу в запросе
+             */
             $payload = [
-                'zone' => '68d0e82be2649', // код зоны, можно будет переделать на передачу в запросе
+                'zone' => '68d0e82be2649',
                 'distance' => $distance,
                 'duration' => $duration,
                 'offers' => Json::encode($offers),
@@ -146,6 +150,9 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
         }
     }
 
+    /**
+     * получение данных зоны доставки виджета
+     */
     public static function getClientAction()
     {
         $widgetKey = Option::get(Config::MODULE_ID, 'widget_key');
