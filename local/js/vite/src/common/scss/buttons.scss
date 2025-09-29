@@ -1,0 +1,8 @@
+@use "@/common/scss/var" as *;
+
+.btn {
+    color: $color-dark;
+    padding: $spacing-sm $spacing-md;
+    background: $color-white;
+    border-radius: $radius-md;
+}

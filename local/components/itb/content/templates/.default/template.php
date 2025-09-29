@@ -2,7 +2,6 @@
 
 use Itb\Core\Helpers\IblockHelper;
 use Itb\Main\Enum\ContentTypes;
-dd($arResult);
 foreach ($arResult as $item) {
 	switch ($item['type']) {
 		case ContentTypes::SLIDER:

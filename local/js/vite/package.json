@@ -27,6 +27,7 @@
     "@vitejs/plugin-vue": "5.2.1",
     "cross-env": "7.0.3",
     "sass": "1.83.1",
+    "tailwindcss": "^3.4.17",
     "unplugin-vue-macros": "2.13.8",
     "vite": "6.0.7",
     "vite-plugin-style-import": "2.0.0"

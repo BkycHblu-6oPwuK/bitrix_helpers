@@ -14,6 +14,6 @@
 </div>
 <? 
 else :
-    require $_SERVER['DOCUMENT_ROOT'] . '/site/include/mainPage.php';
+    require $_SERVER['DOCUMENT_ROOT'] . '/include/mainPage.php';
 endif;
 ?>
