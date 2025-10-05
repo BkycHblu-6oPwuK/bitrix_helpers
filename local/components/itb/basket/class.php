@@ -3,8 +3,8 @@
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Main\Loader;
-use Itb\Catalog\BasketFacade;
-use Itb\Main\PageHelper;
+use App\Catalog\Basket\BasketFacade;
+use App\Main\PageHelper;
 
 class ItbBasket extends \CBitrixComponent implements Controllerable
 {

@@ -1,10 +1,10 @@
 <?php
 
-use Itb\EventHandlers\Iblock;
-use Itb\EventHandlers\Buffer;
-use Itb\EventHandlers\Mail;
-use Itb\EventHandlers\Main;
-use Itb\EventHandlers\Sale;
+use App\EventHandlers\Iblock;
+use App\EventHandlers\Buffer;
+use App\EventHandlers\Mail;
+use App\EventHandlers\Main;
+use App\EventHandlers\Sale;
 
 \Bitrix\Main\Loader::includeModule('sale');
 

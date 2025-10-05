@@ -6,14 +6,14 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\Order;
-use Itb\Catalog\BasketFacade;
-use Itb\Catalog\PersonType;
-use Itb\Catalog\Order as CatalogOrder;
+use App\Catalog\Basket\BasketFacade;
+use App\Catalog\Helper\OrderHelper;
+use App\Catalog\Helper\PersonTypeHelper;
 use Itb\Dressing\Options;
-use Itb\User\Services\AuthService;
-use Itb\User\Phone\Phone;
-use Itb\User\User;
-use Itb\User\UserBuilder;
+use App\User\Services\AuthService;
+use App\User\Phone\Phone;
+use App\User\User;
+use App\User\UserBuilder;
 
 class DressingService
 {
@@ -68,11 +68,11 @@ class DressingService
     protected function createOrder(User $user, Basket $basket): Order
     {
         $order = Order::create(Context::getCurrent()->getSite(), $user->getId());
-        $order->setPersonTypeId(PersonType::getIndividualPersonId());
+        $order->setPersonTypeId(PersonTypeHelper::getIndividualPersonId());
         $order->setBasket($basket);
 
-        CatalogOrder::addShipment($order);
-        CatalogOrder::addPayment($order, $this->options->pay);
+        OrderHelper::addShipment($order);
+        OrderHelper::addPayment($order, $this->options->pay);
 
         $this->setOrderProperties($order, $user);
 
@@ -87,11 +87,11 @@ class DressingService
     {
         $propertyCollection = $order->getPropertyCollection();
 
-        CatalogOrder::setProperty($propertyCollection, 'NAME', $user->getName());
-        CatalogOrder::setProperty($propertyCollection, 'LAST_NAME', $user->getLastName() ?: '');
-        CatalogOrder::setProperty($propertyCollection, 'EMAIL', $user->getEmail());
-        CatalogOrder::setProperty($propertyCollection, 'PHONE', $user->getPhoneAsString());
-        CatalogOrder::setProperty($propertyCollection, 'IS_DRESSING', 'Y');
+        OrderHelper::setProperty($propertyCollection, 'NAME', $user->getName());
+        OrderHelper::setProperty($propertyCollection, 'LAST_NAME', $user->getLastName() ?: '');
+        OrderHelper::setProperty($propertyCollection, 'EMAIL', $user->getEmail());
+        OrderHelper::setProperty($propertyCollection, 'PHONE', $user->getPhoneAsString());
+        OrderHelper::setProperty($propertyCollection, 'IS_DRESSING', 'Y');
     }
 
     public function toggleBasketItem(int $offerId): string

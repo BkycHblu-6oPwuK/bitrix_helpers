@@ -1,9 +1,10 @@
 <?php
 
-use Itb\Catalog\Location\LocationServiceProvider;
-use Itb\Catalog\Types\CatalogTypesServiceProvider;
+use App\Catalog\Location\LocationServiceProvider;
+use App\Catalog\Repository\CatalogRepositoryProvider;
+use App\Catalog\Type\CatalogTypesServiceProvider;
 use Itb\Core\Logger\LoggerServiceProvider;
-use Itb\Notification\NotificationServiceProvider;
+use App\Notification\NotificationServiceProvider;
 
 /**
  * @var \Itb\Core\DI\AbstractServiceProvider[]
@@ -12,7 +13,8 @@ $providers = [
     LoggerServiceProvider::class,
     LocationServiceProvider::class,
     NotificationServiceProvider::class,
-    CatalogTypesServiceProvider::class
+    CatalogTypesServiceProvider::class,
+    CatalogRepositoryProvider::class
 ];
 
 foreach ($providers as $provider) {

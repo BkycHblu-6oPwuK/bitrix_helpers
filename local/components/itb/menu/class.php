@@ -4,9 +4,11 @@ use Bitrix\Iblock\SectionElementTable;
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Loader;
-use Itb\Catalog\CatalogHelper;
-use Itb\Catalog\Types\Contracts\CatalogContextContract;
-use Itb\Main\PageHelper;
+use App\Catalog\Helper\CatalogHelper;
+use App\Catalog\Type\Contracts\CatalogContextContract;
+use App\Iblock\Model\SectionModel;
+use App\Main\PageHelper;
+use Itb\Core\Helpers\IblockHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -55,7 +57,7 @@ class ItbMenu extends CBitrixComponent
         $menu = $this->filterMenuBySectionsIds($menu, $sectionsIds);
 
         $menu = $this->handleMenu($menu);
-        
+
         return $menu;
     }
 
@@ -83,7 +85,8 @@ class ItbMenu extends CBitrixComponent
      */
     protected function getSectionMenu(): array
     {
-        $menu = CatalogHelper::getCalogSectionsEntity()::query()
+        $catalogId = IblockHelper::getIblockIdByCode('catalog');
+        $menu = SectionModel::compileEntityByIblock($catalogId)::query()
             ->setSelect([
                 'ID',
                 'DEPTH_LEVEL',

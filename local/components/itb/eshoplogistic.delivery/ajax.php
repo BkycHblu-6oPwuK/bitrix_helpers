@@ -7,7 +7,8 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\Web\Json;
 use Eshoplogistic\Delivery\Config;
 use Eshoplogistic\Delivery\Controller\AjaxHandler;
-use Itb\Catalog\BasketFacade;
+use App\Catalog\Basket\BasketFacade;
+use App\Catalog\Dto\PickPointDTO;
 
 Loader::includeModule('eshoplogistic.delivery');
 
@@ -35,7 +36,7 @@ class ItbEshoplogisticDeliveryController extends AjaxHandler
             $dtoList = [];
             if (isset($result[0]['terminals']) && is_array($result[0]['terminals'])) {
                 foreach ($result[0]['terminals'] as $terminal) {
-                    $dto = new \Itb\Checkout\Delivery\PickPointDTO();
+                    $dto = new PickPointDTO();
                     $dto->id = $terminal['code'] ?? '';
                     $dto->name = $terminal['name'] ?? '';
                     $dto->city = $terminal['settlement'] ?? '';

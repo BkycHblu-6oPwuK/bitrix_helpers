@@ -1,6 +1,6 @@
 <?php
 
-namespace Itb\qrShow;
+namespace App\qrShow;
 
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
@@ -9,7 +9,7 @@ use BaconQrCode\Writer;
 use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Sale\Internals\OrderTable;
 use Bitrix\Sale\Order;
-use Itb\Catalog\Order as CatalogOrder;
+use App\Catalog\Helper\OrderHelper;
 
 /**
  * @todo Освежить бы код, да шаблон под сборщик
@@ -46,7 +46,7 @@ class ItbQrShow extends \CBitrixComponent implements Controllerable
     {
         $data = [];
         $order = Order::load($this->arParams['ORDER_ID']);
-        $data['QR_URL'] = CatalogOrder::initPay($order)->getPaymentUrl();
+        $data['QR_URL'] = OrderHelper::initPay($order)->getPaymentUrl();
         $data['ORDER_ID'] = $this->arParams['ORDER_ID'];
         $data['QR'] = base64_encode($this->generate($data['QR_URL']));
         if ($this->arParams['CHECK_PAYMENT'] == 'Y') {

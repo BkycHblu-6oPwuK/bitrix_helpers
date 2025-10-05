@@ -2,7 +2,7 @@
 
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
-use Itb\Catalog\Search;
+use App\Catalog\Helper\SearchHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -35,7 +35,7 @@ class ItbSearchController extends Controller
      */
     public function searchAction($query): array
     {
-        $hints = Search::getHints($query);
+        $hints = SearchHelper::getHints($query);
 
         if (!empty($hints)) {
             return [

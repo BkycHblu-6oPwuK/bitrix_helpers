@@ -1,7 +1,7 @@
 <?php
 
 use Bitrix\Iblock\SectionTable;
-use Itb\Catalog\CatalogSection;
+use App\Catalog\Helper\CatalogSectionHelper;
 use Itb\Core\Helpers\IblockHelper;
 
 final class Options
@@ -42,7 +42,7 @@ final class Options
             $this->section_id = (int)SectionTable::query()->setSelect(['ID'])->where('CODE', $this->section_code)->setCacheTtl(360000)->exec()->fetch()['ID'];
         }
         if(!$this->is_quick_view){
-            $this->section_path = CatalogSection::getPath($this->section_id);
+            $this->section_path = CatalogSectionHelper::getPath($this->section_id);
         }
         //$item = [
         //    'IBLOCK_SECTION_ID' => $this->section_id,

@@ -1,7 +1,7 @@
 <?php
 
-use Itb\Main\PageHelper;
-use Itb\User\User;
+use App\Main\PageHelper;
+use App\User\User;
 
 class ItbAuth extends CBitrixComponent
 {

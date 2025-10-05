@@ -1,9 +1,9 @@
 <?php
 
 use Bitrix\Main\DI\ServiceLocator;
-use Itb\Catalog\Types\Contracts\CatalogContextContract;
-use Itb\Catalog\Types\Contracts\CatalogSwitcherContract;
-use Itb\Catalog\Types\Enum\TypesCatalog;
+use App\Catalog\Type\Contracts\CatalogContextContract;
+use App\Catalog\Type\Contracts\CatalogSwitcherContract;
+use App\Catalog\Type\Enum\TypesCatalog;
 use Itb\Core\Config;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
@@ -22,7 +22,7 @@ class ItbIndex extends CBitrixComponent
         $swither = ServiceLocator::getInstance()->get(CatalogSwitcherContract::class);
         $current = $swither->get();
         $this->catalogContext = ServiceLocator::getInstance()->get(CatalogContextContract::class);
-        $this->arResult['types'] = Config::getInstance()->enableSwitchCatalogType ? $this->catalogContext->getRootSections() : [];
+        $this->arResult['types'] = Config::getInstance()['SWITH_CATALOG_TYPES'] ? $this->catalogContext->getRootSections() : [];
         if(!empty($this->arResult['types']) && $current !== TypesCatalog::ALL) {
             LocalRedirect("/{$current->value}/");
         }

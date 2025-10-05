@@ -1,7 +1,7 @@
 <?php
 
 use Bitrix\Iblock\SectionPropertyTable;
-use Itb\Catalog\CatalogSection;
+use App\Catalog\Helper\CatalogSectionHelper;
 
 $items = [];
 foreach($arResult['ITEMS'] as $key => &$item){
@@ -21,7 +21,7 @@ $arResult['VUE_DATA'] = [
     'filter_url' => $arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'],
     'clear_url' => $arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL'],
     'items' => $items,
-    'sorting' => CatalogSection::getSorting(),
+    'sorting' => CatalogSectionHelper::getSorting(),
     'types' => [
         'checkbox' => SectionPropertyTable::CHECKBOXES,
         'range' => SectionPropertyTable::NUMBERS_WITH_SLIDER

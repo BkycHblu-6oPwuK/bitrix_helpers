@@ -14,7 +14,7 @@
  * @var CBitrixComponent $component
  */
 
-use Itb\Catalog\Products;
+use App\Catalog\Helper\ProductsHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -43,7 +43,7 @@ $result = $APPLICATION->IncludeComponent(
 );
 
 if ($result) {
-    $sameProductsIds = Products::getSameProductsIds((int)$result['elementId'], (int)$result['sectionId'], 86400);
+    $sameProductsIds = ProductsHelper::getSameProductsIds((int)$result['elementId'], (int)$result['sectionId'], 86400);
     if (!empty($sameProductsIds)) {
         $APPLICATION->IncludeComponent(
             'itb:product_slider',
@@ -56,7 +56,7 @@ if ($result) {
             ]
         );
     }
-    $viewedIds = Products::getViewedProductsIds((int)$result['elementId']);
+    $viewedIds = ProductsHelper::getViewedProductsIds((int)$result['elementId']);
     if (!empty($viewedIds)) {
         $APPLICATION->IncludeComponent(
             'itb:product_slider',

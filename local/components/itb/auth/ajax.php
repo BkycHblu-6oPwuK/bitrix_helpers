@@ -4,16 +4,16 @@ use Bitrix\Main\Context;
 use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Web\Uri;
-use Itb\Notification\Contracts\SmsCodeContract;
-use Itb\User\Exceptions\IncorrectOldPasswordException;
-use Itb\User\Exceptions\UserNotFoundException;
-use Itb\Main\PageHelper;
-use Itb\User\UserRepository;
-use Itb\User\Services\AuthService;
-use Itb\User\Phone\Phone;
-use Itb\User\User;
-use Itb\User\UserBuilder;
-use Itb\User\UserValidator;
+use App\Notification\Contracts\SmsCodeContract;
+use App\User\Exceptions\IncorrectOldPasswordException;
+use App\User\Exceptions\UserNotFoundException;
+use App\Main\PageHelper;
+use App\User\UserRepository;
+use App\User\Services\AuthService;
+use App\User\Phone\Phone;
+use App\User\User;
+use App\User\UserBuilder;
+use App\User\UserValidator;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -162,14 +162,14 @@ class ItbAuthController extends \Bitrix\Main\Engine\Controller
         try {
             $phone = new Phone($phoneNumber);
             /**
-             * @var SmsCodeContract|\Itb\Notification\Services\Sms\SmsCodeService $service
+             * @var SmsCodeContract|\App\Notification\Services\Sms\SmsCodeService $service
              */
             $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
             $service->sendCode($phone);
             return [
                 'success' => true
             ];
-        } catch (\Itb\Notification\Exceptions\SmsException $e) {
+        } catch (\App\Notification\Exceptions\SmsException $e) {
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -186,7 +186,7 @@ class ItbAuthController extends \Bitrix\Main\Engine\Controller
         try {
             $phone = new Phone($phoneNumber);
             /**
-             * @var SmsCodeContract|\Itb\Notification\Services\Sms\SmsCodeService $service
+             * @var SmsCodeContract|\App\Notification\Services\Sms\SmsCodeService $service
              */
             $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
             $result = $service->checkCode($phone, (int)$code);

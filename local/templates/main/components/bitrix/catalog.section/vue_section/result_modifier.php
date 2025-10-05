@@ -1,6 +1,6 @@
 <?
 
-use Itb\Catalog\CatalogSection;
+use App\Catalog\Helper\CatalogSectionHelper;
 use Itb\Core\Helpers\PaginationHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
@@ -13,7 +13,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 $component = $this->getComponent();
 $arParams = $component->applyTemplateModifications();
 
-$arResult['ITEMS'] = CatalogSection::getProductsForCard($arResult['ELEMENTS']);
+$arResult['ITEMS'] = CatalogSectionHelper::getProductsForCard($arResult['ELEMENTS']);
 $arResult['PAGINATION'] = PaginationHelper::toArray($arResult['NAV_RESULT']);
 
 $this->getComponent()->setResultCacheKeys(['ITEMS', 'PAGINATION']);

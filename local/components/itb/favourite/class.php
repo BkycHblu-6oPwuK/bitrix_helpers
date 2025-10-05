@@ -1,9 +1,9 @@
 <?php
 
 use Bitrix\Main\Loader;
-use Itb\Catalog\Products;
+use App\Catalog\Helper\ProductsHelper;
 use Itb\Core\Helpers\PaginationHelper;
-use Itb\Favorite\Helper;
+use App\Favorite\Helper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -27,7 +27,7 @@ class ItbFavourite extends \CBitrixComponent
         $favoriteProductIds = $favoriteProductIds->forPage($pagination['currentPage'], $pagination['pageSize']);
         return [
             'pagination' => $pagination,
-            'items'      => collect(Products::getProductsAndOffers($favoriteProductIds->toArray(), false))
+            'items'      => collect(ProductsHelper::getProductsAndOffers($favoriteProductIds->toArray(), false))
                 ->values()
                 ->toArray()
         ];

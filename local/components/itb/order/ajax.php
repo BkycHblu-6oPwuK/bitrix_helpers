@@ -6,9 +6,9 @@ use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Order;
-use Itb\Catalog\Order as CatalogOrder;
-use Itb\Catalog\Enum\OrderStatuses;
-use Itb\User\User;
+use App\Catalog\Helper\OrderHelper;
+use App\Catalog\Enum\OrderStatuses;
+use App\User\User;
 
 class ItbOrderController extends Controller
 {
@@ -67,8 +67,8 @@ class ItbOrderController extends Controller
             return [
                 'success' => true,
                 'data' => [
-                    'status' => CatalogOrder::getStatusName($order),
-                    'date' => CatalogOrder::getDateFormatted($order)
+                    'status' => OrderHelper::getStatusName($order),
+                    'date' => OrderHelper::getDateFormatted($order)
                 ] // или сделать builder для заказа чтобы возвращать весь заказ
             ];
         } catch (\Exception $e) {
@@ -84,7 +84,7 @@ class ItbOrderController extends Controller
             if (!Loader::includeModule('sale')) {
                 throw new \Exception('Модуль sale не подключен');
             }
-            CatalogOrder::copyOrder($orderId);
+            OrderHelper::copyOrder($orderId);
             return [
                 'success' => true,
             ];

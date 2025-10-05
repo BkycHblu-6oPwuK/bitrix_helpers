@@ -2,8 +2,8 @@
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Web\Json;
-use Itb\Catalog\Search;
-use Itb\Catalog\Sorting;
+use App\Catalog\Helper\SearchHelper;
+use App\Catalog\Helper\SortingHelper;
 use Itb\Core\Assets\Vite;
 use Itb\Core\Config;
 use Itb\Core\Helpers\WebHelper;
@@ -23,7 +23,7 @@ $request = Context::getCurrent()->getRequest();
 $query = $request->get('q');
 if ($query) {
 	$APPLICATION->SetTitle("Вы искали «{$query}»");
-	$foundIds = Search::getProductsIds($query, 100000);
+	$foundIds = SearchHelper::getProductsIds($query, 100000);
 	${$PREFILTER_NAME}['ID'] = !empty($foundIds) ? $foundIds : false;
 }
 ?>
@@ -80,7 +80,7 @@ if ($query) {
 		$component
 	);
 
-	$sort = Sorting::getRequestedSort();
+	$sort = SortingHelper::getRequestedSort();
 
 	$intSectionID = $APPLICATION->IncludeComponent(
 		"bitrix:catalog.section",

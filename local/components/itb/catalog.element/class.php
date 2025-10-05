@@ -9,13 +9,14 @@ use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Web\Json;
-use Itb\Catalog\Products;
+use App\Catalog\Helper\ProductsHelper;
 use Itb\Core\Helpers\DateHelper;
-use Itb\Catalog\CatalogHelper;
-use Itb\Reviews\ComponentParams;
-use Itb\Reviews\Options;
-use Itb\Reviews\Services\ReviewsService;
-use Itb\User\User;
+use App\Catalog\Helper\CatalogHelper;
+use App\Reviews\ComponentParams;
+use App\Reviews\Options;
+use App\Reviews\Services\ReviewsService;
+use App\User\User;
+use Itb\Core\Helpers\IblockHelper;
 
 class ItbCatalogElement extends \CBitrixComponent implements Controllerable
 {
@@ -160,9 +161,9 @@ class ItbCatalogElement extends \CBitrixComponent implements Controllerable
 
     protected function getProductData(int $elementId): array
     {
-        $productData = Products::getProductsAndOffers([$elementId])[$elementId];
+        $productData = ProductsHelper::getProductsAndOffers([$elementId])[$elementId];
         // if (empty($productData['offers'])) {
-        //     $productData = Products::getProductsAndOffers([$elementId], false)[$elementId];
+        //     $productData = ProductsHelper::getProductsAndOffers([$elementId], false)[$elementId];
         //     $productData['availableMode'] = false;
         // } else {
         //     $productData['availableMode'] = true;
@@ -266,7 +267,7 @@ class ItbCatalogElement extends \CBitrixComponent implements Controllerable
         $highload = $this->getHighload($hlTableName);
         if (!$highload) return [];
         $colors = [];
-        $elements = CatalogHelper::addCatalogToQuery(CatalogHelper::getCatalogTableEntity()::query())->setSelect(['ID', 'TSVET_ID' => 'TSVET_NA_SAYTE.VALUE'])
+        $elements = CatalogHelper::addCatalogToQuery(IblockHelper::getElementApiTableByCode('catalog')::query())->setSelect(['ID', 'TSVET_ID' => 'TSVET_NA_SAYTE.VALUE'])
             //->where('CML2_ARTICLE.VALUE', $acticle)
             ->where('ACTIVE', 'Y')
             ->where('CATALOG.AVAILABLE', 'Y')

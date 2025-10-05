@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dbfcfe557c0e1e1b0c387098ea9c4689",
+    "content-hash": "23754fab27d14bee2d6598f997f4f09b",
     "packages": [
         {
             "name": "andreyryabin/sprint.migration",
@@ -108,6 +108,87 @@
                 "source": "https://github.com/Bacon/BaconQrCode/tree/v3.0.1"
             },
             "time": "2024-10-01T13:55:55+00:00"
+        },
+        {
+            "name": "beeralex/itb.core",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/BkycHblu-6oPwuK/itb.core.git",
+                "reference": "4b8196143fb801ef2a4269ba40461872cbe70287"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/BkycHblu-6oPwuK/itb.core/zipball/4b8196143fb801ef2a4269ba40461872cbe70287",
+                "reference": "4b8196143fb801ef2a4269ba40461872cbe70287",
+                "shasum": ""
+            },
+            "type": "bitrix-module",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alexandr Belotsitsko",
+                    "email": "sanyabelyy020@gmail.com"
+                }
+            ],
+            "description": "My base Bitrix module",
+            "support": {
+                "issues": "https://github.com/BkycHblu-6oPwuK/itb.core/issues",
+                "source": "https://github.com/BkycHblu-6oPwuK/itb.core/tree/v1.0.0"
+            },
+            "time": "2025-10-03T15:57:46+00:00"
+        },
+        {
+            "name": "cijic/phpmorphy",
+            "version": "0.3.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/cijic/phpmorphy.git",
+                "reference": "e83d0a08e25028018f4776c31b9cc6e3446a3839"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/cijic/phpmorphy/zipball/e83d0a08e25028018f4776c31b9cc6e3446a3839",
+                "reference": "e83d0a08e25028018f4776c31b9cc6e3446a3839",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "cijic\\phpMorphy\\": "src"
+                },
+                "classmap": [
+                    "libs/phpmorphy/src/common.php",
+                    "libs/phpmorphy/src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Chiril Teterea",
+                    "email": "altcode@ya.ru",
+                    "role": "Developer"
+                }
+            ],
+            "description": "phpMorphy - morphological analyzer library for Russian, English, German and Ukrainian languages.",
+            "homepage": "https://github.com/cijic/phpmorphy",
+            "keywords": [
+                "phpmorphy"
+            ],
+            "support": {
+                "issues": "https://github.com/cijic/phpmorphy/issues",
+                "source": "https://github.com/cijic/phpmorphy/tree/0.3.6"
+            },
+            "time": "2025-03-13T23:29:52+00:00"
         },
         {
             "name": "composer/installers",

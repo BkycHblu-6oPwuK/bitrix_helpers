@@ -2,11 +2,11 @@
 
 use Bitrix\Main\DI\ServiceLocator;
 use Illuminate\Support\Collection;
-use Itb\Catalog\Products;
-use Itb\Catalog\Types\Contracts\CatalogSwitcherContract;
+use App\Catalog\Helper\ProductsHelper;
+use App\Catalog\Type\Contracts\CatalogSwitcherContract;
 use Itb\Core\Config;
 use Itb\Core\Helpers\IblockHelper;
-use Itb\Main\Enum\ContentTypes;
+use App\Main\Enum\ContentTypes;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -25,7 +25,7 @@ class ItbContent extends \CBitrixComponent
 
     protected function getContent(): array
     {
-        $isEnableCatalogType = Config::getInstance()->enableSwitchCatalogType;
+        $isEnableCatalogType = Config::getInstance()['SWITH_CATALOG_TYPES'];
         $query = IblockHelper::getElementApiTableByCode('content')::query()->where('ACTIVE', 'Y')->setSelect(
             [
                 'ID',
@@ -71,10 +71,10 @@ class ItbContent extends \CBitrixComponent
                         };
                         
                         if($ids){
-                            if($ids->count() < Products::SLIDER_COUNT){
+                            if($ids->count() < ProductsHelper::SLIDER_COUNT){
                                 $propertyIds = $getIdsFromProperty('PRODUCTS_IDS_VALUE');
                                 if(!empty($propertyIds)) {
-                                    $ids = $ids->merge($propertyIds)->slice(0, Products::SLIDER_COUNT);
+                                    $ids = $ids->merge($propertyIds)->slice(0, ProductsHelper::SLIDER_COUNT);
                                     $firstItem['LINK_VALUE'] = '';
                                 }
                             }
@@ -132,10 +132,10 @@ class ItbContent extends \CBitrixComponent
 
     protected function getNewProductsIds(): Collection
     {
-        return collect(Products::getNewProductsIds());
+        return collect(ProductsHelper::getNewProductsIds());
     }
     protected function getPopularProductsIds(): Collection
     {
-        return collect(Products::getPopularProductsIds());
+        return collect(ProductsHelper::getPopularProductsIds());
     }
 }

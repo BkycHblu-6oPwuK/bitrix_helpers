@@ -2,19 +2,19 @@
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Order as SaleOrder;
-use Itb\Catalog\Location\Contracts\BitrixLocationResolverContract;
-use Itb\Checkout\CheckoutDTOBuilder;
-use Itb\Checkout\DeliveriesBuilder;
-use Itb\Catalog\Order;
-use Itb\Checkout\PaymentsBuilder;
-use Itb\Checkout\PersonTypeBuilder;
+use App\Catalog\Location\Contracts\BitrixLocationResolverContract;
+use App\Catalog\Checkout\CheckoutDTOBuilder;
+use App\Catalog\Checkout\DeliveriesBuilder;
+use App\Catalog\Helper\OrderHelper;
+use App\Catalog\Checkout\PaymentsBuilder;
+use App\Catalog\Checkout\PersonTypeBuilder;
 use Itb\Core\Helpers\LocationHelper;
-use Itb\User\Exceptions\ValidationException;
-use Itb\User\Services\AuthService;
-use Itb\User\Phone\Phone;
-use Itb\User\User;
-use Itb\User\UserBuilder;
-use Itb\User\UserValidator;
+use App\User\Exceptions\ValidationException;
+use App\User\Services\AuthService;
+use App\User\Phone\Phone;
+use App\User\User;
+use App\User\UserBuilder;
+use App\User\UserValidator;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -234,7 +234,7 @@ class ItbSaleOrderAjax extends SaleOrderAjax
     protected function getOrderProperties()
     {
         $propValues = $this->getPropertyValuesFromRequest();
-        $orderProps = collect(Order::getPropertyList($this->order->getPersonTypeId()))
+        $orderProps = collect(OrderHelper::getPropertyList($this->order->getPersonTypeId()))
             ->map(function ($prop) use ($propValues) {
                 return array_merge($prop, ['VALUE' => $propValues[(int)$prop['ID']]]);
             });

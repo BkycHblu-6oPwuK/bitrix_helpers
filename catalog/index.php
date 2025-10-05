@@ -1,6 +1,6 @@
 <?
 
-use Itb\Catalog\CatalogHelper;
+use App\Catalog\Helper\CatalogHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 
@@ -10,7 +10,7 @@ $APPLICATION->IncludeComponent(
 	"main-catalog", 
 	array(
 		"IBLOCK_TYPE" => "catalog",
-		"IBLOCK_ID" => CatalogHelper::getCatalogIblockId(),
+		"IBLOCK_ID" => IblockHelper::getIblockIdByCode('catalog'),
 		"TEMPLATE_THEME" => "blue",
 		"HIDE_NOT_AVAILABLE" => "Y",
 		"BASKET_URL" => "/personal/cart/",

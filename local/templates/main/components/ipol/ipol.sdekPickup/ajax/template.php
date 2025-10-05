@@ -1,8 +1,7 @@
 <?php
 global $APPLICATION;
 
-use Itb\Catalog\PickPointDTO;
-use Itb\Core\Helpers\WebHelper;
+use App\Catalog\Dto\PickPointDTO;
 
 $result = [
     'error' => false,

@@ -1,6 +1,6 @@
 <?
 
-use Itb\Catalog\CatalogSection;
+use App\Catalog\Helper\CatalogSectionHelper;
 use Itb\Core\Helpers\PaginationHelper;
 
  if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();

@@ -3,11 +3,11 @@
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Type\DateTime;
 use Itb\Core\Config;
-use Itb\User\Exceptions\UserNotFoundException;
-use Itb\User\Services\ProfileService;
-use Itb\User\Phone\Phone;
-use Itb\User\User;
-use Itb\User\UserValidator;
+use App\User\Exceptions\UserNotFoundException;
+use App\User\Services\ProfileService;
+use App\User\Phone\Phone;
+use App\User\User;
+use App\User\UserValidator;
 
 /**
  * @todo перенести бы c m1 функционалльную часть соединив с этой
@@ -67,9 +67,9 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     public function getPersonalAction()
     {
         try {
-            $notifications = (new \Itb\Notification\Services\NotificationPreferenceService)->getAll(User::current()->getId());
+            $notifications = (new \App\Notification\Services\NotificationPreferenceService)->getAll(User::current()->getId());
             $result = [
-                'personal' => (new \Itb\User\Profile\PersonalBuilder($notifications))->build(),
+                'personal' => (new \App\User\Profile\PersonalBuilder($notifications))->build(),
                 'success' => true
             ];
             return $result;
@@ -105,7 +105,7 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     public function getOrdersAction()
     {
         try {
-            $result = (new \Itb\User\Profile\OrdersBuilder(new \Itb\Catalog\Repository\OrderRepository))->build();
+            $result = (new \App\User\Profile\OrdersBuilder(new \App\Catalog\Repository\OrderRepository))->build();
             $result['success'] = true;
             return $result;
         } catch (\Exception $e) {
@@ -118,7 +118,7 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     public function getDressingAction()
     {
         try {
-            $result = (new \Itb\User\Profile\DressingBuilder(new \Itb\Catalog\Repository\OrderRepository))->build();
+            $result = (new \App\User\Profile\DressingBuilder(new \App\Catalog\Repository\OrderRepository))->build();
             $result['success'] = true;
             return $result;
         } catch (\Exception $e) {
@@ -132,7 +132,7 @@ class ItbProfileController extends \Bitrix\Main\Engine\Controller
     {
         try {
             $result = [
-                'questions' => (new \Itb\User\Profile\QuestionsBuilder(new \Itb\Iblock\Repository\QuestionRepository))->build(),
+                'questions' => (new \App\User\Profile\QuestionsBuilder(new \App\Iblock\Repository\QuestionRepository))->build(),
                 'success' => true
             ];
             return $result;

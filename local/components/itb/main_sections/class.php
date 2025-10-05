@@ -6,7 +6,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 use Bitrix\Main\FileTable;
 use Bitrix\Main\ORM\Fields\ExpressionField;
 use Itb\Core\Helpers\IblockHelper;
-use Itb\Catalog\CatalogHelper;
+use App\Catalog\Helper\CatalogHelper;
+use App\Iblock\Model\SectionModel;
 
 class ItbMainSections extends \CBitrixComponent
 {
@@ -28,8 +29,8 @@ class ItbMainSections extends \CBitrixComponent
         $result = [];
         $count = 0;
         $elementIds = $this->arParams['ELEMENT_IDS'];
-        $catalogId = CatalogHelper::getCatalogIblockId();
-        $section = CatalogHelper::getCalogSectionsEntity();
+        $catalogId = IblockHelper::getIblockIdByCode('catalog');
+        $section = SectionModel::compileEntityByIblock($catalogId);
 
         $elements = collect(
             IblockHelper::getElementApiTableByCode('mainSections')::query()

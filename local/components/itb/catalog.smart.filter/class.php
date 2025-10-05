@@ -4,7 +4,7 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 use Bitrix\Main\Loader;
 use Bitrix\Iblock\PropertyTable;
 use Bitrix\Iblock\SectionPropertyTable;
-use Itb\Catalog\CatalogSection;
+use App\Catalog\Helper\CatalogSectionHelper;
 
 /*DEMO CODE for component inheritance
 CBitrixComponent::includeComponentClass("bitrix::news.base");
@@ -1221,7 +1221,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		if (!$smartParts)
 			$smartParts[] = array("clear");
 		$res = str_replace("#SMART_FILTER_PATH#", implode("/", $this->encodeSmartParts($smartParts)), $url);
-		return CatalogSection::makeUrl($res);
+		return CatalogSectionHelper::makeUrl($res);
 	}
 
 	public function encodeSmartParts($smartParts)

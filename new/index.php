@@ -1,8 +1,9 @@
 <?
 
-use Itb\Catalog\Products;
-use Itb\Catalog\CatalogHelper;
-use Itb\Main\PageHelper;
+use App\Catalog\Helper\ProductsHelper;
+use App\Catalog\Helper\CatalogHelper;
+use App\Main\PageHelper;
+use Itb\Core\Helpers\IblockHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 
@@ -10,7 +11,7 @@ $APPLICATION->SetTitle('Новинки');
 
 global $smartPreFilter;
 
-$productsIds = Products::getNewProductsIds(0, 86400);
+$productsIds = ProductsHelper::getNewProductsIds(0, 86400);
 if(empty($productsIds)){
 	LocalRedirect(PageHelper::getCatalogPageUrl());
 }
@@ -21,7 +22,7 @@ $APPLICATION->IncludeComponent(
 	"main-catalog", 
 	array(
 		"IBLOCK_TYPE" => "catalog",
-		"IBLOCK_ID" => CatalogHelper::getCatalogIblockId(),
+		"IBLOCK_ID" => IblockHelper::getIblockIdByCode('catalog'),
 		"TEMPLATE_THEME" => "blue",
 		"HIDE_NOT_AVAILABLE" => "Y",
 		"BASKET_URL" => "/personal/cart/",

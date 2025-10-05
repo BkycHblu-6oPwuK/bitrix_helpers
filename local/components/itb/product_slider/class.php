@@ -1,6 +1,6 @@
 <?php
 
-use Itb\Catalog\Products;
+use App\Catalog\Helper\ProductsHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -28,7 +28,7 @@ class ItbProductSlider extends CBitrixComponent
     private function getProducts($productsIds)
     {
         if (is_array($productsIds) && !empty($productsIds)) {
-            return Products::getProductsAndOffers($productsIds, true);
+            return ProductsHelper::getProductsAndOffers($productsIds, true);
         } else {
             return [];
         }

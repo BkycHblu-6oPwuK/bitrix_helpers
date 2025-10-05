@@ -4,11 +4,8 @@ global $APPLICATION;
 
 use Bitrix\Main\Page\Asset;
 use Itb\Core\Assets\Vite;
-use Itb\Catalog\CatalogHelper;
-use Itb\Catalog\Types\Enum\TypesCatalog;
-use Itb\Main\PageHelper;
-use Itb\User\Enum\Gender;
-use Itb\User\User;
+use App\User\User;
+use Itb\Core\Helpers\IblockHelper;
 
 $curPage = $APPLICATION->GetCurPage();
 $isAuthorized = User::current()->isAuthorized();
@@ -41,7 +38,7 @@ $isAuthorized = User::current()->isAuthorized();
             'itb:menu',
             '.default',
             [
-                'iblockId' => CatalogHelper::getCatalogIblockId(),
+                'iblockId' => IblockHelper::getIblockIdByCode('catalog'),
                 //'type' => TypesCatalog::MAN,
                 'CACHE_TYPE' => 'A',
                 'CACHE_TIME' => 86400,
@@ -53,7 +50,7 @@ $isAuthorized = User::current()->isAuthorized();
         //     'itb:menu',
         //     '.default',
         //     [
-        //         'iblockId' => CatalogHelper::getCatalogIblockId(),
+        //         'iblockId' => IblockHelper::getIblockIdByCode('catalog'),
         //         'type' => TypesCatalog::WOMAN,
         //         'CACHE_TYPE' => 'A',
         //         'CACHE_TIME' => 86400,

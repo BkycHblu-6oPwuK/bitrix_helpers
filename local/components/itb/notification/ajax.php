@@ -4,10 +4,10 @@ use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
-use Itb\Notification\Enum\Channels;
-use Itb\Notification\Enum\Types;
-use Itb\Notification\Services\NotificationPreferenceService;
-use Itb\User\User;
+use App\Notification\Enum\Channels;
+use App\Notification\Enum\Types;
+use App\Notification\Services\NotificationPreferenceService;
+use App\User\User;
 
 class ItbNotificationController extends Controller
 {

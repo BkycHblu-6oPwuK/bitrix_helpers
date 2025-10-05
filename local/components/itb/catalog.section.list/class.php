@@ -1,6 +1,8 @@
 <?php
 
-use Itb\Catalog\CatalogHelper;
+use App\Catalog\Helper\CatalogHelper;
+use App\Iblock\Model\SectionModel;
+use Itb\Core\Helpers\IblockHelper;
 
 class ItbCatalogSectionList extends \CBitrixComponent
 {
@@ -11,7 +13,8 @@ class ItbCatalogSectionList extends \CBitrixComponent
 
     public function onPrepareComponentParams($params)
     {
-        $this->sectionEntity = CatalogHelper::getCalogSectionsEntity();
+        $catalogId = IblockHelper::getIblockIdByCode('catalog');
+        $this->sectionEntity = SectionModel::compileEntityByIblock($catalogId);
         if (!$params['SMART_FILTER_NAME']) {
             throw new \RuntimeException("not found smart filter name in params");
         }
@@ -37,7 +40,7 @@ class ItbCatalogSectionList extends \CBitrixComponent
                 $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
                 $taggedCache->startTagCache('itb/catalog.section.list');
                 try {
-                    $taggedCache->registerTag('iblock_id_' . CatalogHelper::getCatalogIblockId());
+                    $taggedCache->registerTag('iblock_id_' . IblockHelper::getIblockIdByCode('catalog'));
                     $this->arResult['sections'] = $this->getSections();
                     $this->includeComponentTemplate();
                 } catch (\Throwable $e) {
@@ -185,7 +188,7 @@ class ItbCatalogSectionList extends \CBitrixComponent
     {
         $filter = array_merge(
             [
-                'IBLOCK_ID' => CatalogHelper::getCatalogIblockId(),
+                'IBLOCK_ID' => IblockHelper::getIblockIdByCode('catalog'),
                 'ACTIVE' => 'Y',
                 '=AVAILABLE' => 'Y',
                 'SECTION_ID' => $sectionId,
