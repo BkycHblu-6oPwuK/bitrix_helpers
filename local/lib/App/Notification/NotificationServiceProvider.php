@@ -7,7 +7,7 @@ use App\Notification\Contracts\SmsContract;
 use App\Notification\Services\Sms\SmsAeroService;
 use App\Notification\Services\Sms\SmsCodeService;
 
-class NotificationServiceProvider extends \Itb\Core\DI\AbstractServiceProvider
+class NotificationServiceProvider extends \Beeralex\Core\DI\AbstractServiceProvider
 {
     protected function registerServices(): void
     {

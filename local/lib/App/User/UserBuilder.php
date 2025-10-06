@@ -3,7 +3,7 @@
 namespace App\User;
 
 use Bitrix\Main\Context;
-use Itb\Core\Helpers\UserHelper;
+use Beeralex\Core\Helpers\UserHelper;
 use App\User\Phone\Phone;
 
 class UserBuilder

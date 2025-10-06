@@ -1,7 +1,7 @@
 <?php
 
-use Itb\Core\Assets\Vite;
-use Itb\Core\Helpers\WebHelper;
+use Beeralex\Core\Assets\Vite;
+use Beeralex\Core\Helpers\WebHelper;
 
 $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 if ($request->isAjaxRequest()) {

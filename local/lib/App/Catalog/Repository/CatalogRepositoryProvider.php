@@ -2,7 +2,7 @@
 
 namespace App\Catalog\Repository;
 
-use Itb\Core\DI\AbstractServiceProvider;
+use Beeralex\Core\DI\AbstractServiceProvider;
 
 class CatalogRepositoryProvider extends AbstractServiceProvider
 {

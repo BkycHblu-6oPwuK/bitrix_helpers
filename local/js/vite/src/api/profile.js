@@ -3,7 +3,7 @@ import { fetchHelper } from "./helper";
 
 export const getPersonal = async () => {
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=getPersonal',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=getPersonal',
         method: 'POST'
     });
     const result = await response.json();
@@ -22,7 +22,7 @@ export const getOrders = async (page = 1, filter = {}) => {
         filter: JSON.stringify(filter)
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=getOrders',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=getOrders',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -40,7 +40,7 @@ export const getDressing = async (page = 1) => {
         page: page
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=getDressing',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=getDressing',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -55,7 +55,7 @@ export const getDressing = async (page = 1) => {
 
 export const getQuestions = async () => {
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=getQuestions',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=getQuestions',
         method: 'POST'
     });
     const result = await response.json();
@@ -74,7 +74,7 @@ export const updateField = async (field, value) => {
         value: value
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=updateField',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=updateField',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -94,7 +94,7 @@ export const addPreferenceNotification = async (type, channel, enabled) => {
         enabled: enabled ? 1 : 0
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:notification&action=addPreference',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:notification&action=addPreference',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -114,7 +114,7 @@ export const updateEmail = async (email, password) => {
         password: password
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=updateEmail',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=updateEmail',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -133,7 +133,7 @@ export const updatePassword = async (password, oldPassword) => {
         oldPassword: oldPassword,
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=updatePassword',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=updatePassword',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -152,7 +152,7 @@ export const updateProfile = async (name, phone) => {
         phone: phone,
     })
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:profile&action=updateProfile',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:profile&action=updateProfile',
         formData: formData, method: 'POST'
     });
     const result = await response.json();

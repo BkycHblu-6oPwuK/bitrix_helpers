@@ -1,8 +1,8 @@
 <? if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
 use Bitrix\Main\Page\Asset;
-use Itb\Core\Assets\Vite;
-use Itb\Main\PageHelper;
+use Beeralex\Core\Assets\Vite;
+use Beeralex\Main\PageHelper;
 ?>
 <!DOCTYPE html>
 

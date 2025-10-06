@@ -4,9 +4,9 @@
 - удалить /bitrix/redirect.php
 
 установить
-- itb.core
-- itb.favorite
-- itb.reviews
+- beeralex.core
+- beeralex.favorite
+- beeralex.reviews
 - по желанию webprostor.smtp (функция уже есть в init.php)
 
 под vite стоит использовать актуальную сборку из репозитория - example_template

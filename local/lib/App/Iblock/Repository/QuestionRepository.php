@@ -2,7 +2,7 @@
 
 namespace App\Iblock\Repository;
 
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 class QuestionRepository
 {

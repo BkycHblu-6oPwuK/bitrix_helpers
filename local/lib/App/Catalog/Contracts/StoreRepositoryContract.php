@@ -2,7 +2,7 @@
 
 namespace App\Catalog\Contracts;
 
-use Itb\Core\Repository\RepositoryContract;
+use Beeralex\Core\Repository\RepositoryContract;
 
 interface StoreRepositoryContract extends RepositoryContract
 {

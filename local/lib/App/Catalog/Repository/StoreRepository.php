@@ -5,7 +5,7 @@ use App\Catalog\Contracts\StoreRepositoryContract;
 use Bitrix\Catalog\StoreTable;
 use Bitrix\Main\Loader;
 use App\Catalog\Dto\PickPointDTO;
-use Itb\Core\Repository\BaseRepository;
+use Beeralex\Core\Repository\BaseRepository;
 
 Loader::includeModule('catalog');
 

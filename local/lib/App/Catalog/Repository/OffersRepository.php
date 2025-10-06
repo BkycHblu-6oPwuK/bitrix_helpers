@@ -2,7 +2,7 @@
 namespace App\Catalog\Repository;
 
 use App\Catalog\Contracts\OfferRepositoryContract;
-use Itb\Core\Repository\BaseIblockRepository;
+use Beeralex\Core\Repository\BaseIblockRepository;
 use App\Catalog\Helper\CatalogHelper;
 use App\Catalog\Helper\PriceHelper;
 use App\Catalog\Repository\StoreRepository;

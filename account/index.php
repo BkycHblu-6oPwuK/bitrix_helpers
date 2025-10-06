@@ -3,7 +3,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 $APPLICATION->SetTitle("Профиль");
 
 $APPLICATION->IncludeComponent(
-	"itb:profile", 
+	"beeralex:profile", 
 	".default", 
 	array(
 		"COMPONENT_TEMPLATE" => ".default",

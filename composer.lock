@@ -110,16 +110,16 @@
             "time": "2024-10-01T13:55:55+00:00"
         },
         {
-            "name": "beeralex/itb.core",
+            "name": "beeralex/beeralex.core",
             "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/BkycHblu-6oPwuK/itb.core.git",
+                "url": "https://github.com/BkycHblu-6oPwuK/beeralex.core.git",
                 "reference": "4b8196143fb801ef2a4269ba40461872cbe70287"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BkycHblu-6oPwuK/itb.core/zipball/4b8196143fb801ef2a4269ba40461872cbe70287",
+                "url": "https://api.github.com/repos/BkycHblu-6oPwuK/beeralex.core/zipball/4b8196143fb801ef2a4269ba40461872cbe70287",
                 "reference": "4b8196143fb801ef2a4269ba40461872cbe70287",
                 "shasum": ""
             },
@@ -136,8 +136,8 @@
             ],
             "description": "My base Bitrix module",
             "support": {
-                "issues": "https://github.com/BkycHblu-6oPwuK/itb.core/issues",
-                "source": "https://github.com/BkycHblu-6oPwuK/itb.core/tree/v1.0.0"
+                "issues": "https://github.com/BkycHblu-6oPwuK/beeralex.core/issues",
+                "source": "https://github.com/BkycHblu-6oPwuK/beeralex.core/tree/v1.0.0"
             },
             "time": "2025-10-03T15:57:46+00:00"
         },

@@ -1,5 +1,5 @@
 <?php
-use Itb\Main\PageHelper;
+use Beeralex\Main\PageHelper;
 ?>
 <div id="vue-favourites-header">
     <span class="header__main-favourites">

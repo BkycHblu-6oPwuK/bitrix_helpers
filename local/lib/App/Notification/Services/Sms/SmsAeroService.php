@@ -3,7 +3,7 @@
 namespace App\Notification\Services\Sms;
 
 use App\Notification\Contracts\SmsContract;
-use Itb\Core\Config;
+use Beeralex\Core\Config\Config;
 use App\Notification\Exceptions\SmsException;
 use App\User\Phone\Phone;
 

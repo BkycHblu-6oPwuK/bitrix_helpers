@@ -37,7 +37,7 @@ $componentElementParams = array(
  * @var ?array $result
  */
 $result = $APPLICATION->IncludeComponent(
-    'itb:catalog.element',
+    'beeralex:catalog.element',
     'vue_element',
     $componentElementParams
 );
@@ -46,7 +46,7 @@ if ($result) {
     $sameProductsIds = ProductsHelper::getSameProductsIds((int)$result['elementId'], (int)$result['sectionId'], 86400);
     if (!empty($sameProductsIds)) {
         $APPLICATION->IncludeComponent(
-            'itb:product_slider',
+            'beeralex:product_slider',
             'viewed',
             [
                 'CACHE_TYPE' => 'A',
@@ -59,7 +59,7 @@ if ($result) {
     $viewedIds = ProductsHelper::getViewedProductsIds((int)$result['elementId']);
     if (!empty($viewedIds)) {
         $APPLICATION->IncludeComponent(
-            'itb:product_slider',
+            'beeralex:product_slider',
             'viewed',
             [
                 'CACHE_TYPE' => 'A',

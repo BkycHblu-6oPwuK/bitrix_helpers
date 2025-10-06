@@ -12,7 +12,7 @@ export const getLocation = async (query, pageSize = 20, page = 0) => {
         page: page,
     });
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:location&action=get',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:location&action=get',
         formData: formData,
         method: 'POST'
     });

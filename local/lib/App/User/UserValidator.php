@@ -4,7 +4,7 @@ namespace App\User;
 
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Type\DateTime;
-use Itb\Core\Config;
+use Beeralex\Core\Config\Config;
 use App\User\Enum\Gender;
 use App\User\UserRepository;
 use App\User\Phone\Phone;

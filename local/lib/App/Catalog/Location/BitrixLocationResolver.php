@@ -4,11 +4,11 @@ namespace App\Catalog\Location;
 
 use App\Catalog\Location\Contracts\LocationApiClientContract;
 use App\Catalog\Location\Contracts\BitrixLocationResolverContract;
-use Itb\Core\Helpers\LocationHelper;
-use Itb\Core\Traits\Cacheable;
+use Beeralex\Core\Helpers\LocationHelper;
+use Beeralex\Core\Traits\Cacheable;
 use Psr\Log\LoggerInterface;
 use Bitrix\Main\Web\Json;
-use Itb\Core\Dto\CacheSettingsDto;
+use Beeralex\Core\Dto\CacheSettingsDto;
 
 class BitrixLocationResolver implements BitrixLocationResolverContract
 {

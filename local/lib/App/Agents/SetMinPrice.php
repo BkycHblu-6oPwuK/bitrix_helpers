@@ -4,7 +4,7 @@ namespace App\Agents;
 
 use Bitrix\Main\Loader;
 use App\Catalog\Helper\PriceHelper;
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 class SetMinPrice
 {

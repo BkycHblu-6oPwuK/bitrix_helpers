@@ -10,7 +10,7 @@ export const send = async (action, formData) => {
     formData.append('via_ajax', 'Y');
     formData.append('soa-action', action);
     const response = await fetchHelper({
-        url: '/local/components/itb/sale.order.ajax/ajax.php',
+        url: '/local/components/beeralex/sale.order.ajax/ajax.php',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -33,7 +33,7 @@ export const calculateDeliveryDistance = async (distance, duration) => {
     });
 
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:eshoplogistic.delivery&action=calculateDeliveryDistance',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:eshoplogistic.delivery&action=calculateDeliveryDistance',
         formData: params, method: 'POST'
     });
     const result = await response.json();
@@ -59,7 +59,7 @@ export const getEshopLogisticPvzList = async (profileId, locationCode, paymentId
     });
 
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:eshoplogistic.delivery&action=getPvzList',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:eshoplogistic.delivery&action=getPvzList',
         formData: params, method: 'POST'
     });
     const result = await response.json();
@@ -74,7 +74,7 @@ export const getEshopLogisticPvzList = async (profileId, locationCode, paymentId
 
 export const getEshopLogisticClient = async () => {
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:eshoplogistic.delivery&action=getClient',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:eshoplogistic.delivery&action=getClient',
         method: 'POST'
     });
     const result = await response.json();
@@ -92,7 +92,7 @@ export const cancel = async (id) => {
         id: id,
     });
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:order&action=cancel',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:order&action=cancel',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -111,7 +111,7 @@ export const initPay = async (orderId, sendSms = false) => {
         sendSms: sendSms ? 1 : 0,
     });
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:order&action=initPay',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:order&action=initPay',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -132,7 +132,7 @@ export const getSdekPickupPointForCity = async (city) => {
         city: city,
     });
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:order&action=getSdekPickupPointForCity',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:order&action=getSdekPickupPointForCity',
         formData: formData, method: 'POST'
     });
     const result = await response.json();

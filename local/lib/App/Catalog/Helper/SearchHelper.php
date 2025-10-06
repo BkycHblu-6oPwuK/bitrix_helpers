@@ -5,7 +5,7 @@ use Bitrix\Main\Loader;
 use CSearch;
 use App\Catalog\Helper\CatalogHelper;
 use App\Iblock\Model\SectionModel;
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 class SearchHelper
 {

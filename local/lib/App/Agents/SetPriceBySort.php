@@ -5,7 +5,7 @@ namespace App\Agents;
 use Bitrix\Main\Loader;
 use App\Catalog\Helper\PriceHelper;
 use App\Catalog\Helper\CatalogHelper;
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 class SetPriceBySort
 {

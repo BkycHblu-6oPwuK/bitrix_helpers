@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use App\Catalog\Basket\BasketFacade;
 use App\Catalog\Helper\OrderHelper;
 use App\Catalog\Checkout\TotalBuilder;
-use Itb\Core\Helpers\PaginationHelper;
+use Beeralex\Core\Helpers\PaginationHelper;
 use App\Catalog\Enum\OrderStatuses;
 use App\Catalog\Repository\OrderRepository;
 use App\User\Phone\PhoneFormatter;

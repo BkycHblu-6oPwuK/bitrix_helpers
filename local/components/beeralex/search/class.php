@@ -1,0 +1,22 @@
+<?php
+
+use App\Main\PageHelper;
+
+if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
+    die();
+}
+
+/**
+ * Компонент поиска
+ */
+class BeeralexSearch extends CBitrixComponent
+{
+
+    /** @inheritDoc */
+    public function executeComponent()
+    {
+        $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl();
+
+        $this->includeComponentTemplate();
+    }
+}

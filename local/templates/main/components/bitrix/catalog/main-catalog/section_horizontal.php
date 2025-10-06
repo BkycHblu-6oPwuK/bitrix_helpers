@@ -4,9 +4,9 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Web\Json;
 use App\Catalog\Helper\SearchHelper;
 use App\Catalog\Helper\SortingHelper;
-use Itb\Core\Assets\Vite;
-use Itb\Core\Config;
-use Itb\Core\Helpers\WebHelper;
+use Beeralex\Core\Assets\Vite;
+use Beeralex\Core\Config\Config;
+use Beeralex\Core\Helpers\WebHelper;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
@@ -33,7 +33,7 @@ if ($query) {
 
 	if ($isFilter) {
 		$APPLICATION->IncludeComponent(
-			"itb:catalog.smart.filter",
+			"beeralex:catalog.smart.filter",
 			"vue_filter",
 			array(
 				"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
@@ -67,7 +67,7 @@ if ($query) {
 	}
 
 	$APPLICATION->IncludeComponent(
-		"itb:catalog.section.list",
+		"beeralex:catalog.section.list",
 		".default",
 		array(
 			"CACHE_FILTER" => $arParams["CACHE_FILTER"],

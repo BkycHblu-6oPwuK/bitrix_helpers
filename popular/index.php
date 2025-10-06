@@ -2,7 +2,7 @@
 
 use App\Catalog\Helper\CatalogHelper;
 use App\Main\PageHelper;
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 

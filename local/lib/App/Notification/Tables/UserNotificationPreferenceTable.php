@@ -5,13 +5,13 @@ namespace App\Notification\Tables;
 use Bitrix\Main\ORM\Fields\BooleanField;
 use Bitrix\Main\ORM\Fields\IntegerField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
-use Itb\Core\BaseTable;
+use Beeralex\Core\BaseTable;
 
 class UserNotificationPreferenceTable extends BaseTable
 {
     public static function getTableName()
     {
-        return 'itb_user_notification_preferences';
+        return 'beeralex_user_notification_preferences';
     }
 
     public static function getMap()

@@ -1,6 +1,6 @@
 <?
 
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 $APPLICATION->SetTitle("Интернет-магазин \"Одежда\"");
@@ -72,7 +72,7 @@ $APPLICATION->SetTitle("Интернет-магазин \"Одежда\"");
 <?
 
 $APPLICATION->IncludeComponent(
-    "itb:content",
+    "beeralex:content",
     ".default",
     [
         "CACHE_TYPE" => "A",

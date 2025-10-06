@@ -19,7 +19,7 @@ export const search = async (query) => {
     const formData = new URLSearchParams();
     formData.append('query', query);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:search&action=search',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:search&action=search',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -30,7 +30,7 @@ export const toggleFavourite = async (productId) => {
     const formData = new URLSearchParams();
     formData.append('productID', productId);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?action=itb:favorite.FavoriteController.toggle',
+        url: '/bitrix/services/main/ajax.php?action=beeralex:favorite.FavoriteController.toggle',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -39,7 +39,7 @@ export const toggleFavourite = async (productId) => {
 
 export const getFavouriteIds = async () => {
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?action=itb:favorite.FavoriteController.get',
+        url: '/bitrix/services/main/ajax.php?action=beeralex:favorite.FavoriteController.get',
         method: 'POST'
     });
     const result = await response.json();
@@ -57,7 +57,7 @@ export const toggleDressing = async (offerId, detail = true) => {
     formData.append('offerId', offerId);
     formData.append('isDetail', detail ? 1 : 0);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?action=itb:dressing.DressingController.toggle',
+        url: '/bitrix/services/main/ajax.php?action=beeralex:dressing.DressingController.toggle',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -75,7 +75,7 @@ export const getDressing = async (detail = true) => {
     //formData.append('sessid', bxSessid);
     formData.append('isDetail', detail ? 1 : 0);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?action=itb:dressing.DressingController.get',
+        url: '/bitrix/services/main/ajax.php?action=beeralex:dressing.DressingController.get',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -90,7 +90,7 @@ export const getDressing = async (detail = true) => {
 
 export const createDressingOrder = async (formData) => {
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?action=itb:dressing.DressingController.createOrder',
+        url: '/bitrix/services/main/ajax.php?action=beeralex:dressing.DressingController.createOrder',
         formData: formData, method: 'POST'
     });
     const result = await response.json();

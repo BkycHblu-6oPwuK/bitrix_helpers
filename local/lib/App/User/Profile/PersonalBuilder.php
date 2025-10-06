@@ -2,7 +2,7 @@
 
 namespace App\User\Profile;
 
-use Itb\Core\Config;
+use Beeralex\Core\Config\Config;
 use App\User\User;
 
 class PersonalBuilder

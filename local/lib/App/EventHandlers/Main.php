@@ -5,7 +5,7 @@ namespace App\EventHandlers;
 use Bitrix\Main\DI\ServiceLocator;
 use App\Catalog\Type\Contracts\CatalogSwitcherContract;
 use App\Catalog\Type\Enum\TypesCatalog;
-use Itb\Core\Config;
+use Beeralex\Core\Config\Config;
 
 class Main
 {

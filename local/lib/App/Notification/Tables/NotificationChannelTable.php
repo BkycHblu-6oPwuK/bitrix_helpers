@@ -4,13 +4,13 @@ namespace App\Notification\Tables;
 use Bitrix\Main\ORM\Fields\IntegerField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
 use Bitrix\Main\ORM\Fields\StringField;
-use Itb\Core\BaseTable;
+use Beeralex\Core\BaseTable;
 
 class NotificationChannelTable extends BaseTable
 {
     public static function getTableName()
     {
-        return 'itb_notification_channels';
+        return 'beeralex_notification_channels';
     }
 
     public static function getMap()

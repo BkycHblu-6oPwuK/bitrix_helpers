@@ -22,7 +22,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
             <?
             if ($arResult['PAGINATION']['pageCount'] > 1) {
                 $APPLICATION->IncludeComponent(
-                    'itb:pagination',
+                    'beeralex:pagination',
                     '.default',
                     [
                         'PAGINATION' => $arResult['PAGINATION'],

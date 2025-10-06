@@ -3,7 +3,7 @@
 namespace App\Catalog\Type;
 
 use App\Catalog\Type\Enum\TypesCatalog;
-use Itb\Core\Helpers\FilesHelper;
+use Beeralex\Core\Helpers\FilesHelper;
 
 class CatalogContext implements Contracts\CatalogContextContract
 {

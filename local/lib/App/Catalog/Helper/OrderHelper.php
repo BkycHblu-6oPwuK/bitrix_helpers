@@ -84,7 +84,7 @@ class OrderHelper
         if ($allProps === null) {
             $allProps = collect(\Bitrix\Sale\Property::getList([
                 'filter' => [
-                    'PERSON_TYPE_ID' => $persontTypeId ?: PersonType::getIndividualPersonId()
+                    'PERSON_TYPE_ID' => $persontTypeId ?: PersonTypeHelper::getIndividualPersonId()
                 ]
             ])->fetchAll())
                 ->mapWithKeys(function ($prop) {

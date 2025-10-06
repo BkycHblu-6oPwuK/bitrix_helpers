@@ -1,6 +1,6 @@
 # Шаблон form.result.new на vue
 
-Сбор данных для vue делает класс ``` Itb\Form\FormNewBuilder ```. В component_epilog проверка на ajax запрос и id формы для возврата ответа json.
+Сбор данных для vue делает класс ``` Beeralex\Form\FormNewBuilder ```. В component_epilog проверка на ajax запрос и id формы для возврата ответа json.
 
 шаблон div с классом и json передаются в data атрибуте.
 

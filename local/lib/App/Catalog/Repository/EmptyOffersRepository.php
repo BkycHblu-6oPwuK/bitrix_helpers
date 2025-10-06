@@ -2,7 +2,7 @@
 namespace App\Catalog\Repository;
 
 use App\Catalog\Contracts\OfferRepositoryContract;
-use Itb\Core\Repository\BaseIblockRepository;
+use Beeralex\Core\Repository\BaseIblockRepository;
 
 class EmptyOffersRepository extends BaseIblockRepository implements OfferRepositoryContract
 {

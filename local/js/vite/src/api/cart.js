@@ -5,7 +5,7 @@ export const getBasket = async (detail = true) => {
     const formData = new URLSearchParams();
     formData.append('isDetail', detail ? 1 : 0);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=class&c=itb:basket&action=getCart',
+        url: '/bitrix/services/main/ajax.php?mode=class&c=beeralex:basket&action=getCart',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -23,7 +23,7 @@ export const addBasket = async (productId, detail = true) => {
     formData.append('productId', productId);
     formData.append('isDetail', detail ? 1 : 0);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=class&c=itb:basket&action=add',
+        url: '/bitrix/services/main/ajax.php?mode=class&c=beeralex:basket&action=add',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -41,7 +41,7 @@ export const removeOneBasketItem = async (productId, detail = true) => {
     formData.append('productId', productId);
     formData.append('isDetail', detail ? 1 : 0);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=class&c=itb:basket&action=removeOne',
+        url: '/bitrix/services/main/ajax.php?mode=class&c=beeralex:basket&action=removeOne',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -59,7 +59,7 @@ export const removeBasketItem = async (productId, detail = true) => {
     formData.append('productId', productId);
     formData.append('isDetail', detail ? 1 : 0);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=class&c=itb:basket&action=remove',
+        url: '/bitrix/services/main/ajax.php?mode=class&c=beeralex:basket&action=remove',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -76,7 +76,7 @@ export const addCoupon = async (couponCode) => {
     const formData = new URLSearchParams();
     formData.append('couponCode', couponCode);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=class&c=itb:basket&action=addCoupon',
+        url: '/bitrix/services/main/ajax.php?mode=class&c=beeralex:basket&action=addCoupon',
         formData: formData, method: 'POST'
     });
     const result = await response.json();

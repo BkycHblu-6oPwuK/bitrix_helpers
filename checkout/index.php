@@ -1,11 +1,11 @@
 <?
 
-use Itb\Main\PageHelper;
+use Beeralex\Main\PageHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 $APPLICATION->SetTitle("Оформление заказа");
 $APPLICATION->IncludeComponent(
-	"itb:sale.order.ajax",
+	"beeralex:sale.order.ajax",
 	".default",
 	array(
 		"PAY_FROM_ACCOUNT" => "Y",

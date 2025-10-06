@@ -4,7 +4,7 @@ namespace App\Notification\Repository;
 
 use Bitrix\Main\Type\DateTime;
 use App\User\Phone\PhoneFormatter;
-use Itb\Core\Repository\BaseHighloadRepository;
+use Beeralex\Core\Repository\BaseHighloadRepository;
 
 class SmsCodeRepository extends BaseHighloadRepository
 {

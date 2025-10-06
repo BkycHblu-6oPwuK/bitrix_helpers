@@ -60,7 +60,7 @@ $arUrlRewrite=array (
   array (
     'CONDITION' => '#^/account/#',
     'RULE' => '',
-    'ID' => 'itb:profile',
+    'ID' => 'beeralex:profile',
     'PATH' => '/account/index.php',
     'SORT' => 100,
   ),

@@ -1,7 +1,7 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 
 use Bitrix\Main\Context;
-use Itb\Core\Helpers\WebHelper;
+use Beeralex\Core\Helpers\WebHelper;
 use Bitrix\Main\Web\Json;
 
 /** @var array $arParams */
@@ -53,7 +53,7 @@ $this->setFrameMode(true);
     <?
     if ($arResult['PAGINATION']['pageCount'] > 1) {
         $APPLICATION->IncludeComponent(
-            'itb:pagination',
+            'beeralex:pagination',
             '.default',
             [
                 'PAGINATION' => $arResult['PAGINATION'],

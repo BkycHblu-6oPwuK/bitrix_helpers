@@ -4,7 +4,7 @@ $APPLICATION->SetPageProperty("description", "На этой страницы с�
 $APPLICATION->SetPageProperty("title", "Избранные товары - интернет-магазин Dzhavadof");
 $APPLICATION->SetTitle("Избранное");
 $APPLICATION->IncludeComponent(
-    "itb:favourite",
+    "beeralex:favourite",
     ".default",
     [
         "CACHE_TYPE" => "A",

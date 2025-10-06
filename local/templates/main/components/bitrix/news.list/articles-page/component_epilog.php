@@ -1,7 +1,7 @@
 <?php
-use Itb\Core\Assets\Vite;
-use Itb\Core\Config;
-use Itb\Core\Helpers\WebHelper;
+use Beeralex\Core\Assets\Vite;
+use Beeralex\Core\Config\Config;
+use Beeralex\Core\Helpers\WebHelper;
 
 $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 

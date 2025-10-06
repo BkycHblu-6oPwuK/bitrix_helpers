@@ -3,7 +3,7 @@ namespace App\Notification\Services\Sms;
 
 use App\Notification\Contracts\SmsCodeContract;
 use App\Notification\Contracts\SmsContract;
-use Itb\Core\Helpers\WebHelper;
+use Beeralex\Core\Helpers\WebHelper;
 use App\Notification\Exceptions\SmsException;
 use App\Notification\Enum\NotificationStatuses;
 use App\Notification\SmsTemplates;

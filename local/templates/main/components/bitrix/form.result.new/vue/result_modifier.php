@@ -2,7 +2,7 @@
 /**
  *  @var \CBitrixComponentTemplate $this
  */
-use Itb\Form\FormNewBuilder;
+use Beeralex\Form\FormNewBuilder;
 
 $arResult['VUE_DATA'] = (new FormNewBuilder($arResult))->build();
 

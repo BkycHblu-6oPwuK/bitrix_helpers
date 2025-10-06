@@ -1,6 +1,6 @@
 <?
 
-use Itb\Core\Assets\Vite;
+use Beeralex\Core\Assets\Vite;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 $APPLICATION->SetTitle("Интернет-магазин \"Одежда\"");
@@ -8,7 +8,7 @@ $APPLICATION->SetTitle("Интернет-магазин \"Одежда\"");
 Vite::getInstance()->include('src/app/main/index.js');
 
 $APPLICATION->IncludeComponent(
-    "itb:index",
+    "beeralex:index",
     ".default",
     [
         "CACHE_TYPE" => "A",

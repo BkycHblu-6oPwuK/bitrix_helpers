@@ -2,7 +2,7 @@
 
 namespace App\Catalog\Contracts;
 
-use Itb\Core\Repository\CompiledEntityRepositoryContract;
+use Beeralex\Core\Repository\CompiledEntityRepositoryContract;
 
 interface OfferRepositoryContract extends CompiledEntityRepositoryContract
 {

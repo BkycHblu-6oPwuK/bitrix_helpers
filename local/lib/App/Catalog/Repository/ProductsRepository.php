@@ -3,7 +3,7 @@
 namespace App\Catalog\Repository;
 
 use App\Catalog\Contracts\ProductRepositoryContract;
-use Itb\Core\Repository\BaseIblockRepository;
+use Beeralex\Core\Repository\BaseIblockRepository;
 use App\Catalog\Helper\CatalogHelper;
 use App\Catalog\Helper\PriceHelper;
 use Bitrix\Main\ORM\Fields\ExpressionField;

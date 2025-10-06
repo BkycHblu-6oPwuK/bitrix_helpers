@@ -40,7 +40,7 @@ class Sale
 
     public static function onSaleDeliveryExtraServicesClassNamesBuildList()
     {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(MyPriceExtraService::class));
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(MyPriceExtraService::class));
         return new EventResult(
             EventResult::SUCCESS,
             [
@@ -51,7 +51,7 @@ class Sale
 
     public static function onSalePaySystemRestrictionsClassNamesBuildList()
     {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(UserRestriction::class));
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
         return new EventResult(
             EventResult::SUCCESS,
             [
@@ -62,7 +62,7 @@ class Sale
 
     public static function onSaleCashboxRestrictionsClassNamesBuildList()
     {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(UserRestriction::class));
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
         return new EventResult(
             EventResult::SUCCESS,
             [
@@ -74,7 +74,7 @@ class Sale
     /*
     public static function onGetCustomCashboxHandlers()
     {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(YourCashboxClass::class);
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(YourCashboxClass::class);
         return new EventResult(
             EventResult::SUCCESS,
             [
@@ -85,7 +85,7 @@ class Sale
 
     public static function onGetCustomCheckList()
     {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Itb\Core\Helpers\PathHelper::classFile(PrepaymentCheck::class));
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(PrepaymentCheck::class));
         return new EventResult(
             EventResult::SUCCESS,
             [

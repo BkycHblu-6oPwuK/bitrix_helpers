@@ -3,9 +3,9 @@
 global $APPLICATION;
 
 use Bitrix\Main\Page\Asset;
-use Itb\Core\Assets\Vite;
+use Beeralex\Core\Assets\Vite;
 use App\User\User;
-use Itb\Core\Helpers\IblockHelper;
+use Beeralex\Core\Helpers\IblockHelper;
 
 $curPage = $APPLICATION->GetCurPage();
 $isAuthorized = User::current()->isAuthorized();
@@ -35,7 +35,7 @@ $isAuthorized = User::current()->isAuthorized();
     <header>
         <?php
         $APPLICATION->IncludeComponent(
-            'itb:menu',
+            'beeralex:menu',
             '.default',
             [
                 'iblockId' => IblockHelper::getIblockIdByCode('catalog'),
@@ -47,7 +47,7 @@ $isAuthorized = User::current()->isAuthorized();
             ['HIDE_ICONS' => 'Y']
         );
         // $APPLICATION->IncludeComponent(
-        //     'itb:menu',
+        //     'beeralex:menu',
         //     '.default',
         //     [
         //         'iblockId' => IblockHelper::getIblockIdByCode('catalog'),

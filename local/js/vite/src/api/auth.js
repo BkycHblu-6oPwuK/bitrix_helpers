@@ -8,7 +8,7 @@ export const register = async ({ name, email, phone, password }) => {
     formData.append('phoneNumber', phone);
     formData.append('password', password);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:auth&action=register',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:auth&action=register',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -20,7 +20,7 @@ export const authorize = async ({ email, password }) => {
     formData.append('email', email);
     formData.append('password', password);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:auth&action=authorize',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:auth&action=authorize',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -31,7 +31,7 @@ export const sendCode = async (phone) => {
     const formData = new URLSearchParams();
     formData.append('phoneNumber', phone);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:auth&action=sendCode',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:auth&action=sendCode',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
@@ -49,7 +49,7 @@ export const checkCode = async (phone, code) => {
     formData.append('phoneNumber', phone);
     formData.append('code', code);
     const response = await fetchHelper({
-        url: '/bitrix/services/main/ajax.php?mode=ajax&c=itb:auth&action=checkCode',
+        url: '/bitrix/services/main/ajax.php?mode=ajax&c=beeralex:auth&action=checkCode',
         formData: formData, method: 'POST'
     });
     const result = await response.json();
