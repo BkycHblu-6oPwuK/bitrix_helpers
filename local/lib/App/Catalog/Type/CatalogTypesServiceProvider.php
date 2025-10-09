@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Catalog\Type;
 
-use App\Catalog\Helper\CatalogHelper;
 use App\Catalog\Type\Contracts\CatalogContextContract;
 use App\Catalog\Type\Contracts\CatalogSwitcherContract;
 use App\Iblock\Model\SectionModel;
@@ -12,9 +12,11 @@ class CatalogTypesServiceProvider extends \Beeralex\Core\DI\AbstractServiceProvi
     public function registerServices(): void
     {
         $this->bind(CatalogSwitcherContract::class, CatalogSwitcher::class);
-        $this->bind(CatalogContextContract::class, CatalogContext::class, fn() => [
-            $this->locator->get(CatalogSwitcherContract::class),
-            SectionModel::compileEntityByIblock(IblockHelper::getIblockIdByCode('catalog'))
-        ]);
+        $this->bind(CatalogContextContract::class, CatalogContext::class, function () {
+            return [
+                $this->locator->get(CatalogSwitcherContract::class),
+                SectionModel::compileEntityByIblock(IblockHelper::getIblockIdByCode('catalog'))
+            ];
+        });
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 use Beeralex\Core\Config\Config;
-use Beeralex\Main\PageHelper;
+use App\Main\PageHelper;
 ?>
 <script id="js-data" type="application/json">
 	<?= \Bitrix\Main\Web\Json::encode([

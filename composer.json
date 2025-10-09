@@ -7,6 +7,12 @@
       ]
     }
   },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://git.itb-dev.ru/ITB-dev/itb.seo.git"
+    }
+  ],
   "require": {
     "php": "^8.2",
     "symfony/var-dumper": "*",
@@ -18,8 +24,8 @@
     "andreyryabin/sprint.migration": "dev-master",
     "smsaero/smsaero_api": "^1.0",
     "wikimedia/composer-merge-plugin": "dev-master",
-    "cijic/phpmorphy": "^0.3.6",
-    "beeralex/beeralex.core": "^1.0"
+    "itb/itb.seo": "^1.0",
+    "league/oauth2-server": "^9.2"
   },
   "config": {
     "allow-plugins": {

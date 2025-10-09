@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Main\PageHelper;
+use App\Main\PageHelper;
 ?>
 <div id="vue-dressing-header">
     <a class="header__main-dressing">

@@ -1,6 +1,6 @@
 <?
 
-use Beeralex\Main\PageHelper;
+use App\Main\PageHelper;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 $APPLICATION->SetTitle("Корзина");

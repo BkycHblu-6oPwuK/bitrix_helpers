@@ -3,10 +3,7 @@ namespace App\Catalog\Helper;
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Web\Uri;
-use App\Catalog\Helper\ProductsHelper;
 use App\Catalog\Helper\SortingHelper;
-use App\Catalog\Helper\CatalogHelper;
-use App\Main\PageHelper;
 
 class CatalogSectionHelper
 {
@@ -18,11 +15,11 @@ class CatalogSectionHelper
      *
      * @return array
      */
-    //public static function getProductsForCard(array $productIds, $isAvailable = true): array
-    //{
+    public static function getProductsForCard(array $productIds, $isAvailable = true): array
+    {
         //$products = array_values(ProductsHelper::getProductsAndOffers($productIds, $isAvailable));
-        //return $products;
-    //}
+        return [];
+    }
 
 
     /**

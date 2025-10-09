@@ -1,5 +1,5 @@
 <?php
-use Beeralex\Main\PageHelper;
+use App\Main\PageHelper;
 ?>
 <div id="vue-favourites-header">
     <span class="header__main-favourites">

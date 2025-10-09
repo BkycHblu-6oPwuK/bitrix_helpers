@@ -2,12 +2,13 @@
 
 namespace App\Catalog\Type;
 
+use App\Catalog\Type\Contracts\CatalogSwitcherContract;
 use App\Catalog\Type\Enum\TypesCatalog;
 use Beeralex\Core\Helpers\FilesHelper;
 
 class CatalogContext implements Contracts\CatalogContextContract
 {
-    private CatalogSwitcher $switcher;
+    private CatalogSwitcherContract $switcher;
     /**
      * @var \Bitrix\Iblock\SectionTable|string
      */
@@ -17,7 +18,7 @@ class CatalogContext implements Contracts\CatalogContextContract
      * @param CatalogSwitcher $switcher
      * @param \Bitrix\Iblock\SectionTable|string $sectionEntity Класс сущности разделов инфоблока катал
      */
-    public function __construct(CatalogSwitcher $switcher, string $sectionEntity)
+    public function __construct(CatalogSwitcherContract $switcher, string $sectionEntity)
     {
         $this->switcher = $switcher;
         $this->sectionEntity = $sectionEntity;

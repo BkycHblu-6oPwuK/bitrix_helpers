@@ -2,7 +2,7 @@
 
 use Bitrix\Main\Page\Asset;
 use Beeralex\Core\Assets\Vite;
-use Beeralex\Main\PageHelper;
+use App\Main\PageHelper;
 ?>
 <!DOCTYPE html>
 
