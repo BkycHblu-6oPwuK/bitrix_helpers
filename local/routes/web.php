@@ -21,4 +21,16 @@ return function (RoutingConfigurator $routes): void {
         '/woman/',
         [MainController::class, 'woman']
     );
+    $routes->post(
+        '/oauth/token/',
+        [Beeralex\Oauth2\Controllers\AccessTokensController::class, 'issueToken']
+    );
+    $routes->post(
+        '/test/',
+        [MainController::class, 'test']
+    );
+    $routes->get(
+        '/oauth/authorize/',
+        [Beeralex\Oauth2\Controllers\AuthorizationController::class, 'authorize']
+    );
 };

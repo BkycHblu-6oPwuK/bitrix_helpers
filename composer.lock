@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8781371f519dbce4153119c3ad32862f",
+    "content-hash": "82f7765745a8ddf6d64181b830339c16",
     "packages": [
         {
             "name": "andreyryabin/sprint.migration",
@@ -108,87 +108,6 @@
                 "source": "https://github.com/Bacon/BaconQrCode/tree/v3.0.1"
             },
             "time": "2024-10-01T13:55:55+00:00"
-        },
-        {
-            "name": "beeralex/beeralex.core",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/BkycHblu-6oPwuK/beeralex.core.git",
-                "reference": "9647bf1ffe438a9e4fde019cbf0f62b77ce3f76f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/BkycHblu-6oPwuK/beeralex.core/zipball/9647bf1ffe438a9e4fde019cbf0f62b77ce3f76f",
-                "reference": "9647bf1ffe438a9e4fde019cbf0f62b77ce3f76f",
-                "shasum": ""
-            },
-            "type": "bitrix-module",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Alexandr Belotsitsko",
-                    "email": "sanyabelyy020@gmail.com"
-                }
-            ],
-            "description": "My base Bitrix module",
-            "support": {
-                "issues": "https://github.com/BkycHblu-6oPwuK/beeralex.core/issues",
-                "source": "https://github.com/BkycHblu-6oPwuK/beeralex.core/tree/v1.0.0"
-            },
-            "time": "2025-10-06T08:39:33+00:00"
-        },
-        {
-            "name": "cijic/phpmorphy",
-            "version": "0.3.6",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/cijic/phpmorphy.git",
-                "reference": "e83d0a08e25028018f4776c31b9cc6e3446a3839"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/cijic/phpmorphy/zipball/e83d0a08e25028018f4776c31b9cc6e3446a3839",
-                "reference": "e83d0a08e25028018f4776c31b9cc6e3446a3839",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "cijic\\phpMorphy\\": "src"
-                },
-                "classmap": [
-                    "libs/phpmorphy/src/common.php",
-                    "libs/phpmorphy/src/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Chiril Teterea",
-                    "email": "altcode@ya.ru",
-                    "role": "Developer"
-                }
-            ],
-            "description": "phpMorphy - morphological analyzer library for Russian, English, German and Ukrainian languages.",
-            "homepage": "https://github.com/cijic/phpmorphy",
-            "keywords": [
-                "phpmorphy"
-            ],
-            "support": {
-                "issues": "https://github.com/cijic/phpmorphy/issues",
-                "source": "https://github.com/cijic/phpmorphy/tree/0.3.6"
-            },
-            "time": "2025-03-13T23:29:52+00:00"
         },
         {
             "name": "composer/installers",
@@ -892,7 +811,7 @@
         },
         {
             "name": "illuminate/collections",
-            "version": "v12.32.5",
+            "version": "v12.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/collections.git",
@@ -951,7 +870,7 @@
         },
         {
             "name": "illuminate/conditionable",
-            "version": "v12.32.5",
+            "version": "v12.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/conditionable.git",
@@ -997,7 +916,7 @@
         },
         {
             "name": "illuminate/contracts",
-            "version": "v12.32.5",
+            "version": "v12.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/contracts.git",
@@ -1045,7 +964,7 @@
         },
         {
             "name": "illuminate/macroable",
-            "version": "v12.32.5",
+            "version": "v12.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/macroable.git",
@@ -1088,25 +1007,6 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2024-07-23T16:31:01+00:00"
-        },
-        {
-            "name": "itb/itb.seo",
-            "version": "v1.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://git.itb-dev.ru/ITB-dev/itb.seo.git",
-                "reference": "cd784c43596041225c26db7922f27b6ea06535ea"
-            },
-            "require": {
-                "beeralex/beeralex.core": "^1.0",
-                "cijic/phpmorphy": "^0.3.6"
-            },
-            "type": "bitrix-module",
-            "license": [
-                "MIT"
-            ],
-            "description": "Beeralex seoeverywhere",
-            "time": "2025-10-06T09:38:37+00:00"
         },
         {
             "name": "lcobucci/clock",
@@ -2122,6 +2022,56 @@
                 "source": "https://github.com/php-fig/http-server-middleware/tree/1.0.2"
             },
             "time": "2023-04-11T06:14:47+00:00"
+        },
+        {
+            "name": "psr/log",
+            "version": "3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/log.git",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Log\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
+            "keywords": [
+                "log",
+                "psr",
+                "psr-3"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
+            },
+            "time": "2024-09-11T13:17:53+00:00"
         },
         {
             "name": "psr/simple-cache",
