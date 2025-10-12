@@ -19,7 +19,8 @@
     "smsaero/smsaero_api": "^1.0",
     "wikimedia/composer-merge-plugin": "dev-master",
     "league/oauth2-server": "^9.2",
-    "psr/log": "^3.0"
+    "psr/log": "^3.0",
+    "firebase/php-jwt": "^6.11"
   },
   "config": {
     "allow-plugins": {

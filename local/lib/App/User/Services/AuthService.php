@@ -1,6 +1,6 @@
 <?php
 
-namespace App\User\Services;
+namespace App\User\Auth;
 
 use App\User\Exceptions\IncorrectOldPasswordException;
 use App\User\Exceptions\RegistrationException;
@@ -35,22 +35,6 @@ class AuthService
         
         // авторизуем пользователя
         $this->authorizeByUserId($user->getId());
-    }
-
-
-    /**
-     * Восстановление пароля пользователя
-     *
-     * @param string $email
-     */
-    public function restorePassword(string $email): void
-    {
-        $user = (new UserRepository())->getByEmail($email);
-        if (!$user) {
-            throw new UserNotFoundException($email);
-        }
-
-        \CUser::SendUserInfo($user->getId(), 's1', '', false, 'USER_PASS_REQUEST');
     }
 
 

@@ -5,168 +5,194 @@ namespace App\User;
 use App\User\Exceptions\ValidationException;
 use App\User\Phone\Phone;
 use App\User\Phone\PhoneFormatter;
+use Beeralex\Core\Repository\AbstractRepository;
+use Bitrix\Main\UserTable;
 
-class UserRepository
+class UserRepository extends AbstractRepository implements UserRepositoryContract
 {
-    /** @var array поля для выборки из CUser::GetList() */
-    private $fieldsToSelect = [
-        'FIELDS' => [
-            'ID',
-            'NAME',
-            'LAST_NAME',
-            'SECOND_NAME',
-            'EMAIL',
-            'PERSONAL_PHONE',
-            'PERSONAL_BIRTHDAY',
-            'PERSONAL_GENDER',
-            'PASSWORD',
-            'CHECKWORD',
-        ],
-        'SELECT' => [
-            'UF_PHOTO'
-        ]
-    ];
-
-    /**
-     * @var PhoneFormatter
-     */
-    private $phoneFormatter;
-
-    /**
-     * @var \CUser|string $entity
-     */
-    protected readonly string $entity;
+    protected PhoneFormatter $phoneFormatter;
 
     public function __construct()
     {
         $this->phoneFormatter = new PhoneFormatter();
-        $this->entity = \CUser::class;
+        parent::__construct(UserTable::class);
     }
-
 
     /**
      * Получает пользователя по заданному емаилу
-     *
-     * @param string $email
-     *
-     * @return User|null
      */
-    public function getByEmail(string $email): User|null
+    public function getByEmail(string $email, array $select = []): ?User
     {
-        $fields = $this->entity::GetList(
-            $by = [],
-            $order = [],
-            ['=EMAIL' => $email],
-            $this->fieldsToSelect
+        $fields = \CUser::GetList(
+            arFilter: ['=EMAIL' => $email],
+            arParams: array_merge(static::FIELD_SELECT_DEFAULT, $select)
         )->Fetch();
+
         return $fields ? new User($fields) : null;
     }
 
     /**
      * Получает пользователя по заданному номеру телефона
-     *
-     * @param Phone $phone
-     *
-     * @return User|null
      */
-    public function getByPhone(Phone $phone): User|null
+    public function getByPhone(Phone $phone, array $select = []): ?User
     {
-        $fields = $this->entity::GetList(
-            $by = [],
-            $order = [],
-            ['PERSONAL_PHONE' => $phone->getNumber()],
-            $this->fieldsToSelect
+        $fields = \CUser::GetList(
+            arFilter: ['PERSONAL_PHONE' => $phone->getNumber()],
+            arParams: array_merge(static::FIELD_SELECT_DEFAULT, $select)
         )->Fetch();
+
         return $fields ? new User($fields) : null;
     }
 
     /**
-     * @param int $userId
-     *
-     * @return User|null
+     * Получает пользователя по ID
      */
-    public function getById(int $userId): User|null
+    public function getById(int $userId, array $select = []): ?User
     {
-        $fields = $this->entity::GetList(
-            $by = [],
-            $order = [],
-            ['ID_EQUAL_EXACT' => $userId],
-            $this->fieldsToSelect
+        $fields = \CUser::GetList(
+            arFilter: ['ID_EQUAL_EXACT' => $userId],
+            arParams: array_merge(static::FIELD_SELECT_DEFAULT, $select)
         )->Fetch();
+
         return $fields ? new User($fields) : null;
     }
 
     /**
-     * @param User $user
+     * Добавляет нового пользователя
      *
-     * @return int
-     *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      * @throws ValidationException
      */
-    public function add(User $user): int
+    public function addByUser(User $user): int
     {
-        $validator = new UserValidator();
-        if (!$validator->validateUser($user, true)) {
-            throw new ValidationException('Invalid user ' . join(', ', $validator->getErrors()));
-        }
-
-        $cuser = new $this->entity;
         $fields = $this->modifyFields($user->getFields());
-        if (!($id = $cuser->Add($fields))) {
+        $cuser = new \CUser();
+
+        $id = $cuser->Add($fields);
+        if (!$id) {
             throw new \RuntimeException($cuser->LAST_ERROR);
         }
 
-        $user->setId($id);
-
-        return $id;
+        $user->setId((int)$id);
+        return (int)$id;
     }
 
-
     /**
-     * @param int   $userId
-     * @param array $fields
+     * Обновляет данные пользователя
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      * @throws ValidationException
      */
-    public function update(int $userId, array $fields): void
+    public function update(int $userId, array|object $data): void
     {
+        $fields = $data instanceof User ? $data->getFields() : $data;
         $fields = $this->modifyFields($fields);
 
-        $validator = new UserValidator();
-        if (!($validator)->validateFields($fields)) {
-            $errors = collect($validator->getErrors())
-                ->map(function ($errors, $key) {
-                    return $key . ': ' . implode(', ', $errors);
-                })
-                ->implode(', ');
-            throw new ValidationException('Invalid user fields ' . $errors);
-        }
-
-        $user = new $this->entity;
-        if (!($res = $user->Update($userId, $fields))) {
+        $user = new \CUser();
+        if (!$user->Update($userId, $fields)) {
             throw new \RuntimeException($user->LAST_ERROR);
         }
     }
 
+    /**
+     * Удаляет пользователя
+     *
+     * @throws RuntimeException
+     */
+    public function delete(int $id): void
+    {
+        $result = \CUser::Delete($id);
+        if (!$result) {
+            global $APPLICATION;
+            $error = $APPLICATION->GetException();
+            $message = $error ? $error->GetString() : "Cannot delete user with ID {$id}";
+            throw new \RuntimeException($message);
+        }
+    }
 
     /**
-     * Приводит свойства к нужному виду
-     *
-     * @param array $fields
-     *
-     * @return array
+     * Добавляет пользователя (реализация интерфейса)
      */
-    private function modifyFields(array $fields): array
+    public function add(array|object $data): int
     {
-        $phoneNumber = $fields['PERSONAL_PHONE'] ? $fields['PERSONAL_PHONE'] : $fields['PHONE_NUMBER'];
-        if (!empty($phoneNumber)) {
-            $fields['PERSONAL_PHONE'] = $this->phoneFormatter->formatForDb($phoneNumber);
-            $fields['PHONE_NUMBER'] = $this->phoneFormatter->formatForDb($phoneNumber);
+        if ($data instanceof User) {
+            return $this->addByUser($data);
         }
 
-        if (isset($fields['EMAIL'])) {
+        $cuser = new \CUser();
+        $fields = $this->modifyFields($data);
+        $id = $cuser->Add($fields);
+
+        if (!$id) {
+            throw new \RuntimeException($cuser->LAST_ERROR);
+        }
+
+        return (int)$id;
+    }
+
+    /**
+     * Сохраняет (добавляет или обновляет) пользователя
+     */
+    public function save(array|object $data): int
+    {
+        $user = $data instanceof User ? $data : new User($data);
+
+        if ($user->getId()) {
+            $this->update($user->getId(), $user);
+            return $user->getId();
+        }
+
+        return $this->addByUser($user);
+    }
+
+    /**
+     * Возвращает одного пользователя по фильтру
+     */
+    public function one(array $filter, array $select = []): ?User
+    {
+        $fields = \CUser::GetList(
+            arFilter: $filter,
+            arParams: array_merge(static::FIELD_SELECT_DEFAULT, $select)
+        )->Fetch();
+
+        return $fields ? new User($fields) : null;
+    }
+
+    /**
+     * Возвращает всех пользователей по фильтру
+     * @return User[]
+     */
+    public function all(array $filter = [], array $select = [], array $order = []): array
+    {
+        $result = [];
+        $res = \CUser::GetList(
+            key($order) ?: 'ID',
+            current($order) ?: 'ASC',
+            $filter,
+            array_merge(static::FIELD_SELECT_DEFAULT, $select)
+        );
+
+        while ($fields = $res->Fetch()) {
+            $result[] = new User($fields);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Приводит свойства к нужному виду перед записью в БД
+     */
+    protected function modifyFields(array $fields): array
+    {
+        $phoneNumber = $fields['PERSONAL_PHONE'] ?? $fields['PHONE_NUMBER'] ?? null;
+
+        if (!empty($phoneNumber)) {
+            $formatted = $this->phoneFormatter->formatForDb($phoneNumber);
+            $fields['PERSONAL_PHONE'] = $formatted;
+            $fields['PHONE_NUMBER'] = $formatted;
+        }
+
+        if (!empty($fields['EMAIL'])) {
             $fields['LOGIN'] = $fields['EMAIL'];
         }
 

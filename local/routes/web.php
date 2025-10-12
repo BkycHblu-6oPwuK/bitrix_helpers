@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Catalog\CatalogController;
 use App\Http\Controllers\MainController;
+use App\Http\Controllers\User\UserController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
@@ -29,6 +30,7 @@ return function (RoutingConfigurator $routes): void {
         '/test/',
         [MainController::class, 'test']
     );
+    $routes->post('/user/register/', [UserController::class, 'register']);
     $routes->get(
         '/oauth/authorize/',
         [Beeralex\Oauth2\Controllers\AuthorizationController::class, 'authorize']
