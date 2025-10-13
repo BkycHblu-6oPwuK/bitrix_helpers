@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Http\Controllers\BaseController;
 use App\User\Auth\Dto\EmailRegisterRequestDto;
+use Beeralex\Core\Http\Controllers\ApiController;
 
-class UserController extends BaseController
+class UserController extends ApiController
 {
     public function configureActions()
     {

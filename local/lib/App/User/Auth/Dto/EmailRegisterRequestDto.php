@@ -1,10 +1,10 @@
 <?php
 namespace App\User\Auth\Dto;
 
-use App\Main\Request\AbstractRequestDto;
 use Bitrix\Main\Validation\Rule\Email;
 use Bitrix\Main\Validation\Rule\Length;
 use App\User\Validation\Rule\UniqueEmailRule;
+use Beeralex\Core\Http\Request\AbstractRequestDto;
 use Bitrix\Main\Validation\Rule\NotEmpty;
 
 class EmailRegisterRequestDto extends AbstractRequestDto
