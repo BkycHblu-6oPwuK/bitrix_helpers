@@ -1,13 +1,44 @@
 <?php
+
 namespace App\User\Auth\Contracts;
 
+use App\User\Dto\BaseUserDto;
 use App\User\User;
 
 interface AuthenticatorContract
 {
+    /**
+     * Уникальный ключ (идентификатор) аутентификатора.
+     */
     public static function getKey(): string;
 
-    public function authenticate(array $credentials): void;
+    /**
+     * Аутентифицировать пользователя.
+     */
+    public function authenticate(BaseUserDto $data): void;
 
-    public function register(array $data): void;
+    /**
+     * Зарегистрировать пользователя (для локальных сценариев).
+     */
+    public function register(BaseUserDto $user): void;
+
+    /**
+     * Человекочитаемое название аутентификатора.
+     */
+    public function getTitle(): string;
+
+    /**
+     * Краткое описание аутентификатора.
+     */
+    public function getDescription(): ?string;
+
+    /**
+     * URL логотипа (или null, если отсутствует).
+     */
+    public function getLogoUrl(): ?string;
+
+    /**
+     * Является ли аутентификатором внешний сервис.
+     */
+    public function isService(): bool;
 }

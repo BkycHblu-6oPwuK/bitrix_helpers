@@ -18,6 +18,14 @@ use App\Notification\Contracts\SmsCodeContract;
 use App\Notification\Contracts\SmsContract;
 use App\Notification\Services\Sms\SmsAeroService;
 use App\Notification\Services\Sms\SmsCodeService;
+use App\User\Auth\Authenticators\EmailAuthenticator;
+use App\User\Auth\Authenticators\TelegramAuthenticator;
+use App\User\Auth\AuthManager;
+use App\User\Auth\Contracts\EmailAuthenticatorContract;
+use App\User\Auth\Contracts\ExternalAuthRepositoryContract;
+use App\User\Auth\ExternalAuthRepository;
+use App\User\UserRepository;
+use App\User\UserRepositoryContract;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Logger\FileLoggerFactory;
 use Beeralex\Core\Logger\LoggerFactoryContract;
@@ -84,6 +92,23 @@ return [
             DIServiceKey::EMPTY_OFFERS_REPOSITORY->value => [
                 'className' => EmptyOffersRepository::class,
             ],
+            UserRepositoryContract::class => [
+                'className' => UserRepository::class,
+            ],
+            ExternalAuthRepositoryContract::class => [
+                'className' => ExternalAuthRepository::class,
+            ],
+            AuthManager::class => [
+                'constructor' => static function () {
+                    $locator = ServiceLocator::getInstance();
+                    $userRepository = $locator->get(UserRepositoryContract::class);
+                    $externalAuthRepository = $locator->get(UserRepositoryContract::class);
+                    return new AuthManager([
+                        EmailAuthenticator::getKey() => new EmailAuthenticator($userRepository),
+                        TelegramAuthenticator::getKey() => new TelegramAuthenticator($userRepository, $externalAuthRepository),
+                    ]);
+                }
+            ]
         ],
         'readonly' => true,
     ]

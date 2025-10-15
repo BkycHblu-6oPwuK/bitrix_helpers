@@ -3,16 +3,21 @@
 namespace App\User\Auth;
 
 use App\User\Auth\Contracts\AuthenticatorContract;
-use App\User\User;
+use App\User\Dto\BaseUserDto;
 
 class AuthManager
 {
     /**
+     * ключом выступает название интерфейса
      * @param AuthenticatorContract[] $authenticators
      */
-    public function __construct(private array $authenticators) {}
+    public function __construct(protected array $authenticators) {}
 
-    public function attempt(string $type, array $credentials): ?User
+    /**
+     * @param string|\App\User\Auth\Authenticators\BaseAuthentificator $type
+     * @throws \Exception
+     */
+    public function attempt(string $type, BaseUserDto $userDto)
     {
         $authenticator = $this->authenticators[$type] ?? null;
 
@@ -20,15 +25,19 @@ class AuthManager
             throw new \InvalidArgumentException("Unknown auth type: {$type}");
         }
 
-        return $authenticator->authenticate($credentials);
+        $authenticator->authenticate($userDto);
     }
 
-    public function register(string $type, array $data): ?User
+    /**
+     * @param string|\App\User\Auth\Authenticators\BaseAuthentificator $type
+     * @throws \Exception
+     */
+    public function register(string $type, BaseUserDto $userDto): void
     {
         if (!isset($this->authenticators[$type])) {
             throw new \RuntimeException("Unknown authenticator type: {$type}");
         }
 
-        return $this->authenticators[$type]->register($data);
+        $this->authenticators[$type]->register($userDto);
     }
 }

@@ -1,17 +1,17 @@
 <?php
 namespace App\User\Auth\Dto;
 
+use App\User\Dto\BaseUserDto;
 use Bitrix\Main\Validation\Rule\Email;
 use Bitrix\Main\Validation\Rule\Length;
 use App\User\Validation\Rule\UniqueEmailRule;
-use Beeralex\Core\Http\Request\AbstractRequestDto;
 use Bitrix\Main\Validation\Rule\NotEmpty;
 
-class EmailRegisterRequestDto extends AbstractRequestDto
+class EmailRegisterRequestDto extends BaseUserDto
 {
-    #[NotEmpty(errorMessage: 'Email обязателен')]
-    #[Email(errorMessage: 'Некорректный email')]
     #[UniqueEmailRule]
+    #[Email(errorMessage: 'Некорректный email')]
+    #[NotEmpty(errorMessage: 'Email обязателен')]
     public string $email = '';
 
     #[NotEmpty(errorMessage: 'Пароль обязателен')]
