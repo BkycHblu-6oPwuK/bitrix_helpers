@@ -23,7 +23,7 @@ use App\User\Auth\Authenticators\TelegramAuthenticator;
 use App\User\Auth\AuthManager;
 use App\User\Auth\Contracts\EmailAuthenticatorContract;
 use App\User\Auth\Contracts\ExternalAuthRepositoryContract;
-use App\User\Auth\ExternalAuthRepository;
+use App\User\Auth\Repository\ExternalAuthRepository;
 use App\User\UserRepository;
 use App\User\UserRepositoryContract;
 use Beeralex\Core\Helpers\IblockHelper;
@@ -102,7 +102,7 @@ return [
                 'constructor' => static function () {
                     $locator = ServiceLocator::getInstance();
                     $userRepository = $locator->get(UserRepositoryContract::class);
-                    $externalAuthRepository = $locator->get(UserRepositoryContract::class);
+                    $externalAuthRepository = $locator->get(ExternalAuthRepositoryContract::class);
                     return new AuthManager([
                         EmailAuthenticator::getKey() => new EmailAuthenticator($userRepository),
                         TelegramAuthenticator::getKey() => new TelegramAuthenticator($userRepository, $externalAuthRepository),

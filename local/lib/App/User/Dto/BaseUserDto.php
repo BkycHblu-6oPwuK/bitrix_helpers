@@ -6,13 +6,12 @@ use Beeralex\Core\Http\Request\AbstractRequestDto;
 
 abstract class BaseUserDto extends AbstractRequestDto
 {
+    /** id в внешнем сервисе */
+    public int|string $id = '';
     public string $email = '';
     public string $password = '';
-    public string $name = '';
-    public string $lastName = '';
+    public ?string $first_name = '';
+    public ?string $last_name = '';
     public ?string $phone = null;
     public ?array $group = null;
-    public ?string $externalId = null;
-    /** Название внешнего сервиса (telegram, google, facebook и т.д.) */
-    public ?string $service = null;
 }

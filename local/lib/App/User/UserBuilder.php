@@ -73,12 +73,12 @@ class UserBuilder
             $builder->setEmail($dto->email);
         }
 
-        if (!empty($dto->name)) {
-            $builder->setName($dto->name);
+        if (!empty($dto->first_name)) {
+            $builder->setName($dto->first_name);
         }
 
-        if (!empty($dto->lastName)) {
-            $builder->setLastName($dto->lastName);
+        if (!empty($dto->last_name)) {
+            $builder->setLastName($dto->last_name);
         }
 
         if (!empty($dto->password)) {

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\User;
 use App\User\Auth\Authenticators\EmailAuthenticator;
 use App\User\Auth\Authenticators\TelegramAuthenticator;
 use App\User\Auth\AuthManager;
-use App\User\Auth\Contracts\EmailAuthenticatorContract;
 use App\User\Auth\Dto\EmailRegisterRequestDto;
 use App\User\Auth\Dto\TelegramAuthRequestDto;
 use Beeralex\Core\Http\Controllers\ApiController;
@@ -26,6 +25,9 @@ class UserController extends ApiController
             'register' => [
                 'prefilters' => [],
             ],
+            'authByTelegram' => [
+                'prefilters' => [],
+            ],
         ];
     }
     
@@ -38,6 +40,6 @@ class UserController extends ApiController
     public function authByTelegramAction(
         TelegramAuthRequestDto $dto)
     {
-        $this->manager->register(TelegramAuthenticator::getKey(), $dto);
+        $this->manager->attempt(TelegramAuthenticator::getKey(), $dto);
     }
 }

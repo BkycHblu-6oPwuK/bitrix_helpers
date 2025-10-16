@@ -1,6 +1,6 @@
 <?php
 
-namespace App\User\Auth;
+namespace App\User\Auth\Repository;
 
 use App\User\Auth\Contracts\ExternalAuthRepositoryContract;
 use App\User\Auth\Table\ExternalAuthTable;

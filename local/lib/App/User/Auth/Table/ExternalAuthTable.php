@@ -34,12 +34,6 @@ class ExternalAuthTable extends DataManager
                 'required' => true,
                 'size' => 255,
             ]),
-            new StringField('ACCESS_TOKEN', [
-                'size' => 512,
-            ]),
-            new StringField('REFRESH_TOKEN', [
-                'size' => 512,
-            ]),
             new DatetimeField('CREATED_AT', [
                 'default_value' => new \Bitrix\Main\Type\DateTime(),
             ]),
