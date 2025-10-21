@@ -1,9 +1,9 @@
 <?php
 namespace App\User\Auth\Contracts;
 
-use App\User\User;
+use App\User\Phone\Phone;
 
 interface PhoneAuthenticatorContract extends AuthenticatorContract
 {
-    public function authenticateByEmail(string $email, string $password): ?User;
+    public function authenticateByPhone(Phone $phone): void;
 }
