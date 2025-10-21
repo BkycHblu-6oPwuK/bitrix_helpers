@@ -7,6 +7,7 @@ use Bitrix\Main\Application;
 use Bitrix\Main\Loader;
 use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Mail\Internal\EventMessageTable;
+use Bitrix\Main\Mail\Internal\EventTypeTable;
 use Bitrix\Main\Sms\TemplateTable;
 
 $MODULE_ID = "beeralex.notification";
@@ -29,6 +30,10 @@ $linkRepo = $locator->get(NotificationTemplateLinkRepositoryContract::class);
  * @var NotificationChannelRepositoryContract
  */
 $channelRepo = $locator->get(NotificationChannelRepositoryContract::class);
+$events = EventTypeTable::getList([
+    'select' => ['ID', 'EVENT_NAME', 'NAME', 'LID'],
+    'order' => ['EVENT_NAME' => 'asc']
+])->fetchAll();
 
 // --- Получаем существующую связь ---
 $link = $linkId ? $linkRepo->getById($linkId) : null;
@@ -48,8 +53,9 @@ $templates = TemplateTable::getList([
 
 if ($request->isPost() && check_bitrix_sessid()) {
     $data = [
+        'EVENT_ID' => (int)$request->getPost('EVENT_ID'),
         'CHANNEL_ID' => (int)$request->getPost('CHANNEL_ID'),
-        'SMS_TEMPLATE_ID' => $request->getPost('SMS_TEMPLATE_ID'),
+        'SMS_TEMPLATE_ID' => (int)$request->getPost('SMS_TEMPLATE_ID'),
         'ACTIVE' => $request->getPost('ACTIVE') === 'Y' ? 'Y' : 'N',
     ];
 
@@ -116,6 +122,21 @@ $formUrl = $APPLICATION->GetCurPage() . ($link ? "?ID=" . $linkId : "");
     <?php endif; ?>
 
     <tr>
+        <td>Cобытие Bitrix:</td>
+        <td>
+            <select name="EVENT_ID" style="width:300px;">
+                <option value="">-- выберите событие --</option>
+                <?php foreach ($events as $event): ?>
+                    <option value="<?= htmlspecialcharsbx($event['ID']) ?>"
+                        <?= ($link && $link['EVENT_ID'] == $event['ID']) ? 'selected' : '' ?>>
+                        [<?= htmlspecialcharsbx($event['EVENT_NAME']) ?>] <?= htmlspecialcharsbx($event['NAME']) ?> (<?= htmlspecialcharsbx($event['LID']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>
+
+    <tr>
         <td width="40%">Канал уведомления:</td>
         <td>
             <select name="CHANNEL_ID" style="width:300px;">
@@ -130,7 +151,7 @@ $formUrl = $APPLICATION->GetCurPage() . ($link ? "?ID=" . $linkId : "");
     </tr>
 
     <tr>
-        <td>Почтовый шаблон Bitrix (для SMS / Email):</td>
+        <td>Шаблон SMS:</td>
         <td>
             <select name="SMS_TEMPLATE_ID" style="width:300px;">
                 <option value="">-- выберите шаблон --</option>

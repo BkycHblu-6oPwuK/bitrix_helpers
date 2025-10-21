@@ -66,8 +66,12 @@ $listResult = $repo->getList([
         'ID',
         'SMS_TEMPLATE_ID',
         'CHANNEL_ID',
+        'EVENT_ID',
         'ACTIVE',
-        'EVENT_MESSAGE_EVENT_NAME' => 'SMS_TEMPLATE.EVENT_NAME',
+        'EVENT_NAME' => 'EVENT.EVENT_NAME',
+        'EVENT_TITLE' => 'EVENT.NAME',
+        'EVENT_LID' => 'EVENT.LID',
+        'SMS_TEMPLATE_EVENT_NAME' => 'SMS_TEMPLATE.EVENT_NAME',
         'CHANNEL_CODE' => 'CHANNEL.CODE',
     ],
     'filter' => $filter,
@@ -84,6 +88,7 @@ $lAdmin->setNavigation($nav, "", false);
 // --- Заголовки ---
 $lAdmin->AddHeaders([
     ['id' => 'ID', 'content' => 'ID', 'sort' => 'ID', 'default' => true],
+    ['id' => 'EVENT_ID', 'content' => 'Cобытие', 'sort' => 'EVENT_ID', 'default' => true],
     ['id' => 'SMS_TEMPLATE_ID', 'content' => 'Смс шаблон', 'sort' => 'SMS_TEMPLATE_ID', 'default' => true],
     ['id' => 'CHANNEL_ID', 'content' => 'Канал', 'sort' => 'CHANNEL_ID', 'default' => true],
     ['id' => 'ACTIVE', 'content' => 'Активен', 'sort' => 'ACTIVE', 'default' => true],
@@ -99,6 +104,10 @@ foreach ($listResult->fetchAll() as $item) {
     );
 
     $row->AddField('ID', $item['ID']);
+    $row->AddField(
+        'EVENT_ID',
+        '[' . htmlspecialcharsbx($item['EVENT_ID']) . '] ' . htmlspecialcharsbx($item['EVENT_NAME']) . ' (' . htmlspecialcharsbx($item['EVENT_LID']) . ')'
+    );
     $row->AddField('SMS_TEMPLATE_ID', '[' . htmlspecialcharsbx($item['SMS_TEMPLATE_ID']) . '] ' . htmlspecialcharsbx($item['EVENT_MESSAGE_EVENT_NAME']));
     $row->AddField('CHANNEL_ID', '[' . htmlspecialcharsbx($item['CHANNEL_ID']) . '] ' . htmlspecialcharsbx($item['CHANNEL_CODE']));
     $row->AddCheckField('ACTIVE', $item['ACTIVE']);

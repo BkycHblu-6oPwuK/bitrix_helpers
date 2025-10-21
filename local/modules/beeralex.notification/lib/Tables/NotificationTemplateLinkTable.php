@@ -3,10 +3,9 @@
 namespace Beeralex\Notification\Tables;
 
 use Beeralex\Core\Traits\TableManagerTrait;
-use Bitrix\Main\Mail\Internal\EventMessageTable;
+use Bitrix\Main\Mail\Internal\EventTypeTable;
 use Bitrix\Main\ORM\Data\DataManager;
 use Bitrix\Main\ORM\Fields\IntegerField;
-use Bitrix\Main\ORM\Fields\StringField;
 use Bitrix\Main\ORM\Fields\BooleanField;
 use Bitrix\Main\ORM\Fields\DatetimeField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
@@ -30,11 +29,15 @@ class NotificationTemplateLinkTable extends DataManager
                 'autocomplete' => true,
             ]),
 
-            new StringField('SMS_TEMPLATE_ID', [
+            new IntegerField('EVENT_ID', [
                 'required' => true,
             ]),
 
-            new StringField('CHANNEL_ID', [
+            new IntegerField('SMS_TEMPLATE_ID', [
+                'required' => true,
+            ]),
+
+            new IntegerField('CHANNEL_ID', [
                 'required' => true,
             ]),
 
@@ -59,6 +62,12 @@ class NotificationTemplateLinkTable extends DataManager
                 'CHANNEL',
                 NotificationChannelTable::class,
                 ['=this.CHANNEL_ID' => 'ref.ID']
+            ),
+
+            new Reference(
+                'EVENT',
+                EventTypeTable::class,
+                ['=this.EVENT_ID' => 'ref.ID']
             ),
 
             new Reference(
