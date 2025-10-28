@@ -10,10 +10,10 @@ use App\Catalog\Basket\BasketFacade;
 use App\Catalog\Helper\OrderHelper;
 use App\Catalog\Helper\PersonTypeHelper;
 use Beeralex\Dressing\Options;
-use App\User\Services\AuthService;
-use App\User\Phone\Phone;
-use App\User\User;
-use App\User\UserBuilder;
+use Beeralex\User\Auth\AuthService;
+use Beeralex\User\Phone;
+use Beeralex\User\User;
+use Beeralex\User\UserBuilder;
 
 class DressingService
 {
@@ -56,7 +56,7 @@ class DressingService
 
     protected function addUser(array $form)
     {
-        $phone = new Phone($form['phone']);
+        $phone = Phone::fromString($form['phone']);
         $user = (new UserBuilder())
             ->setPhone($phone)
             ->setName($form['name'])

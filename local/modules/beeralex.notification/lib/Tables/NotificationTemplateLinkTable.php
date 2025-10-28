@@ -9,6 +9,7 @@ use Bitrix\Main\ORM\Fields\IntegerField;
 use Bitrix\Main\ORM\Fields\BooleanField;
 use Bitrix\Main\ORM\Fields\DatetimeField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
+use Bitrix\Main\ORM\Fields\StringField;
 use Bitrix\Main\Sms\TemplateTable;
 use Bitrix\Main\Type\DateTime;
 
@@ -29,7 +30,7 @@ class NotificationTemplateLinkTable extends DataManager
                 'autocomplete' => true,
             ]),
 
-            new IntegerField('EVENT_ID', [
+            new StringField('EVENT_NAME', [
                 'required' => true,
             ]),
 
@@ -67,7 +68,7 @@ class NotificationTemplateLinkTable extends DataManager
             new Reference(
                 'EVENT',
                 EventTypeTable::class,
-                ['=this.EVENT_ID' => 'ref.ID']
+                ['=this.EVENT_NAME' => 'ref.EVENT_NAME']
             ),
 
             new Reference(

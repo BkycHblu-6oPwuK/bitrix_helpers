@@ -1,11 +1,11 @@
 <?php
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_before.php");
 
+use Beeralex\Notification\Contracts\EventTypeRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationLinkEventTypeRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTypeRepositoryContract;
 use Bitrix\Main\Application;
 use Bitrix\Main\Loader;
-use Bitrix\Main\Mail\Internal\EventTypeTable;
 use Bitrix\Main\DI\ServiceLocator;
 
 $MODULE_ID = "beeralex.notification";
@@ -18,16 +18,8 @@ Loader::includeModule($MODULE_ID);
 
 $request = Application::getInstance()->getContext()->getRequest();
 $linkId = (int)$request->getQuery("ID");
-
-$locator = ServiceLocator::getInstance();
-/**
- * @var NotificationTypeRepositoryContract
- */
-$typeRepo = $locator->get(NotificationTypeRepositoryContract::class);
-/**
- * @var NotificationLinkEventTypeRepositoryContract
- */
-$linkRepo = $locator->get(NotificationLinkEventTypeRepositoryContract::class);
+$typeRepo = service(NotificationTypeRepositoryContract::class);
+$linkRepo = service(NotificationLinkEventTypeRepositoryContract::class);
 
 // --- Получаем существующую связь ---
 $link = $linkId ? $linkRepo->getById($linkId) : null;
@@ -39,15 +31,11 @@ if ($linkId && !$link) {
 
 // --- Получение списков типов уведомлений и событий ---
 $notificationTypes = $typeRepo->getAllTypes();
-$eventTypes = EventTypeTable::getList([
-    'select' => ['ID', 'EVENT_NAME', 'NAME'],
-    'order' => ['EVENT_NAME' => 'asc']
-])->fetchAll();
-
+$eventTypes = $locator->get(EventTypeRepositoryContract::class)->getByLanguage('ru', ['ID', 'EVENT_NAME', 'NAME'], ['EVENT_NAME' => 'asc']);
 // --- Обработка POST-запроса ---
 if ($request->isPost() && check_bitrix_sessid()) {
     $data = [
-        'EVENT_ID' => (int)$request->getPost('EVENT_ID'),
+        'EVENT_NAME' => $request->getPost('EVENT_NAME'),
         'EVENT_TYPE_ID' => (int)$request->getPost('EVENT_TYPE_ID'),
     ];
     if (!$link) {
@@ -129,10 +117,10 @@ $formUrl = $APPLICATION->GetCurPage() . ($link ? "?ID=" . $linkId : "");
     <tr>
         <td>Почтовое событие Bitrix:</td>
         <td>
-            <select name="EVENT_ID" style="width:300px;">
+            <select name="EVENT_NAME" style="width:300px;">
                 <option value="">-- выберите событие --</option>
                 <?php foreach ($eventTypes as $event): ?>
-                    <option value="<?= $event['ID'] ?>" <?= ($link && $link['EVENT_ID'] == $event['ID']) ? 'selected' : '' ?>>
+                    <option value="<?= $event['EVENT_NAME'] ?>" <?= ($link && $link['EVENT_NAME'] == $event['EVENT_NAME']) ? 'selected' : '' ?>>
                         [<?= htmlspecialcharsbx($event['EVENT_NAME']) ?>] <?= htmlspecialcharsbx($event['NAME']) ?>
                     </option>
                 <?php endforeach; ?>

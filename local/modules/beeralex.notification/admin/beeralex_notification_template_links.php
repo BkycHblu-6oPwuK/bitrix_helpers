@@ -18,11 +18,7 @@ $request = Application::getInstance()->getContext()->getRequest();
 $sTableID = "tbl_notification_template_links";
 $oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
-
-/**
- * @var NotificationTemplateLinkRepositoryContract $repo
- */
-$repo = ServiceLocator::getInstance()->get(NotificationTemplateLinkRepositoryContract::class);
+$repo = service(NotificationTemplateLinkRepositoryContract::class);
 
 // --- Массовые действия ---
 if (($arID = $lAdmin->GroupAction()) && $POST_RIGHT == "W") {
@@ -55,7 +51,9 @@ $displayFilter = [
     ["id" => "ACTIVE", "name" => "Активность", "type" => "list", "items" => ["Y" => "Да", "N" => "Нет"]],
 ];
 
-$filter = [];
+$filter = [
+    'EVENT.LID' => 'ru',
+];
 $lAdmin->AddFilter($displayFilter, $filter);
 
 // --- Навигация ---
@@ -66,9 +64,8 @@ $listResult = $repo->getList([
         'ID',
         'SMS_TEMPLATE_ID',
         'CHANNEL_ID',
-        'EVENT_ID',
+        'EVENT_NAME',
         'ACTIVE',
-        'EVENT_NAME' => 'EVENT.EVENT_NAME',
         'EVENT_TITLE' => 'EVENT.NAME',
         'EVENT_LID' => 'EVENT.LID',
         'SMS_TEMPLATE_EVENT_NAME' => 'SMS_TEMPLATE.EVENT_NAME',
@@ -88,7 +85,7 @@ $lAdmin->setNavigation($nav, "", false);
 // --- Заголовки ---
 $lAdmin->AddHeaders([
     ['id' => 'ID', 'content' => 'ID', 'sort' => 'ID', 'default' => true],
-    ['id' => 'EVENT_ID', 'content' => 'Cобытие', 'sort' => 'EVENT_ID', 'default' => true],
+    ['id' => 'EVENT_NAME', 'content' => 'Cобытие', 'sort' => 'EVENT_NAME', 'default' => true],
     ['id' => 'SMS_TEMPLATE_ID', 'content' => 'Смс шаблон', 'sort' => 'SMS_TEMPLATE_ID', 'default' => true],
     ['id' => 'CHANNEL_ID', 'content' => 'Канал', 'sort' => 'CHANNEL_ID', 'default' => true],
     ['id' => 'ACTIVE', 'content' => 'Активен', 'sort' => 'ACTIVE', 'default' => true],
@@ -105,10 +102,10 @@ foreach ($listResult->fetchAll() as $item) {
 
     $row->AddField('ID', $item['ID']);
     $row->AddField(
-        'EVENT_ID',
-        '[' . htmlspecialcharsbx($item['EVENT_ID']) . '] ' . htmlspecialcharsbx($item['EVENT_NAME']) . ' (' . htmlspecialcharsbx($item['EVENT_LID']) . ')'
+        'EVENT_NAME',
+        '[' . htmlspecialcharsbx($item['EVENT_NAME']) . '] ' . htmlspecialcharsbx($item['EVENT_TITLE'])
     );
-    $row->AddField('SMS_TEMPLATE_ID', '[' . htmlspecialcharsbx($item['SMS_TEMPLATE_ID']) . '] ' . htmlspecialcharsbx($item['EVENT_MESSAGE_EVENT_NAME']));
+    $row->AddField('SMS_TEMPLATE_ID', '[' . htmlspecialcharsbx($item['SMS_TEMPLATE_ID']) . '] ' . htmlspecialcharsbx($item['SMS_TEMPLATE_EVENT_NAME']));
     $row->AddField('CHANNEL_ID', '[' . htmlspecialcharsbx($item['CHANNEL_ID']) . '] ' . htmlspecialcharsbx($item['CHANNEL_CODE']));
     $row->AddCheckField('ACTIVE', $item['ACTIVE']);
 

@@ -20,7 +20,7 @@ class BeeralexMenu extends CBitrixComponent
     /** @inheritDoc */
     public function executeComponent()
     {
-        $this->catalogContext = ServiceLocator::getInstance()->get(CatalogContextContract::class);
+        $this->catalogContext = service(CatalogContextContract::class);
         if ($this->startResultCache()) {
             Loader::includeModule('iblock');
             $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl() . $this->catalogContext->getRootSectionCode();

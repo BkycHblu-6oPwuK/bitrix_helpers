@@ -1,4 +1,6 @@
 <?
+
+use Beeralex\Core\Config\Fields\Checkbox;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\HttpApplication;
 use Bitrix\Main\Loader;
@@ -16,6 +18,8 @@ if ($POST_RIGHT < "S") {
 Loader::includeModule($module_id);
 
 $accessTab = new Tab("edit2", Loc::getMessage("MAIN_TAB_RIGHTS"), Loc::getMessage("MAIN_TAB_TITLE_RIGHTS"));
+$mainTab = new Tab("edit1", 'Настройки', 'Общие настройки модуля');
+$mainTab->addField(new Checkbox('MODULE_ENABLED', 'Включить модуль'));
 $tabsBuilder = (new TabsBuilder())->addTab($mainTab)->addTab($accessTab);
 
 $tabs = $tabsBuilder->getTabs();

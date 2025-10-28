@@ -1,7 +1,7 @@
 <?php
 
 use App\Main\PageHelper;
-use App\User\User;
+use Beeralex\User\User;
 
 class BeeralexAuth extends CBitrixComponent
 {

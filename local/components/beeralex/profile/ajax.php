@@ -3,11 +3,6 @@
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Type\DateTime;
 use Beeralex\Core\Config\Config;
-use App\User\Exceptions\UserNotFoundException;
-use App\User\Services\ProfileService;
-use App\User\Phone\Phone;
-use App\User\User;
-use App\User\UserValidator;
 
 /**
  * @todo перенести бы c m1 функционалльную часть соединив с этой
@@ -67,12 +62,12 @@ class BeeralexProfileController extends \Bitrix\Main\Engine\Controller
     public function getPersonalAction()
     {
         try {
-            $notifications = (new \App\Notification\Services\NotificationPreferenceService)->getAll(User::current()->getId());
-            $result = [
-                'personal' => (new \App\User\Profile\PersonalBuilder($notifications))->build(),
-                'success' => true
-            ];
-            return $result;
+            // $notifications = (new \App\Notification\Services\NotificationPreferenceService)->getAll(User::current()->getId());
+            // $result = [
+            //     'personal' => (new \App\User\Profile\PersonalBuilder($notifications))->build(),
+            //     'success' => true
+            // ];
+            // return $result;
         } catch (\Exception $e) {
             return [
                 'success' => false,
@@ -104,81 +99,81 @@ class BeeralexProfileController extends \Bitrix\Main\Engine\Controller
      */
     public function getOrdersAction()
     {
-        try {
-            $result = (new \App\User\Profile\OrdersBuilder(new \App\Catalog\Repository\OrderRepository))->build();
-            $result['success'] = true;
-            return $result;
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-            ];
-        }
+        // try {
+        //     $result = (new \App\User\Profile\OrdersBuilder(new \App\Catalog\Repository\OrderRepository))->build();
+        //     $result['success'] = true;
+        //     return $result;
+        // } catch (\Exception $e) {
+        //     return [
+        //         'success' => false,
+        //     ];
+        // }
     }
 
     public function getDressingAction()
     {
-        try {
-            $result = (new \App\User\Profile\DressingBuilder(new \App\Catalog\Repository\OrderRepository))->build();
-            $result['success'] = true;
-            return $result;
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-            ];
-        }
+        // try {
+        //     $result = (new \App\User\Profile\DressingBuilder(new \App\Catalog\Repository\OrderRepository))->build();
+        //     $result['success'] = true;
+        //     return $result;
+        // } catch (\Exception $e) {
+        //     return [
+        //         'success' => false,
+        //     ];
+        // }
     }
 
     public function getQuestionsAction()
     {
-        try {
-            $result = [
-                'questions' => (new \App\User\Profile\QuestionsBuilder(new \App\Iblock\Repository\QuestionRepository))->build(),
-                'success' => true
-            ];
-            return $result;
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-            ];
-        }
+        // try {
+        //     $result = [
+        //         'questions' => (new \App\User\Profile\QuestionsBuilder(new \App\Iblock\Repository\QuestionRepository))->build(),
+        //         'success' => true
+        //     ];
+        //     return $result;
+        // } catch (\Exception $e) {
+        //     return [
+        //         'success' => false,
+        //     ];
+        // }
     }
 
     public function updateFieldAction($field, $value)
     {
-        try {
-            $realField = $this->getField($field);
-            if (!$realField) {
-                throw new \InvalidArgumentException('Неизвестное поле для обновления');
-            }
-            $user = User::current();
-            $this->validateField($field, $value);
-            $service = new ProfileService;
-            $service->updateProfile($user, [
-                $realField => $value
-            ]);
-            if ($value instanceof DateTime) {
-                $value = $value->format(Config::getInstance()->dateFormatSite);
-            }
-            $result = [
-                'success' => true,
-                'value' => $value,
-            ];
-            return $result;
-        } catch (UserNotFoundException $e) {
-            return [
-                'success' => false,
-                'error' => 'Невозможно выполнить операцию. Авторизуйтесь на сайте.'
-            ];
-        } catch (\InvalidArgumentException $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-            ];
-        }
+        // try {
+        //     $realField = $this->getField($field);
+        //     if (!$realField) {
+        //         throw new \InvalidArgumentException('Неизвестное поле для обновления');
+        //     }
+        //     $user = User::current();
+        //     $this->validateField($field, $value);
+        //     $service = new ProfileService;
+        //     $service->updateProfile($user, [
+        //         $realField => $value
+        //     ]);
+        //     if ($value instanceof DateTime) {
+        //         $value = $value->format(Config::getInstance()->dateFormatSite);
+        //     }
+        //     $result = [
+        //         'success' => true,
+        //         'value' => $value,
+        //     ];
+        //     return $result;
+        // } catch (UserNotFoundException $e) {
+        //     return [
+        //         'success' => false,
+        //         'error' => 'Невозможно выполнить операцию. Авторизуйтесь на сайте.'
+        //     ];
+        // } catch (\InvalidArgumentException $e) {
+        //     return [
+        //         'success' => false,
+        //         'error' => $e->getMessage()
+        //     ];
+        // } catch (\Exception $e) {
+        //     return [
+        //         'success' => false,
+        //     ];
+        // }
     }
 
     private function getField(string $field): ?string
@@ -198,21 +193,21 @@ class BeeralexProfileController extends \Bitrix\Main\Engine\Controller
      */
     private function validateField(string $field, string &$value): void
     {
-        $validator = new UserValidator;
-        $isValid = match ($field) {
-            'phone' => $validator->validatePhone(new Phone($value)),
-            'email' => $validator->validateEmail($value),
-            'birthday' => $validator->validateBirthday($value),
-            'gender' => $validator->validateGender($value),
-            'name' => $validator->validateName($value),
-            default => null
-        };
-        if ($isValid === null) {
-            throw new \InvalidArgumentException('Неизвестное поле для обновления');
-        } else if (!$isValid) {
-            $error = $validator->getErrors()[0];
-            throw new \InvalidArgumentException($error ?? 'Ошибка валидации');
-        }
+        // $validator = new UserValidator;
+        // $isValid = match ($field) {
+        //     'phone' => $validator->validatePhone(new Phone($value)),
+        //     'email' => $validator->validateEmail($value),
+        //     'birthday' => $validator->validateBirthday($value),
+        //     'gender' => $validator->validateGender($value),
+        //     'name' => $validator->validateName($value),
+        //     default => null
+        // };
+        // if ($isValid === null) {
+        //     throw new \InvalidArgumentException('Неизвестное поле для обновления');
+        // } else if (!$isValid) {
+        //     $error = $validator->getErrors()[0];
+        //     throw new \InvalidArgumentException($error ?? 'Ошибка валидации');
+        // }
     }
 
     /*

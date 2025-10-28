@@ -1,6 +1,7 @@
 <?php
 
 use Beeralex\Core\Helpers\FilesHelper;
+use Beeralex\Notification\Events\EventHandlers;
 use Beeralex\Notification\Tables\NotificationChannelTable;
 use Beeralex\Notification\Tables\NotificationCodeTable;
 use Beeralex\Notification\Tables\NotificationLinkEventTypeTable;
@@ -43,6 +44,7 @@ class beeralex_notification extends CModule
             ModuleManager::registerModule($this->MODULE_ID);
             Loader::includeModule($this->MODULE_ID);
             $this->InstallDB();
+            $this->InstallEvents();
             $this->InstallFiles();
         } else {
             $APPLICATION->ThrowException('Нет поддержки d7 в главном модуле');
@@ -89,6 +91,58 @@ class beeralex_notification extends CModule
         NotificationTemplateLinkTable::dropTable();
     }
 
+    public function InstallEvents()
+    {
+        $eventManager = \Bitrix\Main\EventManager::getInstance();
+        $eventManager->registerEventHandler(
+            'main',
+            'OnBeforeEventAdd',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'mainOnBeforeEventAdd'
+        );
+        $eventManager->registerEventHandler(
+            'main',
+            'onBeforeSendSms',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'mainOnBeforeSendSms'
+        );
+        // $eventManager->registerEventHandler(
+        //     'main',
+        //     'OnPageStart',
+        //     $this->MODULE_ID,
+        //     EventHandlers::class,
+        //     'mainOnPageStart'
+        // );
+    }
+
+    public function UnInstallEvents()
+    {
+        $eventManager = \Bitrix\Main\EventManager::getInstance();
+        $eventManager->unRegisterEventHandler(
+            'main',
+            'OnBeforeEventAdd',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'mainOnBeforeEventAdd'
+        );
+        $eventManager->unRegisterEventHandler(
+            'main',
+            'onBeforeSendSms',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'mainOnBeforeSendSms'
+        );
+        // $eventManager->unRegisterEventHandler(
+        //     'main',
+        //     'OnPageStart',
+        //     $this->MODULE_ID,
+        //     EventHandlers::class,
+        //     'mainOnPageStart'
+        // );
+    }
+
     public function doUninstall()
     {
         global $APPLICATION;
@@ -97,15 +151,16 @@ class beeralex_notification extends CModule
         $request = $context->getRequest();
         Loader::includeModule($this->MODULE_ID);
         if ($request['step'] < 2) {
-            $APPLICATION->IncludeAdminFile(Loc::getMessage('ITB_FAVORITE_UNINSTALL_TITLE'), __DIR__ . '/unstep1.php');
+            $APPLICATION->IncludeAdminFile(Loc::getMessage('BEERALEX_NOTIFICATION_UNINSTALL_TITLE'), __DIR__ . '/unstep1.php');
         } else {
             if ($request['savedata'] !== 'Y') {
                 $this->UnInstallDB();
             }
+            $this->UnInstallEvents();
 
             \Bitrix\Main\ModuleManager::unRegisterModule($this->MODULE_ID);
 
-            $APPLICATION->IncludeAdminFile(Loc::getMessage('ITB_FAVORITE_UNISTALL_TITLE'), __DIR__ . '/unstep2.php');
+            $APPLICATION->IncludeAdminFile(Loc::getMessage('BEERALEX_NOTIFICATION_UNISTALL_TITLE'), __DIR__ . '/unstep2.php');
         }
     }
 }

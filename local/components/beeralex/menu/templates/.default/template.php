@@ -1,5 +1,7 @@
 <?
-use App\User\Enum\Gender;
+
+use Beeralex\User\Enum\Gender;
+
 if (empty($arResult['menu'])) return;
 $isWoman = $arParams['gender'] === Gender::WOMAN;
 $title = $isWoman ? 'Женщинам' : 'Мужчинам';

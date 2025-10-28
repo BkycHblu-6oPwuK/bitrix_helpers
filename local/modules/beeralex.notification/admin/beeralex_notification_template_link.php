@@ -1,6 +1,7 @@
 <?php
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_before.php");
 
+use Beeralex\Notification\Contracts\EventTypeRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTemplateLinkRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationChannelRepositoryContract;
 use Bitrix\Main\Application;
@@ -20,20 +21,9 @@ Loader::includeModule($MODULE_ID);
 
 $request = Application::getInstance()->getContext()->getRequest();
 $linkId = (int)$request->getQuery("ID");
-
-$locator = ServiceLocator::getInstance();
-/**
- * @var NotificationTemplateLinkRepositoryContract
- */
-$linkRepo = $locator->get(NotificationTemplateLinkRepositoryContract::class);
-/**
- * @var NotificationChannelRepositoryContract
- */
-$channelRepo = $locator->get(NotificationChannelRepositoryContract::class);
-$events = EventTypeTable::getList([
-    'select' => ['ID', 'EVENT_NAME', 'NAME', 'LID'],
-    'order' => ['EVENT_NAME' => 'asc']
-])->fetchAll();
+$linkRepo = service(NotificationTemplateLinkRepositoryContract::class);
+$channelRepo = service(NotificationChannelRepositoryContract::class);
+$events = service(EventTypeRepositoryContract::class)->getByLanguage('ru', ['ID', 'EVENT_NAME', 'NAME'], ['EVENT_NAME' => 'asc']);
 
 // --- Получаем существующую связь ---
 $link = $linkId ? $linkRepo->getById($linkId) : null;
@@ -53,7 +43,7 @@ $templates = TemplateTable::getList([
 
 if ($request->isPost() && check_bitrix_sessid()) {
     $data = [
-        'EVENT_ID' => (int)$request->getPost('EVENT_ID'),
+        'EVENT_NAME' => $request->getPost('EVENT_NAME'),
         'CHANNEL_ID' => (int)$request->getPost('CHANNEL_ID'),
         'SMS_TEMPLATE_ID' => (int)$request->getPost('SMS_TEMPLATE_ID'),
         'ACTIVE' => $request->getPost('ACTIVE') === 'Y' ? 'Y' : 'N',
@@ -124,12 +114,12 @@ $formUrl = $APPLICATION->GetCurPage() . ($link ? "?ID=" . $linkId : "");
     <tr>
         <td>Cобытие Bitrix:</td>
         <td>
-            <select name="EVENT_ID" style="width:300px;">
+            <select name="EVENT_NAME" style="width:300px;">
                 <option value="">-- выберите событие --</option>
                 <?php foreach ($events as $event): ?>
-                    <option value="<?= htmlspecialcharsbx($event['ID']) ?>"
-                        <?= ($link && $link['EVENT_ID'] == $event['ID']) ? 'selected' : '' ?>>
-                        [<?= htmlspecialcharsbx($event['EVENT_NAME']) ?>] <?= htmlspecialcharsbx($event['NAME']) ?> (<?= htmlspecialcharsbx($event['LID']) ?>)
+                    <option value="<?= htmlspecialcharsbx($event['EVENT_NAME']) ?>"
+                        <?= ($link && $link['EVENT_NAME'] == $event['EVENT_NAME']) ? 'selected' : '' ?>>
+                        [<?= htmlspecialcharsbx($event['EVENT_NAME']) ?>] <?= htmlspecialcharsbx($event['NAME']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>

@@ -7,20 +7,23 @@ use Beeralex\Notification\DTO\NotificationMessage;
 use Beeralex\Notification\Contracts\UserNotificationPreferenceRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTypeRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationChannelRepositoryContract;
-use Bitrix\Main\DI\ServiceLocator;
+use Beeralex\Notification\Contracts\NotificationLinkEventTypeRepositoryContract;
+use Bitrix\Main\Event;
+use Bitrix\Main\EventResult;
 
 class NotificationManager
 {
     protected UserNotificationPreferenceRepositoryContract $preferenceRepo;
     protected NotificationTypeRepositoryContract $typeRepo;
+    protected NotificationLinkEventTypeRepositoryContract $typeLinkRepo;
     protected NotificationChannelRepositoryContract $channelRepo;
 
     public function __construct()
     {
-        $locator = ServiceLocator::getInstance();
-        $this->preferenceRepo = $locator->get(UserNotificationPreferenceRepositoryContract::class);
-        $this->typeRepo = $locator->get(NotificationTypeRepositoryContract::class);
-        $this->channelRepo = $locator->get(NotificationChannelRepositoryContract::class);
+        $this->preferenceRepo = service(UserNotificationPreferenceRepositoryContract::class);
+        $this->typeRepo = service(NotificationTypeRepositoryContract::class);
+        $this->typeLinkRepo = service(NotificationLinkEventTypeRepositoryContract::class);
+        $this->channelRepo = service(NotificationChannelRepositoryContract::class);
     }
 
     /**
@@ -28,34 +31,71 @@ class NotificationManager
      */
     public function notify(NotificationMessage $message): void
     {
-        $type = $this->typeRepo->getByCode($message->eventName);
-        if (!$type) {
-            return;
-        }
+        $types = $this->typeLinkRepo->getByEventName($message->eventName);
+        foreach ($types as $type) {
+            if (!$type['EVENT_TYPE_CODE']) {
+                continue;
+            }
 
-        $activeChannels = $this->channelRepo->getActiveChannels();
-
-        foreach ($activeChannels as $channel) {
-            $isEnabled = $this->preferenceRepo
-                ->isEnabled($message->userId, $type['ID'], $channel['ID']);
-
-            if ($isEnabled) {
-                $this->sendToChannel($channel['CODE'], $message);
+            $activeChannels = $this->channelRepo->getActiveChannels();
+            foreach ($activeChannels as $channel) {
+                $isEnabled = $this->preferenceRepo
+                    ->isEnabled($message->userId, $type['ID'], $channel['ID']);
+                if ($isEnabled) {
+                    $this->sendToChannel($channel['CODE'], $message);
+                }
             }
         }
     }
 
     protected function sendToChannel(string $code, NotificationMessage $message): void
     {
-        $channel = match ($code) {
-            'email' => new \Beeralex\Notification\Channels\EmailChannel(),
-            'sms' => new \Beeralex\Notification\Channels\SmsChannel(),
-            'telegram' => new \Beeralex\Notification\Channels\TelegramChannel(),
-            default => null
-        };
-
-        if ($channel instanceof NotificationChannelContract) {
-            $channel->send($message);
+        try {
+            $channel = ChannelFactory::createChannel($code);
+            if (!$channel) {
+                return;
+            }
+            $event = new Event('beeralex.notification', 'OnBeforeSendToChannel', [
+                'channel' => $channel,
+                'message' => $message,
+            ]);
+            $event->send();
+            /**
+             * EventManager::getInstance()->addEventHandler(
+             *   'beeralex.notification',
+             *   'OnBeforeSendToChannel',
+             *       function(NotificationChannelContract $customChannelInstance, NotificationMessage $notificationMessageInstance) {
+             *           return new \Bitrix\Main\EventResult(
+             *               \Bitrix\Main\EventResult::SUCCESS,
+             *               [
+             *                 'channel' => $customChannelInstance,
+             *                 'message' => $notificationMessageInstance,
+             *              ]
+             *           );
+             *       }
+             *   );
+             */
+            $isSend = false;
+            $result = null;
+            foreach ($event->getResults() as $eventResult) {
+                if ($eventResult->getType() === EventResult::SUCCESS) {
+                    $parameters = $eventResult->getParameters();
+                    $channelParameter = $parameters['channel'];
+                    $messageParameter = $parameters['message'];
+                    if ($channelParameter instanceof NotificationChannelContract && $messageParameter instanceof NotificationMessage) {
+                        $result = $channelParameter->send($messageParameter);
+                        $isSend = true;
+                    }
+                }
+            }
+            if (!$isSend) {
+                $result = $channel->send($message);
+            }
+            if (!$result?->isSuccess()) {
+                \AddMessage2Log('Ошибка при отправке уведомления в канал ' . $code . ': ' . implode('; ', $result->getErrorMessages()), 'beeralex.notification');
+            }
+        } catch (\Throwable $e) {
+            \AddMessage2Log('Ошибка при отправке уведомления в канал ' . $code . ': ' . $e->getMessage(), 'beeralex.notification');
         }
     }
 }

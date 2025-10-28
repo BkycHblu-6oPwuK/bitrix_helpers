@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\User;
 
-use App\User\Auth\Authenticators\EmailAuthenticator;
-use App\User\Auth\Authenticators\TelegramAuthenticator;
-use App\User\Auth\AuthManager;
-use App\User\Auth\Dto\EmailRegisterRequestDto;
-use App\User\Auth\Dto\TelegramAuthRequestDto;
 use Beeralex\Core\Http\Controllers\ApiController;
-use Bitrix\Main\DI\ServiceLocator;
+use Beeralex\User\Auth\Authenticators\EmailAuthenticator;
+use Beeralex\User\Auth\Authenticators\TelegramAuthenticator;
+use Beeralex\User\Auth\AuthManager;
+use Beeralex\User\Auth\Dto\EmailRegisterRequestDto;
+use Beeralex\User\Auth\Dto\TelegramAuthRequestDto;
 
 class UserController extends ApiController
 {
@@ -16,7 +15,7 @@ class UserController extends ApiController
     public function __construct(?\Bitrix\Main\Request $request = null)
     {
         parent::__construct($request);
-        $this->manager = ServiceLocator::getInstance()->get(AuthManager::class);
+        $this->manager = service(AuthManager::class);
     }
 
     public function configureActions()

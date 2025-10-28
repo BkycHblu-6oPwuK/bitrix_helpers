@@ -8,7 +8,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Sale\Order;
 use App\Catalog\Helper\OrderHelper;
 use App\Catalog\Enum\OrderStatuses;
-use App\User\User;
+use Beeralex\User\User;
 
 class BeeralexOrderController extends Controller
 {

@@ -18,11 +18,7 @@ $request = Application::getInstance()->getContext()->getRequest();
 $sTableID = "tbl_notification_channels";
 $oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
-
-/**
- * @var NotificationChannelRepositoryContract
- */
-$repository = ServiceLocator::getInstance()->get(NotificationChannelRepositoryContract::class);
+$repository = service(NotificationChannelRepositoryContract::class);
 
 // --- Групповые действия ---
 if (($arID = $lAdmin->GroupAction()) && $POST_RIGHT == "W") {

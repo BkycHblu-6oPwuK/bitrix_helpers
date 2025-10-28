@@ -49,10 +49,7 @@ class BeeralexContent extends \CBitrixComponent
         )
             ->setOrder(['SORT' => 'ASC']);
         if($isEnableCatalogType) {
-            /**
-             * @var CatalogSwitcherContract
-             */
-            $swither = ServiceLocator::getInstance()->get(CatalogSwitcherContract::class);
+            $swither = service(CatalogSwitcherContract::class);
             $query->where('CATALOG_TYPE.ITEM.XML_ID', $swither->get()->value);
         }
         return collect($query->exec()->fetchAll())->groupBy('ID')
@@ -64,22 +61,22 @@ class BeeralexContent extends \CBitrixComponent
                 };
                 switch ($type) {
                     case ContentTypes::SLIDER->value:
-                        $ids = match ($firstItem['PRODUCTS_TYPE_VALUE']) {
-                            ContentTypes::PRODUCTS_NEW->value => $this->getNewProductsIds(),
-                            ContentTypes::PRODUCTS_POPULAR->value => $this->getPopularProductsIds(),
-                            default => null
-                        };
-                        
-                        if($ids){
-                            if($ids->count() < ProductsHelper::SLIDER_COUNT){
-                                $propertyIds = $getIdsFromProperty('PRODUCTS_IDS_VALUE');
-                                if(!empty($propertyIds)) {
-                                    $ids = $ids->merge($propertyIds)->slice(0, ProductsHelper::SLIDER_COUNT);
-                                    $firstItem['LINK_VALUE'] = '';
-                                }
-                            }
-                            $ids = $ids->toArray();
-                        }
+                        //$ids = match ($firstItem['PRODUCTS_TYPE_VALUE']) {
+                        //    ContentTypes::PRODUCTS_NEW->value => $this->getNewProductsIds(),
+                        //    ContentTypes::PRODUCTS_POPULAR->value => $this->getPopularProductsIds(),
+                        //    default => null
+                        //};
+                        //
+                        //if($ids){
+                            // if($ids->count() < ProductsHelper::SLIDER_COUNT){
+                            //     $propertyIds = $getIdsFromProperty('PRODUCTS_IDS_VALUE');
+                            //     if(!empty($propertyIds)) {
+                            //         $ids = $ids->merge($propertyIds)->slice(0, ProductsHelper::SLIDER_COUNT);
+                            //         $firstItem['LINK_VALUE'] = '';
+                            //     }
+                            // }
+                            // $ids = $ids->toArray();
+                        //}
                         return [
                             'type' =>  ContentTypes::SLIDER,
                             'ids' => $ids ?? $getIdsFromProperty('PRODUCTS_IDS_VALUE'),
@@ -130,12 +127,12 @@ class BeeralexContent extends \CBitrixComponent
             ->toArray();
     }
 
-    protected function getNewProductsIds(): Collection
-    {
-        return collect(ProductsHelper::getNewProductsIds());
-    }
-    protected function getPopularProductsIds(): Collection
-    {
-        return collect(ProductsHelper::getPopularProductsIds());
-    }
+    // protected function getNewProductsIds(): Collection
+    // {
+    //     return collect(ProductsHelper::getNewProductsIds());
+    // }
+    // protected function getPopularProductsIds(): Collection
+    // {
+    //     return collect(ProductsHelper::getPopularProductsIds());
+    // }
 }

@@ -4,8 +4,8 @@ global $APPLICATION;
 
 use Bitrix\Main\Page\Asset;
 use Beeralex\Core\Assets\Vite;
-use App\User\User;
 use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\User\User;
 
 $curPage = $APPLICATION->GetCurPage();
 $isAuthorized = User::current()->isAuthorized();

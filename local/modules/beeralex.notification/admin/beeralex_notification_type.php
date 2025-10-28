@@ -15,10 +15,7 @@ if ($POST_RIGHT === "D") {
 Loader::includeModule($MODULE_ID);
 
 $request = Application::getInstance()->getContext()->getRequest();
-/**
- * @var NotificationTypeRepositoryContract
- */
-$typeRepo = ServiceLocator::getInstance()->get(NotificationTypeRepositoryContract::class);
+$typeRepo = service(NotificationTypeRepositoryContract::class);
 
 $typeId = (int)$request->getQuery("ID");
 $type = null;

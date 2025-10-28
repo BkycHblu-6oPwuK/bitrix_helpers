@@ -15,11 +15,7 @@ if ($POST_RIGHT === "D") {
 Loader::includeModule($MODULE_ID);
 
 $request = Application::getInstance()->getContext()->getRequest();
-/**
- * @var NotificationTypeRepositoryContract
- */
-$typeRepo = ServiceLocator::getInstance()->get(NotificationTypeRepositoryContract::class);
-
+$typeRepo = service(NotificationTypeRepositoryContract::class);
 $sTableID = "tbl_notification_types";
 $oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);

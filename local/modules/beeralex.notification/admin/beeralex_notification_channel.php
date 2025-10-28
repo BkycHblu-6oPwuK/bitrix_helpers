@@ -1,6 +1,7 @@
 <?php
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_before.php");
 
+use Beeralex\Notification\ChannelRegistry;
 use Beeralex\Notification\Contracts\NotificationChannelRepositoryContract;
 use Bitrix\Main\Application;
 use Bitrix\Main\Loader;
@@ -15,10 +16,7 @@ if ($POST_RIGHT === "D") {
 Loader::includeModule($MODULE_ID);
 
 $request = Application::getInstance()->getContext()->getRequest();
-/**
- * @var NotificationChannelRepositoryContract
- */
-$repo = ServiceLocator::getInstance()->get(NotificationChannelRepositoryContract::class);
+$repo = service(NotificationChannelRepositoryContract::class);
 
 $channelId = (int)$request->getQuery("ID");
 $channel = $channelId ? $repo->getById($channelId) : null;
@@ -66,6 +64,7 @@ $aTabs = [[
 ]];
 
 $formUrl = $APPLICATION->GetCurPage() . ($channelId ? "?ID=" . $channelId : "");
+$channels = ChannelRegistry::getAvailableChannels();
 ?>
 
 <form method="POST" action="<?= htmlspecialcharsbx($formUrl) ?>">
@@ -82,14 +81,19 @@ $formUrl = $APPLICATION->GetCurPage() . ($channelId ? "?ID=" . $channelId : "");
             <td><?= htmlspecialcharsbx($channel['ID']) ?></td>
         </tr>
     <?php endif; ?>
-
     <tr>
-        <td>Код канала (email, sms, telegram):</td>
+        <td>Канал</td>
         <td>
-            <input type="text" name="CODE" value="<?= htmlspecialcharsbx($channel['CODE'] ?? '') ?>" size="40">
+            <select name="CODE">
+                <?php foreach ($channels as $channelClass): ?>
+                    <option value="<?= htmlspecialcharsbx($channelClass::getCode()) ?>"
+                        <?= (isset($channel['CODE']) && $channel['CODE'] === $channelClass::getCode()) ? 'selected' : '' ?>>
+                        <?= htmlspecialcharsbx($channelClass::getDisplayName()) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </td>
     </tr>
-
     <tr>
         <td>Название:</td>
         <td>

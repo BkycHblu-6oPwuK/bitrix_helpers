@@ -1,5 +1,6 @@
 <?php
 
+use Beeralex\Notification\Contracts\EventTypeRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationChannelRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationCodeRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationLinkEventTypeRepositoryContract;
@@ -7,6 +8,7 @@ use Beeralex\Notification\Contracts\NotificationsRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTemplateLinkRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTypeRepositoryContract;
 use Beeralex\Notification\Contracts\UserNotificationPreferenceRepositoryContract;
+use Beeralex\Notification\Repository\EventTypeRepository;
 use Beeralex\Notification\Repository\NotificationChannelRepository;
 use Beeralex\Notification\Repository\NotificationCodeRepository;
 use Beeralex\Notification\Repository\NotificationLinkEventTypeRepository;
@@ -38,6 +40,9 @@ return [
             ],
             NotificationTemplateLinkRepositoryContract::class => [
                 'className' => NotificationTemplateLinkRepository::class,
+            ],
+            EventTypeRepositoryContract::class => [
+                'className' => EventTypeRepository::class,
             ],
         ],
     ],

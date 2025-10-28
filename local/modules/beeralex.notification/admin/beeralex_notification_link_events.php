@@ -18,10 +18,7 @@ $request = Application::getInstance()->getContext()->getRequest();
 $sTableID = "tbl_notification_link_event";
 $oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
-/**
- * @var NotificationLinkEventTypeRepositoryContract
- */
-$linkRepo = ServiceLocator::getInstance()->get(NotificationLinkEventTypeRepositoryContract::class);
+$linkRepo = service(NotificationLinkEventTypeRepositoryContract::class);
 
 // --- Массовые действия ---
 if (($arID = $lAdmin->GroupAction()) && $POST_RIGHT == "W") {
@@ -41,7 +38,9 @@ $displayFilter = [
     ["id" => "EVENT_ID", "name" => "Событие Bitrix", "type" => "string", "default" => true],
 ];
 
-$filter = [];
+$filter = [
+    'EVENT.LID' => 'ru',
+];
 $lAdmin->AddFilter($displayFilter, $filter);
 
 // --- Навигация ---
@@ -50,12 +49,11 @@ $nav = $lAdmin->getPageNavigation($sTableID);
 $listResult = $linkRepo->getList([
     'select' => [
         'ID',
-        'EVENT_ID',
+        'EVENT_NAME',
         'EVENT_TYPE_ID',
         'EVENT_TYPE_NAME' => 'EVENT_TYPE.NAME',
         'EVENT_TYPE_CODE' => 'EVENT_TYPE.CODE',
-        'EVENT_EVENT_NAME' => 'EVENT.EVENT_NAME',
-        'EVENT_NAME' => 'EVENT.NAME',
+        'EVENT_TITLE' => 'EVENT.NAME',
     ],
     'filter' => $filter,
     'order' => [$oSort->getField() => $oSort->getOrder()],
@@ -92,7 +90,7 @@ foreach ($listResult->fetchAll() as $item) {
     );
     $row->AddField(
         'EVENT_ID',
-        '[' . htmlspecialcharsbx($item['EVENT_EVENT_NAME']) . '] ' . htmlspecialcharsbx($item['EVENT_NAME'])
+        '[' . htmlspecialcharsbx($item['EVENT_NAME']) . '] ' . htmlspecialcharsbx($item['EVENT_TITLE'])
     );
 
     $actions = [

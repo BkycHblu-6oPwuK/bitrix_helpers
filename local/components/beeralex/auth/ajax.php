@@ -5,15 +5,13 @@ use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Web\Uri;
 use App\Notification\Contracts\SmsCodeContract;
-use App\User\Exceptions\IncorrectOldPasswordException;
-use App\User\Exceptions\UserNotFoundException;
 use App\Main\PageHelper;
-use App\User\UserRepository;
-use App\User\Services\AuthService;
-use App\User\Phone\Phone;
-use App\User\User;
-use App\User\UserBuilder;
-use App\User\UserValidator;
+use Beeralex\Oauth2\Repository\UserRepository;
+use Beeralex\User\Auth\AuthService;
+use Beeralex\User\Exceptions\IncorrectOldPasswordException;
+use Beeralex\User\Exceptions\UserNotFoundException;
+use Beeralex\User\Phone;
+use Beeralex\User\UserBuilder;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -99,7 +97,7 @@ class BeeralexAuthController extends \Bitrix\Main\Engine\Controller
         $password
     ): array {
         try {
-            $phone = new Phone($phoneNumber);
+            $phone = Phone::fromString($phoneNumber);
 
             $user = (new UserBuilder())
                 ->setEmail(trim($email))
@@ -108,13 +106,13 @@ class BeeralexAuthController extends \Bitrix\Main\Engine\Controller
                 ->setPassword($password)
                 ->build();
 
-            $userValidator = new UserValidator();
-            if (!$userValidator->validateUser($user, true)) {
-                return [
-                    'success' => false,
-                    'errors' => array_map(fn($errors) => implode(' ', (array)$errors), $userValidator->getErrors())
-                ];
-            }
+            // $userValidator = new UserValidator();
+            // if (!$userValidator->validateUser($user, true)) {
+            //     return [
+            //         'success' => false,
+            //         'errors' => array_map(fn($errors) => implode(' ', (array)$errors), $userValidator->getErrors())
+            //     ];
+            // }
 
             (new AuthService())->register($user);
 
@@ -160,19 +158,11 @@ class BeeralexAuthController extends \Bitrix\Main\Engine\Controller
     public function sendCodeAction($phoneNumber)
     {
         try {
-            $phone = new Phone($phoneNumber);
-            /**
-             * @var SmsCodeContract|\App\Notification\Services\Sms\SmsCodeService $service
-             */
-            $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
-            $service->sendCode($phone);
+            $phone = Phone::fromString($phoneNumber);
+            // $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
+            // $service->sendCode($phone);
             return [
                 'success' => true
-            ];
-        } catch (\App\Notification\Exceptions\SmsException $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
             ];
         } catch (\Exception $e) {
             return [
@@ -185,24 +175,21 @@ class BeeralexAuthController extends \Bitrix\Main\Engine\Controller
     {
         try {
             $phone = new Phone($phoneNumber);
-            /**
-             * @var SmsCodeContract|\App\Notification\Services\Sms\SmsCodeService $service
-             */
-            $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
-            $result = $service->checkCode($phone, (int)$code);
-            if ($result) {
-                $user = (new UserRepository())->getByPhone($phone);
-                if (!$user) {
-                    $user = $this->registrationByPhone($phone);
-                } else {
-                    (new AuthService)->authorizeByUserId($user->getId());
-                }
-            }
-            return [
-                'success' => true,
-                'isVerified' => $result,
-                'url' => $this->getBackUrl() ?? $this->getHttpRefererRedirectUrl()
-            ];
+            // $service = ServiceLocator::getInstance()->get(SmsCodeContract::class);
+            // $result = $service->checkCode($phone, (int)$code);
+            // if ($result) {
+            //     $user = (new UserRepository())->getByPhone($phone);
+            //     if (!$user) {
+            //         $user = $this->registrationByPhone($phone);
+            //     } else {
+            //         (new AuthService)->authorizeByUserId($user->getId());
+            //     }
+            // }
+            // return [
+            //     'success' => true,
+            //     'isVerified' => $result,
+            //     'url' => $this->getBackUrl() ?? $this->getHttpRefererRedirectUrl()
+            // ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
@@ -211,14 +198,14 @@ class BeeralexAuthController extends \Bitrix\Main\Engine\Controller
         }
     }
 
-    private function registrationByPhone(Phone $phone): User
-    {
-        $user = (new UserBuilder())
-            ->setPhone($phone)
-            ->build();
-        (new AuthService())->register($user);
-        return $user;
-    }
+    // private function registrationByPhone(Phone $phone): User
+    // {
+    //     $user = (new UserBuilder())
+    //         ->setPhone($phone)
+    //         ->build();
+    //     (new AuthService())->register($user);
+    //     return $user;
+    // }
 
 
     /**

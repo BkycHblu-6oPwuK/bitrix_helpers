@@ -15,8 +15,8 @@ use App\Catalog\Helper\CatalogHelper;
 use App\Reviews\ComponentParams;
 use App\Reviews\Options;
 use App\Reviews\Services\ReviewsService;
-use App\User\User;
 use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\User\User;
 
 class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
 {

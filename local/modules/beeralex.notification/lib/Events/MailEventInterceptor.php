@@ -2,38 +2,49 @@
 
 namespace Beeralex\Notification\Events;
 
-use Beeralex\Notification\DTO\NotificationMessage;
+use Beeralex\Notification\Dto\NotificationMessage;
 use Beeralex\Notification\NotificationManager;
-use App\User\UserRepository;
+use Beeralex\Notification\NotificationLock;
+use Beeralex\Notification\Enum\Channel;
+use Beeralex\User\User;
 
 class MailEventInterceptor
 {
-    public function handle(array $fields, array $template): bool
-    {
+    public function __construct(
+        public bool $moduleEnable = false
+    ){}
+
+    public function handle(
+        string $eventName,
+        string $lid,
+        array $fields,
+        ?string $messageId = null,
+        ?array $files = null,
+        ?string $languageId = null
+    ): bool {
         try {
-            $eventName = $template['EVENT_NAME'] ?? null;
-            if (!$eventName) {
+            if (!$this->moduleEnable || !$eventName || NotificationLock::isLocked(Channel::EMAIL->value) || NotificationLock::isLocked(Channel::SMS->value)) {
                 return true;
             }
 
-            $userId = (int)($fields['USER_ID'] ?? 0);
-            if (!$userId && !empty($fields['EMAIL'])) {
-                $user = (new UserRepository())->getByEmail($fields['EMAIL']);
-                $userId = $user?->getId() ?? 0;
-            }
-
+            $userId = User::current()->getId();
             if (!$userId) {
                 return true;
             }
 
-            $message = new NotificationMessage($eventName, $fields, $userId);
-            $manager = new NotificationManager();
-            $manager->notify($message);
+            NotificationLock::lock(Channel::EMAIL->value);
+            try {
+                $message = new NotificationMessage($eventName, $fields, $userId, $lid, $messageId, $files, $languageId);
+                $manager = new NotificationManager();
+                $manager->notify($message);
+            } finally {
+                NotificationLock::unlock(Channel::EMAIL->value);
+            }
 
             return false;
         } catch (\Exception $e) {
-            \AddMessage2Log('Ошибка в MailEventInterceptor: ' . $e->getMessage());
-            return true;
+            \AddMessage2Log('Ошибка в MailEventInterceptor: ' . $e->getMessage(), 'beeralex.notification');
         }
+        return true;
     }
 }

@@ -2,7 +2,6 @@
 
 use App\EventHandlers\Iblock;
 use App\EventHandlers\Buffer;
-use App\EventHandlers\Mail;
 use App\EventHandlers\Main;
 use App\EventHandlers\Sale;
 
@@ -29,7 +28,3 @@ $eventManager->addEventHandler(
 	'onSaleDeliveryExtraServicesClassNamesBuildList',
 	[Sale::class, 'onSaleDeliveryExtraServicesClassNamesBuildList']
 );
-
-//mail
-$eventManager->addEventHandler('main', '\Bitrix\Main\Mail\Internal\Event::OnBeforeAdd', [Mail::class, 'onBeforeAdd']);
-$eventManager->addEventHandler('main', 'OnBeforeEventSend', [Mail::class, 'OnBeforeEventSend']);

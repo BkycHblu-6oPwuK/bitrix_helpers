@@ -16,12 +16,9 @@ class BeeralexIndex extends CBitrixComponent
     /** @inheritDoc */
     public function executeComponent()
     {
-        /**
-         * @var CatalogSwitcherContract $swither
-         */
-        $swither = ServiceLocator::getInstance()->get(CatalogSwitcherContract::class);
+        $swither = service(CatalogSwitcherContract::class);
         $current = $swither->get();
-        $this->catalogContext = ServiceLocator::getInstance()->get(CatalogContextContract::class);
+        $this->catalogContext = service(CatalogContextContract::class);
         $this->arResult['types'] = Config::getInstance()['SWITH_CATALOG_TYPES'] ? $this->catalogContext->getRootSections() : [];
         if(!empty($this->arResult['types']) && $current !== TypesCatalog::ALL) {
             LocalRedirect("/{$current->value}/");

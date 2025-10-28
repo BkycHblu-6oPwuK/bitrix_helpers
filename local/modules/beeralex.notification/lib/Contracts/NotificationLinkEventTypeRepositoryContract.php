@@ -11,13 +11,14 @@ interface NotificationLinkEventTypeRepositoryContract extends RepositoryContract
     public function getByNotificationType(int $notificationTypeId): array;
 
     /**
-     * Получить все связи для конкретного почтового события Bitrix
+     * Получить все связи для конкретного события Bitrix
      */
-    public function getByEventId(int $eventId): array;
+    public function getByEventName(string $eventName): array;
+
     /**
      * Получить одну связь по типу уведомления и событию
      */
-    public function getByPair(int $notificationTypeId, int $eventId): ?array;
+    public function getByPair(int $notificationTypeId, string $eventName): ?array;
 
     /**
      * Удалить все связи по типу уведомления

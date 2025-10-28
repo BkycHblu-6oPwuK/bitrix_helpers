@@ -14,22 +14,9 @@ use App\Catalog\Type\Contracts\CatalogContextContract;
 use App\Catalog\Type\Contracts\CatalogSwitcherContract;
 use App\Iblock\Model\SectionModel;
 use App\Main\Enum\DIServiceKey;
-use App\Notification\Contracts\SmsCodeContract;
-use App\Notification\Contracts\SmsContract;
-use App\Notification\Services\Sms\SmsAeroService;
-use App\Notification\Services\Sms\SmsCodeService;
-use App\User\Auth\Authenticators\EmailAuthenticator;
-use App\User\Auth\Authenticators\TelegramAuthenticator;
-use App\User\Auth\AuthManager;
-use App\User\Auth\Contracts\EmailAuthenticatorContract;
-use App\User\Auth\Contracts\ExternalAuthRepositoryContract;
-use App\User\Auth\Repository\ExternalAuthRepository;
-use App\User\UserRepository;
-use App\User\UserRepositoryContract;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Logger\FileLoggerFactory;
 use Beeralex\Core\Logger\LoggerFactoryContract;
-use Bitrix\Main\DI\ServiceLocator;
 
 /**
  * зарегистрированные зависимости в этом файле перебивают зарегистрированные зависимости в модулях
@@ -61,17 +48,7 @@ return [
             ],
             BitrixLocationResolverContract::class => [
                 'constructor' => static function () {
-                    $locator = ServiceLocator::getInstance();
-                    return new BitrixLocationResolver($locator->get(LocationApiClientContract::class), $locator->get(LoggerFactoryContract::class)->channel('location'));
-                }
-            ],
-            SmsContract::class => [
-                'className' => SmsAeroService::class,
-            ],
-            SmsCodeContract::class => [
-                'constructor' => static function () {
-                    $locator = ServiceLocator::getInstance();
-                    return new SmsCodeService($locator->get(SmsContract::class));
+                    return new BitrixLocationResolver(service(LocationApiClientContract::class), service(LoggerFactoryContract::class)->channel('location'));
                 }
             ],
             CatalogSwitcherContract::class => [
@@ -79,8 +56,7 @@ return [
             ],
             CatalogContextContract::class => [
                 'constructor' => static function () {
-                    $locator = ServiceLocator::getInstance();
-                    return new CatalogContext($locator->get(CatalogSwitcherContract::class), SectionModel::compileEntityByIblock(IblockHelper::getIblockIdByCode('catalog')));
+                    return new CatalogContext(service(CatalogSwitcherContract::class), SectionModel::compileEntityByIblock(IblockHelper::getIblockIdByCode('catalog')));
                 }
             ],
             DIServiceKey::CATALOG_REPOSITORY->value => [
@@ -92,23 +68,6 @@ return [
             DIServiceKey::EMPTY_OFFERS_REPOSITORY->value => [
                 'className' => EmptyOffersRepository::class,
             ],
-            UserRepositoryContract::class => [
-                'className' => UserRepository::class,
-            ],
-            ExternalAuthRepositoryContract::class => [
-                'className' => ExternalAuthRepository::class,
-            ],
-            AuthManager::class => [
-                'constructor' => static function () {
-                    $locator = ServiceLocator::getInstance();
-                    $userRepository = $locator->get(UserRepositoryContract::class);
-                    $externalAuthRepository = $locator->get(ExternalAuthRepositoryContract::class);
-                    return new AuthManager([
-                        EmailAuthenticator::getKey() => new EmailAuthenticator($userRepository),
-                        TelegramAuthenticator::getKey() => new TelegramAuthenticator($userRepository, $externalAuthRepository),
-                    ]);
-                }
-            ]
         ],
         'readonly' => true,
     ]

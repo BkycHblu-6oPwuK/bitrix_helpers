@@ -19,18 +19,18 @@ class NotificationLinkEventTypeRepository extends Repository implements Notifica
         ]);
     }
 
-    public function getByEventId(int $eventId): array
+    public function getByEventName(string $eventName): array
     {
         return $this->all([
-            '=EVENT_ID' => $eventId,
-        ]);
+            '=EVENT_NAME' => $eventName,
+        ], ['*', 'EVENT_TYPE_CODE' => 'EVENT_TYPE.CODE']);
     }
 
-    public function getByPair(int $notificationTypeId, int $eventId): ?array
+    public function getByPair(int $notificationTypeId, string $eventName): ?array
     {
         return $this->one([
             '=EVENT_TYPE_ID' => $notificationTypeId,
-            '=EVENT_ID' => $eventId,
+            '=EVENT_NAME' => $eventName,
         ]);
     }
 

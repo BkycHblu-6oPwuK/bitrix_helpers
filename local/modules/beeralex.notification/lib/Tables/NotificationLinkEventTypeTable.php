@@ -6,6 +6,7 @@ use Bitrix\Main\Mail\Internal\EventTypeTable;
 use Bitrix\Main\ORM\Fields\IntegerField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
 use Bitrix\Main\ORM\Data\DataManager;
+use Bitrix\Main\ORM\Fields\StringField;
 
 /**
  * таблица связывающая тип уведомления с событиями битрикс
@@ -23,13 +24,13 @@ class NotificationLinkEventTypeTable extends DataManager
     {
         return [
             new IntegerField('ID', ['primary' => true, 'autocomplete' => true]),
-            new IntegerField('EVENT_ID', ['required' => true]),
+            new StringField('EVENT_NAME', ['required' => true]),
             new IntegerField('EVENT_TYPE_ID', ['required' => true]),
 
             new Reference(
                 'EVENT',
                 EventTypeTable::class,
-                ['=this.EVENT_ID' => 'ref.ID']
+                ['=this.EVENT_NAME' => 'ref.EVENT_NAME']
             ),
             new Reference(
                 'EVENT_TYPE',

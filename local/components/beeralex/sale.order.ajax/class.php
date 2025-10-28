@@ -9,12 +9,9 @@ use App\Catalog\Helper\OrderHelper;
 use App\Catalog\Checkout\PaymentsBuilder;
 use App\Catalog\Checkout\PersonTypeBuilder;
 use Beeralex\Core\Helpers\LocationHelper;
-use App\User\Exceptions\ValidationException;
-use App\User\Services\AuthService;
-use App\User\Phone\Phone;
-use App\User\User;
-use App\User\UserBuilder;
-use App\User\UserValidator;
+use Beeralex\User\Phone;
+use Beeralex\User\User;
+use Beeralex\User\UserBuilder;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -33,7 +30,7 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
 
     public function executeComponent()
     {
-        $this->locationResolver = \Bitrix\Main\DI\ServiceLocator::getInstance()->get(BitrixLocationResolverContract::class);
+        $this->locationResolver = service(BitrixLocationResolverContract::class);
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         $eventManager->addEventHandler('sale', 'OnSaleComponentOrderProperties', [$this, 'modifyOrderPropsBeforeDelivery']);
         parent::executeComponent();
@@ -257,7 +254,7 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
         }
         $orderProps = $this->getOrderProperties();
         try {
-            $phone = new Phone($orderProps['PHONE']['VALUE']);
+            $phone = Phone::fromString($orderProps['PHONE']['VALUE']);
             $user = (new UserBuilder())
                 ->setEmail($orderProps['EMAIL']['VALUE'])
                 ->setName($orderProps['NAME']['VALUE'])
@@ -266,24 +263,13 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
                 ->setPhone($phone)
                 ->setGroup($userProps['GROUP_ID'])
                 ->build();
-            $validator = new UserValidator();
-            if (!$validator->validateUser($user, true)) {
-                foreach ($validator->getErrors() as $error) {
-                    if (is_array($error)) {
-                        foreach ($error as $err) {
-                            throw new ValidationException($err);
-                        }
-                    }
-                    throw new ValidationException($error);
-                }
-            }
-            (new AuthService())->register($user);
+            //(new AuthService())->register($user);
             $userId = $user->getId();
         } catch (Exception $e) {
             $message = 'При регистрации пользователя произошла ошибка';
-            if ($e instanceof ValidationException) {
-                $message = $e->getMessage();
-            }
+            // if ($e instanceof ValidationException) {
+            //     $message = $e->getMessage();
+            // }
             $this->showAjaxAnswer([
                 'error' => $message,
             ]);

@@ -12,11 +12,8 @@ class Main
 {
     public static function onPageStart()
     {
-        /**
-         * @var CatalogSwitcherContract $swither
-         */
         if (Config::getInstance()['SWITH_CATALOG_TYPES']) {
-            $swither = ServiceLocator::getInstance()->get(CatalogSwitcherContract::class);
+            $swither = service(CatalogSwitcherContract::class);
             if ($swither->get() === TypesCatalog::ALL) {
                 $catalogTypes = TypesCatalog::cases();
                 foreach ($catalogTypes as $type) {
