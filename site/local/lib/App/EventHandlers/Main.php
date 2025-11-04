@@ -12,21 +12,6 @@ class Main
 {
     public static function onPageStart()
     {
-        if (Config::getInstance()['SWITH_CATALOG_TYPES']) {
-            $swither = service(CatalogSwitcherContract::class);
-            if ($swither->get() === TypesCatalog::ALL) {
-                $catalogTypes = TypesCatalog::cases();
-                foreach ($catalogTypes as $type) {
-                    if (str_contains($_SERVER['REQUEST_URI'], "/$type->value/")) {
-                        $swither->set($type);
-                        break;
-                    }
-                }
-                // fallback тип по умолчанию 1
-                if ($swither->get() === TypesCatalog::ALL) {
-                    $swither->set($catalogTypes[0]);
-                }
-            }
-        }
+
     }
 }

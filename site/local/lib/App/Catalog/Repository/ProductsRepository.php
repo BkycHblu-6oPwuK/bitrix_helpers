@@ -3,12 +3,12 @@
 namespace App\Catalog\Repository;
 
 use App\Catalog\Contracts\ProductRepositoryContract;
-use Beeralex\Core\Repository\BaseIblockRepository;
-use App\Catalog\Helper\CatalogHelper;
+use Beeralex\Core\Repository\IblockRepository;
 use App\Catalog\Helper\PriceHelper;
+use Beeralex\Core\Helpers\CatalogHelper;
 use Bitrix\Main\ORM\Fields\ExpressionField;
 
-class ProductsRepository extends BaseIblockRepository implements ProductRepositoryContract
+class ProductsRepository extends IblockRepository implements ProductRepositoryContract
 {
     public function __construct()
     {

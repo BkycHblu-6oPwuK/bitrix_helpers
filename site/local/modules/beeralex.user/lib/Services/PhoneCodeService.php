@@ -55,7 +55,7 @@ final class PhoneCodeService
      *
      * @throws PhoneCodeException
      */
-    public function sendCode(Phone $phone, string $template = 'SMS_USER_CONFIRM_NUMBER', ?string $siteId = null): void
+    public function sendCode(Phone $phone, string $template = 'SMS_USER_CONFIRM_NUMBER', ?string $siteId = null): true
     {
         $row = $this->repository->getByPhone($phone);
 
@@ -86,6 +86,7 @@ final class PhoneCodeService
             $messages = implode('; ', $sendResult->getErrorMessages());
             throw new PhoneCodeException("Ошибка отправки SMS: {$messages}");
         }
+        return true;
     }
 
     /**

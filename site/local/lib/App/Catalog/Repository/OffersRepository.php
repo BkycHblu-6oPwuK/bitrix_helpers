@@ -2,12 +2,12 @@
 namespace App\Catalog\Repository;
 
 use App\Catalog\Contracts\OfferRepositoryContract;
-use Beeralex\Core\Repository\BaseIblockRepository;
-use App\Catalog\Helper\CatalogHelper;
+use Beeralex\Core\Repository\IblockRepository;
 use App\Catalog\Helper\PriceHelper;
 use App\Catalog\Repository\StoreRepository;
+use Beeralex\Core\Helpers\CatalogHelper;
 
-class OffersRepository extends BaseIblockRepository implements OfferRepositoryContract
+class OffersRepository extends IblockRepository implements OfferRepositoryContract
 {
     public function __construct()
     {

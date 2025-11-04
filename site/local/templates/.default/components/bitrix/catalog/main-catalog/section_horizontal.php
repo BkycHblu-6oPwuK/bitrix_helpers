@@ -30,11 +30,10 @@ if ($query) {
 
     <div class="catalog-section__container" id="vue-catalog">
     <?
-
 	if ($isFilter) {
 		$APPLICATION->IncludeComponent(
 			"beeralex:catalog.smart.filter",
-			"vue_filter",
+			".default",
 			array(
 				"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 				"IBLOCK_ID" => $arParams["IBLOCK_ID"],
@@ -65,7 +64,7 @@ if ($query) {
 			array('HIDE_ICONS' => 'Y')
 		);
 	}
-
+	
 	$APPLICATION->IncludeComponent(
 		"beeralex:catalog.section.list",
 		".default",
@@ -84,7 +83,7 @@ if ($query) {
 
 	$intSectionID = $APPLICATION->IncludeComponent(
 		"bitrix:catalog.section",
-		"vue_section",
+		".default",
 		array(
 			"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 			"IBLOCK_ID" => $arParams["IBLOCK_ID"],
@@ -213,17 +212,3 @@ if ($query) {
 	);
 	?>
 </div>
-<?
-$request = \Bitrix\Main\Context::getCurrent()->getRequest();
-if ($request->isAjaxRequest()) {
-	if (!defined('PUBLIC_AJAX_MODE')) {
-		define('PUBLIC_AJAX_MODE', true);
-	}
-	WebHelper::jsonAnswer([
-		'catalogSectionList' => $GLOBALS['catalogSectionList'],
-		'catalogSection' => $GLOBALS['catalogSection'],
-		'filter' => $GLOBALS['vueFilterData'],
-	]);
-}
-//Vite::getInstance()->includeAssets(['src/app/catalog/index.js']);
-?>

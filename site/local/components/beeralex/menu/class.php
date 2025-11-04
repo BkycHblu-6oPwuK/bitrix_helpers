@@ -2,13 +2,10 @@
 
 use Bitrix\Iblock\SectionElementTable;
 use Bitrix\Iblock\SectionTable;
-use Bitrix\Main\DI\ServiceLocator;
 use Bitrix\Main\Loader;
-use App\Catalog\Helper\CatalogHelper;
-use App\Catalog\Type\Contracts\CatalogContextContract;
-use App\Iblock\Model\SectionModel;
 use App\Main\PageHelper;
 use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Model\SectionModel;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -16,14 +13,12 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 
 class BeeralexMenu extends CBitrixComponent
 {
-    protected CatalogContextContract $catalogContext;
     /** @inheritDoc */
     public function executeComponent()
     {
-        $this->catalogContext = service(CatalogContextContract::class);
         if ($this->startResultCache()) {
             Loader::includeModule('iblock');
-            $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl() . $this->catalogContext->getRootSectionCode();
+            $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl();
             $menu = $this->getMenu();
             $this->arResult['menu'] = $menu;
             // Если шаблон не задан — кешируем только arResult

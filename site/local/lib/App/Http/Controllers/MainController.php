@@ -1,8 +1,8 @@
-<?
-
+<?php
 namespace App\Http\Controllers;
 
-use Beeralex\Oauth2\ActionFilter\Oauth2Token;
+use App\Http\GlobalResult;
+use Beeralex\Core\Helpers\FilesHelper;
 use Bitrix\Main\Engine\Controller;
 
 class MainController extends Controller
@@ -10,40 +10,51 @@ class MainController extends Controller
     public function configureActions()
     {
         return [
-            'index' => [
+            'getContent' => [
                 'prefilters' => [],
-            ],
-            'man' => [
-                'prefilters' => [],
-            ],
-            'woman' => [
-                'prefilters' => [],
-            ],
-            'test' => [
-                'prefilters' => [
-                    new Oauth2Token()
-                ],
             ],
         ];
     }
 
-    public function indexAction()
+    public function getContentAction(string $pathName)
     {
-        return $this->renderView('/local/views/index/index.php');
+        $pathName = $this->normalizePath($pathName);
+        FilesHelper::includeFile('index', [
+            'pathName' => $pathName,
+        ]);
+
+        GlobalResult::setSeo();
+        GlobalResult::setEmptyPageData();
+        return GlobalResult::$result;
     }
 
-    public function manAction()
+    public function getMenuAction()
     {
-        return $this->renderView('/local/views/index/man.php');
+        
     }
 
-    public function womanAction()
+    /**
+     * Приводит путь к виду:
+     * - всегда начинается со слеша (/)
+     * - не заканчивается слешем (/), кроме корня
+     */
+    protected function normalizePath(string $path): string
     {
-        return $this->renderView('/local/views/index/woman.php');
-    }
-    
-    public function testAction()
-    {
-        return [11111];
+        $path = mb_trim($path);
+        $path = preg_replace('#/+#', '/', $path);
+
+        if ($path === '') {
+            return '/';
+        }
+
+        if ($path[0] !== '/') {
+            $path = '/' . $path;
+        }
+
+        if (mb_strlen($path) > 1) {
+            $path = mb_rtrim($path, '/');
+        }
+
+        return $path;
     }
 }

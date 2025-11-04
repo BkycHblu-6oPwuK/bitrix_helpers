@@ -9,10 +9,6 @@ use App\EventHandlers\Sale;
 
 $eventManager = \Bitrix\Main\EventManager::getInstance();
 
-// Buffer
-$eventManager->addEventHandler('main', 'OnEndBufferContent', [Buffer::class, 'onEndBufferContent']);
-$eventManager->addEventHandler('main', 'OnPageStart', [Main::class, 'onPageStart']);
-
 // iblock
 $eventManager->addEventHandler('iblock', 'OnAfterIBlockElementSetPropertyValues', [Iblock::class, 'onAfterIBlockElementSetPropertyValues']);
 $eventManager->addEventHandler('iblock', 'OnAfterIBlockElementSetPropertyValuesEx', [Iblock::class, 'onAfterIBlockElementSetPropertyValuesEx']);

@@ -11,10 +11,10 @@ use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Web\Json;
 use App\Catalog\Helper\ProductsHelper;
 use Beeralex\Core\Helpers\DateHelper;
-use App\Catalog\Helper\CatalogHelper;
 use App\Reviews\ComponentParams;
 use App\Reviews\Options;
 use App\Reviews\Services\ReviewsService;
+use Beeralex\Core\Helpers\CatalogHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\User\User;
 

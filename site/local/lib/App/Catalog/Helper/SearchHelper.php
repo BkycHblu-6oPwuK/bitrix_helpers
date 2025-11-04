@@ -3,9 +3,8 @@ namespace App\Catalog\Helper;
 
 use Bitrix\Main\Loader;
 use CSearch;
-use App\Catalog\Helper\CatalogHelper;
-use App\Iblock\Model\SectionModel;
 use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Model\SectionModel;
 
 class SearchHelper
 {

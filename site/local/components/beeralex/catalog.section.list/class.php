@@ -1,8 +1,7 @@
 <?php
 
-use App\Catalog\Helper\CatalogHelper;
-use App\Iblock\Model\SectionModel;
 use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Model\SectionModel;
 
 class BeeralexCatalogSectionList extends \CBitrixComponent
 {

@@ -46,7 +46,7 @@ if ($result) {
     $sameProductsIds = ProductsHelper::getSameProductsIds((int)$result['elementId'], (int)$result['sectionId'], 86400);
     if (!empty($sameProductsIds)) {
         $APPLICATION->IncludeComponent(
-            'beeralex:product_slider',
+            'beeralex:product.slider',
             'viewed',
             [
                 'CACHE_TYPE' => 'A',
@@ -59,7 +59,7 @@ if ($result) {
     $viewedIds = ProductsHelper::getViewedProductsIds((int)$result['elementId']);
     if (!empty($viewedIds)) {
         $APPLICATION->IncludeComponent(
-            'beeralex:product_slider',
+            'beeralex:product.slider',
             'viewed',
             [
                 'CACHE_TYPE' => 'A',

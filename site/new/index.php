@@ -1,7 +1,6 @@
 <?
 
 use App\Catalog\Helper\ProductsHelper;
-use App\Catalog\Helper\CatalogHelper;
 use App\Main\PageHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 

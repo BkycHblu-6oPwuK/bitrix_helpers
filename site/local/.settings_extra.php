@@ -8,6 +8,7 @@ use App\Catalog\Location\Services\DadataService;
 use App\Catalog\Repository\EmptyOffersRepository;
 use App\Catalog\Repository\OffersRepository;
 use App\Catalog\Repository\ProductsRepository;
+use App\Catalog\Service\CatalogService;
 use App\Catalog\Type\CatalogContext;
 use App\Catalog\Type\CatalogSwitcher;
 use App\Catalog\Type\Contracts\CatalogContextContract;
@@ -38,25 +39,12 @@ return [
     ],
     'services' => [
         'value' => [
-            LoggerFactoryContract::class => [
-                'constructor' => static function () {
-                    return new FileLoggerFactory($_SERVER['DOCUMENT_ROOT'] . '/local');
-                },
-            ],
             LocationApiClientContract::class => [
                 'className' => DadataService::class,
             ],
             BitrixLocationResolverContract::class => [
                 'constructor' => static function () {
                     return new BitrixLocationResolver(service(LocationApiClientContract::class), service(LoggerFactoryContract::class)->channel('location'));
-                }
-            ],
-            CatalogSwitcherContract::class => [
-                'className' => CatalogSwitcher::class
-            ],
-            CatalogContextContract::class => [
-                'constructor' => static function () {
-                    return new CatalogContext(service(CatalogSwitcherContract::class), SectionModel::compileEntityByIblock(IblockHelper::getIblockIdByCode('catalog')));
                 }
             ],
             DIServiceKey::CATALOG_REPOSITORY->value => [
@@ -68,6 +56,11 @@ return [
             DIServiceKey::EMPTY_OFFERS_REPOSITORY->value => [
                 'className' => EmptyOffersRepository::class,
             ],
+            CatalogService::class => [
+                'constructor' => static function () {
+                    return new CatalogService(service(DIServiceKey::CATALOG_REPOSITORY->value), service(DIServiceKey::OFFERS_REPOSITORY->value));
+                }
+            ]
         ],
         'readonly' => true,
     ]

@@ -38,8 +38,8 @@ class PhoneAuthentificator extends BaseAuthentificator implements PhoneAuthentif
     {
         if ($code === null) {
             $result = $this->codeService->sendCode($phone);
-            if (!$result->isSuccess()) {
-                throw new \RuntimeException(implode('; ', $result->getErrorMessages()));
+            if ($result) {
+                return;
             }
 
             throw new \RuntimeException('Verification code sent to your phone');

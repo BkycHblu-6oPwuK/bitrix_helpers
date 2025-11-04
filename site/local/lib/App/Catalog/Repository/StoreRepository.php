@@ -5,11 +5,11 @@ use App\Catalog\Contracts\StoreRepositoryContract;
 use Bitrix\Catalog\StoreTable;
 use Bitrix\Main\Loader;
 use App\Catalog\Dto\PickPointDTO;
-use Beeralex\Core\Repository\BaseRepository;
+use Beeralex\Core\Repository\Repository;
 
 Loader::includeModule('catalog');
 
-class StoreRepository extends BaseRepository implements StoreRepositoryContract
+class StoreRepository extends Repository implements StoreRepositoryContract
 {
     public function __construct()
     {
