@@ -45,6 +45,8 @@ use App\Catalog\Service\CatalogService;
 use App\Catalog\Type\Contracts\CatalogContextContract as ContractsCatalogContextContract;
 use App\Catalog\Type\Contracts\CatalogSwitcherContract;
 use App\User\Auth\Table\ExternalAuthTable;
+use Beeralex\Api\UrlHelper;
+use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Helpers\QueryHelper as HelpersQueryHelper;
 use Beeralex\Core\UserType\IblockLinkType;
@@ -352,6 +354,6 @@ require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.
 
 // $eventManager = EventManager::getInstance();
 // $eventManager->registerEventHandler('iblock', 'OnIBlockPropertyBuildList', 'beeralex.core', IblockLinkType::class, 'getUserTypeDescription');
-
+FilesHelper::includeFile('menu');
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

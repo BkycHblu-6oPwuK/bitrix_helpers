@@ -37,6 +37,14 @@ return [
             'encryption_key' => 'KMC0N/+dFrGoB2CYlH3q2XQwLJBLvY2En6+fS4i9rZs=', // ключ шифрования
         ]
     ],
+    // 'beeralex.api' => [
+    //     'value' => [
+    //         'remove_parts' => [
+    //             '/api/',
+    //             '/v1/',
+    //         ]
+    //     ]
+    // ],
     'services' => [
         'value' => [
             LocationApiClientContract::class => [

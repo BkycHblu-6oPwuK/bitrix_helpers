@@ -1,11 +1,9 @@
 <?php
 
-use Bitrix\Iblock\SectionElementTable;
-use Bitrix\Iblock\SectionTable;
+use Beeralex\Api\UrlHelper;
 use Bitrix\Main\Loader;
-use App\Main\PageHelper;
+use Bitrix\Iblock\SectionTable;
 use Beeralex\Core\Helpers\IblockHelper;
-use Beeralex\Core\Model\SectionModel;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -17,193 +15,103 @@ class BeeralexMenu extends CBitrixComponent
     public function executeComponent()
     {
         if ($this->startResultCache()) {
-            Loader::includeModule('iblock');
-            $this->arResult['catalogUrl'] = PageHelper::getCatalogPageUrl();
-            $menu = $this->getMenu();
-            $this->arResult['menu'] = $menu;
-            // Если шаблон не задан — кешируем только arResult
-            $this->getTemplateName() ? $this->includeComponentTemplate() : $this->endResultCache();
+            Loader::requireModule('iblock');
+            $this->arResult['MENU'] = $this->getMenu();
+            dd($this->arResult['MENU']);
+            $this->includeComponentTemplate();
         }
-        return $this->arResult['menu'];
+
+        return $this->arResult['MENU'];
     }
 
     /**
-     * @return array Общий для всех меню фильтр
+     * Получаем меню по символьному коду раздела верхнего уровня
      */
-    public function getCommonFilter(): array
-    {
-        return [
-            'IBLOCK_ID' => $this->arParams['iblockId'],
-            'ACTIVE' => 'Y',
-            '=AVAILABLE' => 'Y',
-            //'SECTION_ID' => CatalogHelper::getSectionIdByGender($this->arParams['type']),
-            'INCLUDE_SUBSECTIONS' => 'Y',
-        ];
-    }
-
     protected function getMenu(): array
     {
-        $productsIds = $this->getAvailableProductsIds();
-
-        $sectionsIds = $this->getSectionsIdsByProductsIds($productsIds);
-
-        $menu = $this->getSectionMenu();
-
-        $menu = $this->filterMenuBySectionsIds($menu, $sectionsIds);
-
-        $menu = $this->handleMenu($menu);
-
-        return $menu;
-    }
-
-    protected function getAvailableProductsIds(): array
-    {
-        $arFilter = $this->getCommonFilter();
-
-        $dbResult = CIBlockElement::GetList(
-            false,
-            $arFilter,
-            false,
-            false,
-            ['ID']
-        );
-
-        $productsIds = [];
-        while ($item = $dbResult->Fetch()) {
-            $productsIds[] = $item['ID'];
-        }
-        return $productsIds;
-    }
-
-    /**
-     * @return array Все пункты меню
-     */
-    protected function getSectionMenu(): array
-    {
-        $catalogId = IblockHelper::getIblockIdByCode('catalog');
-        $menu = SectionModel::compileEntityByIblock($catalogId)::query()
-            ->setSelect([
-                'ID',
-                'DEPTH_LEVEL',
-                'CODE',
-                'NAME',
-                'UF_CUSTOM_NAME',
-                'UF_MENU_COLUMN',
-                'IBLOCK_SECTION_ID',
-                'SORT',
-                'SECTION_TEMPLATE' => 'iblock.SECTION_PAGE_URL',
-                'UF_MENU_ROOT',
-            ])
-            ->whereNotNull('UF_MENU_COLUMN')
-            ->where('GLOBAL_ACTIVE', 'Y')
-            ->where('iblock.ACTIVE', 'Y')
-            ->where('UF_SHOW_MENU', 1)
-            ->setOrder(['LEFT_MARGIN' => 'asc'])
-            ->exec()
-            ->fetchAll();
-        $menu = collect($menu)->keyBy('ID')->toArray();
-        foreach ($menu as &$item) {
-            if ($item['UF_CUSTOM_NAME']) {
-                $item['NAME'] = $item['UF_CUSTOM_NAME'];
-            }
-            $item['UF_MENU_ROOT'] = $item['UF_MENU_ROOT'] == 1;
-        }
-        return $menu;
-    }
-
-    protected function getSectionsIdsByProductsIds(array $productsIds): array
-    {
-        $section = SectionTable::query()
-            ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN'])
-            //->setFilter(['ID' => CatalogHelper::getSectionIdByGender($this->arParams['type'])])
-            ->exec()
-            ->fetch();
-
-        $dbResult = SectionElementTable::getList([
-            'select' => ['IBLOCK_SECTION_ID'],
+        $menuIblock = IblockHelper::getElementApiTableByCode('menu');
+        $sectionCode = $this->arParams['MENU_TYPE'] ?? 'top_menu';
+        // Находим раздел меню (например, top_menu или bottom_menu)
+        $menuSection = SectionTable::getList([
+            'select' => ['ID', 'NAME', 'CODE'],
             'filter' => [
-                'IBLOCK_ELEMENT_ID' => $productsIds,
-                '>=IBLOCK_SECTION.LEFT_MARGIN' => $section['LEFT_MARGIN'],
-                '<=IBLOCK_SECTION.RIGHT_MARGIN' => $section['RIGHT_MARGIN'],
+                'IBLOCK_ID' => IblockHelper::getIblockIdByCode('menu'),
+                '=CODE' => $sectionCode,
+                'ACTIVE' => 'Y',
             ],
-        ]);
+            'limit' => 1,
+        ])->fetch();
 
-        $directSectionIds = [];
-
-        foreach ($dbResult->fetchAll() as $item) {
-            $directSectionIds[] = $item['IBLOCK_SECTION_ID'];
-        }
-
-        $directSectionIds = array_unique($directSectionIds);
-
-        if (empty($directSectionIds)) {
+        if (!$menuSection) {
             return [];
         }
 
-        $allSections = SectionTable::getList([
-            'select' => ['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN'],
-            'filter' => [
-                '>=LEFT_MARGIN' => 0,
-            ],
-            'order' => ['LEFT_MARGIN' => 'ASC'],
-        ])->fetchAll();
+        // Получаем элементы этого раздела
+        $menuItems = $menuIblock::query()
+            ->setSelect(['ID', 'NAME', 'CODE', 'LINK_VALUE' => 'LINK.VALUE', 'IBLOCK_ID_LINK_VALUE' => 'IBLOCK_ID_LINK.VALUE'])
+            ->setFilter([
+                'ACTIVE' => 'Y',
+                '=IBLOCK_SECTION_ID' => $menuSection['ID'],
+            ])
+            ->setOrder(['SORT' => 'ASC'])
+            ->exec()
+            ->fetchAll();
+        $result = [];
+        foreach ($menuItems as $item) {
+            $link = trim($item['LINK_VALUE'] ?? '');
+            $children = [];
 
-        $resultSections = [];
-
-        foreach ($directSectionIds as $sectionId) {
-            $currentSection = array_filter($allSections, fn($s) => $s['ID'] == $sectionId);
-            if ($currentSection) {
-                $current = reset($currentSection);
-                foreach ($allSections as $possibleParent) {
-                    if (
-                        $possibleParent['LEFT_MARGIN'] <= $current['LEFT_MARGIN'] &&
-                        $possibleParent['RIGHT_MARGIN'] >= $current['RIGHT_MARGIN']
-                    ) {
-                        $resultSections[] = $possibleParent['ID'];
-                    }
-                }
+            if (!empty($item['IBLOCK_ID_LINK_VALUE'])) {
+                $children = $this->buildMenuFromIblockSections((int)$item['IBLOCK_ID_LINK_VALUE']);
             }
-        }
-        return array_unique($resultSections);
-    }
 
-    protected function filterMenuBySectionsIds($arMenu, $sectionsIds): array
-    {
-        foreach ($arMenu as $sectionId => $arSection) {
-            if (in_array($sectionId, $sectionsIds)) {
-                self::setIsShowFlag($arMenu, $sectionId, $sectionsIds);
-            }
+            $result[] = [
+                'NAME' => $item['NAME'],
+                'LINK' => $link ?: '#',
+                'CHILDREN' => $children,
+            ];
         }
-        return array_filter($arMenu, function ($section) {
-            return $section['IS_SHOW'];
-        });
+
+        return $result;
     }
 
     /**
-     * Проставляет ключ IS_SHOW в пунктах меню, которые нужно отображать
-     *
-     * @param array $arMenu Полный массив пунктов меню
-     * @param int $sectionId Идентификатор раздела, у которого надо проставить ключ
-     * @param array $sectionsIds Массив id разделов, в которых есть подходящие товары
+     * Формирует вложенные пункты меню на основе разделов указанного инфоблока
      */
-    private static function setIsShowFlag(&$arMenu, $sectionId, $sectionsIds)
+    protected function buildMenuFromIblockSections(int $iblockId): array
     {
-        if ($sectionId && $arMenu[$sectionId]) {
-            $arMenu[$sectionId]['IS_SHOW'] = 1;
-            self::setIsShowFlag($arMenu, $arMenu[$sectionId]['IBLOCK_SECTION_ID'], $sectionsIds);
+        $sections = SectionTable::getList([
+            'select' => ['ID', 'NAME', 'CODE', 'IBLOCK_SECTION_ID', 'SECTION_PAGE_URL' => 'IBLOCK.SECTION_PAGE_URL'],
+            'filter' => ['IBLOCK_ID' => $iblockId, 'ACTIVE' => 'Y'],
+            'order' => ['LEFT_MARGIN' => 'ASC'],
+        ])->fetchAll();
+        if (!$sections) {
+            return [];
         }
-    }
 
-    public function handleMenu(array $menu)
-    {
-        foreach ($menu as &$item) {
-            $item['SECTION_PAGE_URL'] = \CIBlock::ReplaceSectionUrl($item['SECTION_TEMPLATE'], [
-                'SECTION_CODE' => $item['CODE'],
-                'IBLOCK_SECTION_ID' => $item['ID']
-            ], false, 'E');
+        // Строим древовидную структуру
+        $tree = [];
+        $byId = [];
+
+        foreach ($sections as $section) {
+            $section['URL'] = UrlHelper::getSectionUrl(
+                ['CODE' => $section['CODE'], 'ID' => $section['ID']],
+                $section['SECTION_PAGE_URL'],
+                false,
+                'S'
+            )['clean_url'];
+            $section['CHILDREN'] = [];
+            $byId[$section['ID']] = $section;
         }
-        $menu = collect($menu)->sortBy('SORT')->groupBy('UF_MENU_COLUMN')->toArray();
-        ksort($menu);
-        return $menu;
+
+        foreach ($byId as $id => &$section) {
+            if ($section['IBLOCK_SECTION_ID'] && isset($byId[$section['IBLOCK_SECTION_ID']])) {
+                $byId[$section['IBLOCK_SECTION_ID']]['CHILDREN'][] = &$section;
+            } else {
+                $tree[] = &$section;
+            }
+        }
+
+        return $tree;
     }
 }

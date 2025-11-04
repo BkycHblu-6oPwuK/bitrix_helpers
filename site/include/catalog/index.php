@@ -299,11 +299,11 @@ $APPLICATION->IncludeComponent(
         "FILE_404" => "",
         "STORE_PATH" => "/store/#store_id#",
         "SEF_URL_TEMPLATES" => array(
-            "sections" => "api/catalog/",
-            "section" => "api/catalog/#SECTION_CODE_PATH#/",
-            "element" => "api/product/#ELEMENT_CODE#/",
-            "compare" => "api/catalog/compare/",
-            "smart_filter" => "api/catalog/#SECTION_CODE_PATH#/filter/#SMART_FILTER_PATH#/apply/",
+            "sections" => "api/v1/catalog/",
+            "section" => "api/v1/catalog/#SECTION_CODE_PATH#/",
+            "element" => "api/v1/product/#ELEMENT_CODE#/",
+            "compare" => "api/v1/catalog/compare/",
+            "smart_filter" => "api/v1/catalog/#SECTION_CODE_PATH#/filter/#SMART_FILTER_PATH#/apply/",
         )
     ),
     false
