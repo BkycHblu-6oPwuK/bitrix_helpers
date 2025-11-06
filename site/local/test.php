@@ -36,16 +36,8 @@
 // echo var_dump($_SERVER);
 // echo '</pre>';
 
-use Api\Sbis\Handlers\CashBoxSbis;
-use Api\Sbis\Model\Retail\Pay\CheckInfoParams;
-use Api\Sbis\Request\Retail\Pay\CheckInfo;
-use App\Catalog\Helper\CatalogHelper;
-use App\Catalog\Repository\CatalogRepositoryProvider;
-use App\Catalog\Service\CatalogService;
-use App\Catalog\Type\Contracts\CatalogContextContract as ContractsCatalogContextContract;
-use App\Catalog\Type\Contracts\CatalogSwitcherContract;
-use App\User\Auth\Table\ExternalAuthTable;
 use Beeralex\Api\UrlHelper;
+use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Helpers\QueryHelper as HelpersQueryHelper;
@@ -354,6 +346,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.
 
 // $eventManager = EventManager::getInstance();
 // $eventManager->registerEventHandler('iblock', 'OnIBlockPropertyBuildList', 'beeralex.core', IblockLinkType::class, 'getUserTypeDescription');
-FilesHelper::includeFile('menu');
+// FilesHelper::includeFile('menu');
+dd(service(CatalogService::class));
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

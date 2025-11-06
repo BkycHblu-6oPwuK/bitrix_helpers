@@ -1,6 +1,6 @@
 <?
 
-use App\Catalog\Helper\CatalogSectionHelper;
+use Beeralex\Catalog\Helper\CatalogSectionHelper;
 use Beeralex\Core\Helpers\PaginationHelper;
 
  if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();

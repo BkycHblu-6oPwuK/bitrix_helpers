@@ -1,5 +1,6 @@
 <?php
 
+use Beeralex\Api\UrlHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Model\SectionModel;
 
@@ -14,43 +15,88 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     {
         $catalogId = IblockHelper::getIblockIdByCode('catalog');
         $this->sectionEntity = SectionModel::compileEntityByIblock($catalogId);
-        if (!$params['SMART_FILTER_NAME']) {
-            throw new \RuntimeException("not found smart filter name in params");
-        }
-        if (!$params['SECTION_ID']) {
-            throw new \RuntimeException("not found section id in params");
-        }
-        if (!$params['DEPTH_LEVEL']) {
-            $params['DEPTH_LEVEL'] = 1;
-        }
-        $params['DEPTH_LEVEL'] = (int)$params['DEPTH_LEVEL'];
-        $params['SECTION_ID'] = (int)$params['SECTION_ID'];
+
+        $params['SMART_FILTER_NAME'] = $params['SMART_FILTER_NAME'] ?: 'arrFilter';
+        $params['SECTION_ID'] = (int)($params['SECTION_ID'] ?? 0);
+        $params['DEPTH_LEVEL'] = (int)($params['DEPTH_LEVEL'] ?? 1);
+
         return $params;
     }
 
     public function executeComponent()
     {
-        $filter = $GLOBALS[$this->arParams['SMART_FILTER_NAME']];
-        if (!empty($filter)) {
-            $this->arResult['sections'] = $this->getSections();
-            $this->includeComponentTemplate();
-        } else {
-            if ($this->startResultCache(false, [$this->arParams['SECTION_ID'], $this->arParams['DEPTH_LEVEL']], 'beeralex/catalog.section.list')) {
+        $filter = $this->getFilter();
+
+        if (empty($filter) && !$this->arParams['SECTION_ID']) {
+            if ($this->startResultCache(false, 'catalog_section_list_all', 'beeralex/catalog.section.list')) {
                 $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
                 $taggedCache->startTagCache('beeralex/catalog.section.list');
                 try {
                     $taggedCache->registerTag('iblock_id_' . IblockHelper::getIblockIdByCode('catalog'));
-                    $this->arResult['sections'] = $this->getSections();
+                    $this->arResult['sections'] = $this->getRootSections();
                     $this->includeComponentTemplate();
                 } catch (\Throwable $e) {
-                    $this->abortResultCache(); // если ошибка — прерываем кеш
+                    $this->abortResultCache();
                     throw $e;
                 } finally {
                     $taggedCache->endTagCache();
                 }
             }
+            return $this->arResult;
         }
+
+        if ($this->startResultCache(false, [$this->arParams['SECTION_ID'], $filter], 'beeralex/catalog.section.list')) {
+            $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
+            $taggedCache->startTagCache('beeralex/catalog.section.list');
+            try {
+                $taggedCache->registerTag('iblock_id_' . IblockHelper::getIblockIdByCode('catalog'));
+                $this->arResult['sections'] = $this->getSections();
+                $this->includeComponentTemplate();
+            } catch (\Throwable $e) {
+                $this->abortResultCache();
+                throw $e;
+            } finally {
+                $taggedCache->endTagCache();
+            }
+        }
+
         return $this->arResult;
+    }
+
+    public function getFilter(): array
+    {
+        return $GLOBALS[$this->arParams['SMART_FILTER_NAME']] ?? [];
+    }
+
+    protected function getRootSections(): array
+    {
+        $res = $this->sectionEntity::query()
+            ->setSelect(['ID', 'CODE', 'NAME', 'PICTURE', 'UF_CUSTOM_NAME', 'SECTION_TEMPLATE' => 'iblock.SECTION_PAGE_URL'])
+            ->where('ACTIVE', 'Y')
+            ->where('GLOBAL_ACTIVE', 'Y')
+            ->whereNull('IBLOCK_SECTION_ID')
+            ->setOrder(['SORT' => 'ASC'])
+            ->exec();
+
+        $sections = [];
+        while ($item = $res->fetch()) {
+            $this->replaceUrl($item);
+            if ($item['PICTURE']) {
+                $item['PICTURE'] = \CFile::GetPath($item['PICTURE']);
+            }
+            if ($item['UF_CUSTOM_NAME']) {
+                $item['NAME'] = $item['UF_CUSTOM_NAME'];
+            }
+            $sections[] = [
+                'id' => (int)$item['ID'],
+                'name' => $item['NAME'],
+                'code' => $item['CODE'],
+                'url' => $item['URL'],
+                'picture' => $item['PICTURE'],
+            ];
+        }
+
+        return $sections;
     }
 
     protected function getSections()
@@ -193,7 +239,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                 'SECTION_ID' => $sectionId,
                 'INCLUDE_SUBSECTIONS' => 'Y',
             ],
-            $GLOBALS[$this->arParams['SMART_FILTER_NAME']] ?? []
+            $this->getFilter()
         );
 
         $productSectionIds = [];
@@ -206,10 +252,10 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
 
     protected function replaceUrl(&$item): void
     {
-        $url = \CIBlock::ReplaceSectionUrl($item['SECTION_TEMPLATE'], [
+        $url = UrlHelper::getSectionUrl([
             'SECTION_CODE' => $item['CODE'],
             'IBLOCK_SECTION_ID' => $item['ID']
-        ], false, 'E');
+        ], $item['SECTION_TEMPLATE']);
         $item['URL'] = $url;
     }
 }

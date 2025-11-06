@@ -1,8 +1,8 @@
 <?php
 
 use Bitrix\Iblock\SectionPropertyTable;
-use App\Catalog\Helper\CatalogSectionHelper;
-use App\Http\GlobalResult;
+use Beeralex\Api\GlobalResult;
+use Beeralex\Catalog\Helper\CatalogSectionHelper;
 
 $items = [];
 foreach($arResult['ITEMS'] as $key => &$item){

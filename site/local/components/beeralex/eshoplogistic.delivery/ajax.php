@@ -7,8 +7,8 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\Web\Json;
 use Eshoplogistic\Delivery\Config;
 use Eshoplogistic\Delivery\Controller\AjaxHandler;
-use App\Catalog\Basket\BasketFacade;
-use App\Catalog\Dto\PickPointDTO;
+use Beeralex\Catalog\Basket\BasketFacade;
+use Beeralex\Catalog\Dto\PickPointDTO;
 
 Loader::includeModule('eshoplogistic.delivery');
 

@@ -1,7 +1,7 @@
 <?php
 
 use Bitrix\Iblock\SectionTable;
-use App\Catalog\Helper\CatalogSectionHelper;
+use Beeralex\Catalog\Helper\CatalogSectionHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 
 final class Options

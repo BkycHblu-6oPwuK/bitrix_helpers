@@ -1,0 +1,19 @@
+{
+    "name": "beeralex/beeralex.oauth2",
+    "type": "bitrix-module",
+    "description": "",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexandr Belotsitsko",
+            "email": "sanyabelyy020@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "beeralex/beeralex.core": "*",
+        "league/oauth2-server": "*"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -4,10 +4,10 @@ namespace App\EventHandlers;
 
 use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
-use App\Catalog\Cashbox\CashboxAtolFarm;
-use App\Catalog\Cashbox\PrepaymentCheck;
-use App\Catalog\ExtraServices\MyPriceExtraService;
-use App\Catalog\Enum\OrderStatuses;
+use Beeralex\Catalog\Cashbox\CashboxAtolFarm;
+use Beeralex\Catalog\Cashbox\PrepaymentCheck;
+use Beeralex\Catalog\ExtraServices\MyPriceExtraService;
+use Beeralex\Catalog\Enum\OrderStatuses;
 use App\Restriction\UserRestriction;
 use Bitrix\Main\EventResult;
 
@@ -33,43 +33,40 @@ class Sale
     {
         /** @var Order $order */
         $order = $event->getParameter('ENTITY');
-        if ($order->getField("STATUS_ID") == OrderStatuses::CANCELED->value) {
-            $order->setField("CANCELED", "Y");
-        }
     }
 
-    public static function onSaleDeliveryExtraServicesClassNamesBuildList()
-    {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(MyPriceExtraService::class));
-        return new EventResult(
-            EventResult::SUCCESS,
-            [
-                MyPriceExtraService::class => $filepath
-            ]
-        );
-    }
+    // public static function onSaleDeliveryExtraServicesClassNamesBuildList()
+    // {
+    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(MyPriceExtraService::class));
+    //     return new EventResult(
+    //         EventResult::SUCCESS,
+    //         [
+    //             MyPriceExtraService::class => $filepath
+    //         ]
+    //     );
+    // }
 
-    public static function onSalePaySystemRestrictionsClassNamesBuildList()
-    {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
-        return new EventResult(
-            EventResult::SUCCESS,
-            [
-                UserRestriction::class => $filepath,
-            ]
-        );
-    }
+    // public static function onSalePaySystemRestrictionsClassNamesBuildList()
+    // {
+    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
+    //     return new EventResult(
+    //         EventResult::SUCCESS,
+    //         [
+    //             UserRestriction::class => $filepath,
+    //         ]
+    //     );
+    // }
 
-    public static function onSaleCashboxRestrictionsClassNamesBuildList()
-    {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
-        return new EventResult(
-            EventResult::SUCCESS,
-            [
-                UserRestriction::class => $filepath,
-            ]
-        );
-    }
+    // public static function onSaleCashboxRestrictionsClassNamesBuildList()
+    // {
+    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
+    //     return new EventResult(
+    //         EventResult::SUCCESS,
+    //         [
+    //             UserRestriction::class => $filepath,
+    //         ]
+    //     );
+    // }
 
     /*
     public static function onGetCustomCashboxHandlers()
@@ -83,14 +80,14 @@ class Sale
         );
     }*/
 
-    public static function onGetCustomCheckList()
-    {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(PrepaymentCheck::class));
-        return new EventResult(
-            EventResult::SUCCESS,
-            [
-                PrepaymentCheck::class => $filepath,
-            ]
-        );
-    }
+    // public static function onGetCustomCheckList()
+    // {
+    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(PrepaymentCheck::class));
+    //     return new EventResult(
+    //         EventResult::SUCCESS,
+    //         [
+    //             PrepaymentCheck::class => $filepath,
+    //         ]
+    //     );
+    // }
 }

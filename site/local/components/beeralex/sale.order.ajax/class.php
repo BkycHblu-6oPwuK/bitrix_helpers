@@ -2,12 +2,12 @@
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Order as SaleOrder;
-use App\Catalog\Location\Contracts\BitrixLocationResolverContract;
-use App\Catalog\Checkout\CheckoutDTOBuilder;
-use App\Catalog\Checkout\DeliveriesBuilder;
-use App\Catalog\Helper\OrderHelper;
-use App\Catalog\Checkout\PaymentsBuilder;
-use App\Catalog\Checkout\PersonTypeBuilder;
+use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
+use Beeralex\Catalog\Checkout\CheckoutDTOBuilder;
+use Beeralex\Catalog\Checkout\DeliveriesBuilder;
+use Beeralex\Catalog\Helper\OrderHelper;
+use Beeralex\Catalog\Checkout\PaymentsBuilder;
+use Beeralex\Catalog\Checkout\PersonTypeBuilder;
 use Beeralex\Core\Helpers\LocationHelper;
 use Beeralex\User\Phone;
 use Beeralex\User\User;

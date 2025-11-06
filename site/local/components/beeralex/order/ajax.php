@@ -6,8 +6,8 @@ use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Order;
-use App\Catalog\Helper\OrderHelper;
-use App\Catalog\Enum\OrderStatuses;
+use Beeralex\Catalog\Helper\OrderHelper;
+use Beeralex\Catalog\Enum\OrderStatuses;
 use Beeralex\User\User;
 
 class BeeralexOrderController extends Controller
@@ -62,7 +62,6 @@ class BeeralexOrderController extends Controller
             }
             $order->setField('CANCELED', 'Y');
             $order->setField('REASON_CANCELED', 'Отменён пользователем');
-            $order->setField('STATUS_ID', OrderStatuses::CANCELED->value);
             $order->save();
             return [
                 'success' => true,

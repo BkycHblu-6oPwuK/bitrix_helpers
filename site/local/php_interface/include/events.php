@@ -19,8 +19,8 @@ $eventManager->addEventHandler('iblock', 'OnBeforeIBlockSectionUpdate', [Iblock:
 
 // Sale
 $eventManager->addEventHandler('sale', 'OnSaleOrderBeforeSaved', [Sale::class, 'OnSaleOrderBeforeSaved']);
-$eventManager->addEventHandler(
-	'sale',
-	'onSaleDeliveryExtraServicesClassNamesBuildList',
-	[Sale::class, 'onSaleDeliveryExtraServicesClassNamesBuildList']
-);
+// $eventManager->addEventHandler(
+// 	'sale',
+// 	'onSaleDeliveryExtraServicesClassNamesBuildList',
+// 	[Sale::class, 'onSaleDeliveryExtraServicesClassNamesBuildList']
+// );

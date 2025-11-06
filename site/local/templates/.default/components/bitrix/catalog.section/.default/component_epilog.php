@@ -1,5 +1,6 @@
 <?php
-use App\Http\GlobalResult;
+
+use Beeralex\Api\GlobalResult;
 
 GlobalResult::addPageData([
     'items' => $arResult['ITEMS'],

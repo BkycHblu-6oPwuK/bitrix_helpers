@@ -1,9 +1,9 @@
 <?php
 
 use Bitrix\Main\DI\ServiceLocator;
-use App\Catalog\Type\Contracts\CatalogContextContract;
-use App\Catalog\Type\Contracts\CatalogSwitcherContract;
-use App\Catalog\Type\Enum\TypesCatalog;
+use Beeralex\Catalog\Type\Contracts\CatalogContextContract;
+use Beeralex\Catalog\Type\Contracts\CatalogSwitcherContract;
+use Beeralex\Catalog\Type\Enum\TypesCatalog;
 use Beeralex\Core\Config\Config;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {

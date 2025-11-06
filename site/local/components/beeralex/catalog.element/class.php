@@ -9,7 +9,7 @@ use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Web\Json;
-use App\Catalog\Helper\ProductsHelper;
+use Beeralex\Catalog\Helper\ProductsHelper;
 use Beeralex\Core\Helpers\DateHelper;
 use App\Reviews\ComponentParams;
 use App\Reviews\Options;

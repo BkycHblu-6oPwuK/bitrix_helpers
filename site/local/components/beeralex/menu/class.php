@@ -17,7 +17,6 @@ class BeeralexMenu extends CBitrixComponent
         if ($this->startResultCache()) {
             Loader::requireModule('iblock');
             $this->arResult['MENU'] = $this->getMenu();
-            dd($this->arResult['MENU']);
             $this->includeComponentTemplate();
         }
 
@@ -94,7 +93,7 @@ class BeeralexMenu extends CBitrixComponent
         $byId = [];
 
         foreach ($sections as $section) {
-            $section['URL'] = UrlHelper::getSectionUrl(
+            $section['LINK'] = UrlHelper::getSectionUrl(
                 ['CODE' => $section['CODE'], 'ID' => $section['ID']],
                 $section['SECTION_PAGE_URL'],
                 false,

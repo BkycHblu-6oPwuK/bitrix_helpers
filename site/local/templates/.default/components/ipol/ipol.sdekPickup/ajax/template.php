@@ -1,7 +1,7 @@
 <?php
 global $APPLICATION;
 
-use App\Catalog\Dto\PickPointDTO;
+use Beeralex\Catalog\Dto\PickPointDTO;
 
 $result = [
     'error' => false,

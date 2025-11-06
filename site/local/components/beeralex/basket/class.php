@@ -3,7 +3,7 @@
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Main\Loader;
-use App\Catalog\Basket\BasketFacade;
+use Beeralex\Catalog\Basket\BasketFacade;
 use App\Main\PageHelper;
 
 class BeeralexBasket extends \CBitrixComponent implements Controllerable

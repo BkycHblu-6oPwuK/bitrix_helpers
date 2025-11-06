@@ -14,7 +14,7 @@
  * @var CBitrixComponent $component
  */
 
-use App\Catalog\Helper\ProductsHelper;
+use Beeralex\Catalog\Helper\ProductsHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();

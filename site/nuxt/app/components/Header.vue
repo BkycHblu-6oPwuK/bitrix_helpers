@@ -1,27 +1,25 @@
 <template>
   <header class="bg-white border-b border-gray-200 shadow-sm">
-    <div class="container mx-auto flex items-center justify-between px-4 py-4">
-      <NuxtLink to="/" class="text-xl font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-        MyNuxtApp
-      </NuxtLink>
+    <div class="bg-gray-50 border-b border-gray-200">
+      <div class="container mx-auto px-4 py-2 flex justify-end text-sm text-gray-600">
+        <Menu :menu-type="'top_menu'" />
+      </div>
+    </div>
 
-      <nav class="flex items-center gap-6">
+    <div class="container mx-auto flex items-center justify-between px-4 py-4">
+      <div class="flex items-center gap-6">
         <NuxtLink
           to="/"
-          class="text-gray-700 hover:text-indigo-600 transition-colors"
-          active-class="text-indigo-600 font-medium"
+          class="flex items-center gap-2 text-2xl font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
         >
-          Главная
+          <span>MyNuxtApp</span>
         </NuxtLink>
 
-        <NuxtLink
-          to="/catalog"
-          class="text-gray-700 hover:text-indigo-600 transition-colors"
-          active-class="text-indigo-600 font-medium"
-        >
-          Каталог
-        </NuxtLink>
-      </nav>
+        <Menu :menu-type="'catalog_menu'" />
+      </div>
+      <div class="flex items-center gap-4">
+
+      </div>
     </div>
   </header>
 </template>

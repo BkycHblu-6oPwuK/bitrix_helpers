@@ -1,7 +1,7 @@
 <?php
 
+use Beeralex\Api\Domain\Content\Enum\ContentTypes;
 use Beeralex\Core\Helpers\IblockHelper;
-use App\Main\Enum\ContentTypes;
 foreach ($arResult as $item) {
 	switch ($item['type']) {
 		case ContentTypes::SLIDER:

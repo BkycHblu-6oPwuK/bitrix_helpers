@@ -1,8 +1,8 @@
 <?
 /** @var array $arResult */
 
-use App\Main\Enum\ContentTypes;
-use App\Http\GlobalResult;
+use Beeralex\Api\Domain\Content\Enum\ContentTypes;
+use Beeralex\Api\GlobalResult;
 
 GlobalResult::addPageData([
     'type' => ContentTypes::MAIN_BANNER,

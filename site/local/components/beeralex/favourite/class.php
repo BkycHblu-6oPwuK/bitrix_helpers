@@ -1,7 +1,7 @@
 <?php
 
 use Bitrix\Main\Loader;
-use App\Catalog\Helper\ProductsHelper;
+use Beeralex\Catalog\Helper\ProductsHelper;
 use Beeralex\Core\Helpers\PaginationHelper;
 use App\Favorite\Helper;
 

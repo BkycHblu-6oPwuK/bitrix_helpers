@@ -2,7 +2,7 @@
 
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
-use App\Catalog\Helper\SearchHelper;
+use Beeralex\Catalog\Helper\SearchHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();

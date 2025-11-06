@@ -1,8 +1,5 @@
 <?
 
-use App\Http\Controllers\Catalog\CatalogController;
-use App\Http\Controllers\MainController;
-use App\Http\Controllers\User\UserController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {

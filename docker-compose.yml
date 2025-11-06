@@ -8,6 +8,7 @@ services:
         volumes:
             - ${SITE_PATH}:/var/www
             - ${CONF_PATH}/nginx/conf.d:/etc/nginx/conf.d
+            - ${CONF_PATH}/nginx/nginx.conf:/etc/nginx/nginx.conf
         ports:
             - 80:80
             - 443:443

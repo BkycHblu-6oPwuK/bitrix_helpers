@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Collection;
-use App\Catalog\Service\CatalogService;
+use Beeralex\Catalog\Service\CatalogService;
+use Beeralex\Api\Domain\Content\Enum\ContentTypes;
 use Beeralex\Core\Helpers\IblockHelper;
-use App\Main\Enum\ContentTypes;
 use Beeralex\Core\Helpers\QueryHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {

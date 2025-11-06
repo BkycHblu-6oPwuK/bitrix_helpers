@@ -9,7 +9,7 @@ use BaconQrCode\Writer;
 use Bitrix\Main\Engine\Contract\Controllerable;
 use Bitrix\Sale\Internals\OrderTable;
 use Bitrix\Sale\Order;
-use App\Catalog\Helper\OrderHelper;
+use Beeralex\Catalog\Helper\OrderHelper;
 
 /**
  * @todo Освежить бы код, да шаблон под сборщик

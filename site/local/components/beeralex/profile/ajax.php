@@ -100,7 +100,7 @@ class BeeralexProfileController extends \Bitrix\Main\Engine\Controller
     public function getOrdersAction()
     {
         // try {
-        //     $result = (new \App\User\Profile\OrdersBuilder(new \App\Catalog\Repository\OrderRepository))->build();
+        //     $result = (new \App\User\Profile\OrdersBuilder(new \Beeralex\Catalog\Repository\OrderRepository))->build();
         //     $result['success'] = true;
         //     return $result;
         // } catch (\Exception $e) {
@@ -113,7 +113,7 @@ class BeeralexProfileController extends \Bitrix\Main\Engine\Controller
     public function getDressingAction()
     {
         // try {
-        //     $result = (new \App\User\Profile\DressingBuilder(new \App\Catalog\Repository\OrderRepository))->build();
+        //     $result = (new \App\User\Profile\DressingBuilder(new \Beeralex\Catalog\Repository\OrderRepository))->build();
         //     $result['success'] = true;
         //     return $result;
         // } catch (\Exception $e) {

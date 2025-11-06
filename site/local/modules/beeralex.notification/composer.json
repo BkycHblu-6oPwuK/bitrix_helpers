@@ -1,0 +1,17 @@
+{
+    "name": "beeralex/beeralex.favorite",
+    "description": "My favorite module",
+    "type": "bitrix-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexandr Belotsitsko",
+            "email": "sanyabelyy020@gmail.com"
+        }
+    ],
+    "require": {
+        "beeralex/beeralex.core": "~1.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
