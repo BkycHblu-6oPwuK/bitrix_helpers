@@ -1,10 +1,6 @@
 <?
-/** @var array $arResult */
+declare(strict_types=1);
 
-use Beeralex\Api\Domain\Content\Enum\ContentTypes;
 use Beeralex\Api\GlobalResult;
 
-GlobalResult::addPageData([
-    'type' => ContentTypes::SLIDER,
-    'result' => $arResult
-]);
+GlobalResult::addPageData((array)$arResult['dto']);

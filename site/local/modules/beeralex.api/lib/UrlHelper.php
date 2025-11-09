@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Beeralex\Api;
 
@@ -24,14 +25,14 @@ class UrlHelper
         $removeParts = static::getRemoveParts();
 
         foreach ($removeParts as $part) {
-            $url = preg_replace('#/' . preg_quote($part, '#') . '(/|$)#', '/', $url);
+            $url = preg_replace('#(^|/)' . preg_quote($part, '#') . '(/|$)#', '/', $url);
         }
 
         $url = preg_replace('#/+#', '/', $url);
-        $url = '/' . ltrim($url, '/');
-        return rtrim($url, '/') ?: '/';
-    }
+        $url = '/' . trim($url, '/');
 
+        return $url === '/' ? '/' : rtrim($url, '/');
+    }
 
     /**
      * Возвращает URL раздела инфоблока

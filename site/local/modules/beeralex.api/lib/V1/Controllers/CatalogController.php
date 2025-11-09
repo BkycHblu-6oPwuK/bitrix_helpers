@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
 
@@ -19,9 +20,8 @@ class CatalogController extends Controller
 
     public function indexAction()
     {
-        FilesHelper::includeFile('catalog.index');
+        FilesHelper::includeFile('v1.catalog.index');
         GlobalResult::setSeo();
-        GlobalResult::setEmptyPageData();
         return GlobalResult::$result;
     }
 }

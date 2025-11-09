@@ -1,26 +1,23 @@
 <?
 
-use Beeralex\Catalog\Helper\CatalogSectionHelper;
-use Beeralex\Core\Helpers\PaginationHelper;
+declare(strict_types=1);
 
- if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
+use Beeralex\Api\Domain\Iblock\ArticlesListDTO;
+use Beeralex\Api\Domain\Iblock\ElementDTO;
+use Beeralex\Api\Domain\Pagination\PaginationDTO;
+
+if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 /**
  * @var CBitrixComponentTemplate $this
  * @var CBitrixComponent $component
  */
 
-$arResult['PAGINATION'] = PaginationHelper::toArray($arResult['NAV_RESULT']);
+$arResult['dto'] = new ArticlesListDTO(
+    array_map([ElementDTO::class, 'fromNewsListElement'], $arResult['ITEMS']),
+    $arResult['NAV_RESULT'] instanceof \CIBlockResult
+        ? PaginationDTO::fromResult($arResult['NAV_RESULT'])
+        : null
+);
 
-$GLOBALS['catalogSection'] = [
-    'items' => $arResult['ITEMS'],
-    'pagination' => $arResult['PAGINATION'],
-];
-
-$this->getComponent()->setResultCacheKeys(['ITEMS', 'PAGINATION']);
-
-foreach($arResult["ITEMS"] as $arItemIndex => $arItem)
-{
-    $arResult["ITEMS"][$arItemIndex]['PROPERTIES']['PROP_IMAGE_LIST']['PATH'] = CFile::GetPath($arItem['PROPERTIES']['PROP_IMAGE_LIST']['VALUE']);
-    $arResult["ITEMS"][$arItemIndex]['PROPERTIES']['PROP_IMAGE_LIST_WIDE']['PATH'] = CFile::GetPath($arItem['PROPERTIES']['PROP_IMAGE_LIST_WIDE']['VALUE']);
-}
+$this->getComponent()->setResultCacheKeys(['dto']);

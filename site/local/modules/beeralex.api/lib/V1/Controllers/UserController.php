@@ -1,4 +1,5 @@
 <?
+declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
 

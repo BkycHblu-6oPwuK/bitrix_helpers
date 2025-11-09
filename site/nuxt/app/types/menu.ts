@@ -13,7 +13,7 @@ export interface MenuItem {
 
 export interface MenuBlock {
   LINK: string
-  NAME: MenuItem[]
+  NAME: string
   CHILDREN: MenuItem[]
 }
 

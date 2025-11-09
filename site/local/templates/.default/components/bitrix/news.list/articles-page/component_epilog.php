@@ -1,23 +1,10 @@
 <?php
-use Beeralex\Core\Assets\Vite;
-use Beeralex\Core\Config\Config;
-use Beeralex\Core\Helpers\WebHelper;
+declare(strict_types=1);
 
-$request = \Bitrix\Main\Context::getCurrent()->getRequest();
+global $APPLICATION;
+use Beeralex\Api\GlobalResult;
 
-if ($request->isAjaxRequest())
-{
-    if (!defined('PUBLIC_AJAX_MODE'))
-    {
-        define('PUBLIC_AJAX_MODE', true);
-    }
-    if ($request->get('action') === Config::getInstance()->actionLoadItems)
-    {
-        WebHelper::jsonAnswer([
-            'articlesList' => $arResult,
-        ]);
-    }
-}
+GlobalResult::$result = (array)$arResult['dto'];
 
-//Vite::getInstance()->includeAssets(['src/app/articles/index.js']);
-?>
+$APPLICATION->SetPageProperty("title", "Статьи");
+$APPLICATION->SetPageProperty("description", "Статьи описание");

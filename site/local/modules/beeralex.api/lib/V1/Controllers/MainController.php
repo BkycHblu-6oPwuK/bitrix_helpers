@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Beeralex\Api\V1\Controllers;
 
 use Beeralex\Api\GlobalResult;
@@ -16,13 +18,16 @@ class MainController extends Controller
             'getMenu' => [
                 'prefilters' => [],
             ],
+            'getCsrf' => [
+                'prefilters' => [],
+            ]
         ];
     }
 
     public function getContentAction(string $pathName)
     {
         $pathName = $this->normalizePath($pathName);
-        FilesHelper::includeFile('index', [
+        FilesHelper::includeFile('v1.index', [
             'pathName' => $pathName,
         ]);
 
@@ -33,7 +38,7 @@ class MainController extends Controller
 
     public function getMenuAction(string $menuType)
     {
-        FilesHelper::includeFile('menu', [
+        FilesHelper::includeFile('v1.menu', [
             'menuType' => $menuType,
         ]);
 

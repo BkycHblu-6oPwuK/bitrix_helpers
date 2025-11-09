@@ -30,17 +30,27 @@ const formattedData = computed(() => {
 </script>
 
 <template>
-    <div class="border border-dashed border-gray-400 bg-gray-50 p-4 my-4 rounded-xl text-sm text-gray-800">
+    <div
+        class="border border-dashed border-gray-400 bg-gray-50 dark:border-gray-600 dark:bg-gray-800 p-4 my-4 rounded-xl text-sm text-gray-800 dark:text-gray-200 transition-colors duration-300">
         <template v-if="label">
-            <code class="text-blue-600">{{ label }}</code>
+            <code class="text-blue-600 dark:text-blue-400">{{ label }}</code>
         </template>
 
         <div v-if="data !== undefined && data !== null" class="mt-2">
             <details>
-                <summary class="cursor-pointer text-gray-600 hover:text-black">Показать данные</summary>
-                <pre class="text-xs mt-2 bg-white p-2 rounded overflow-auto">{{ formattedData }}</pre>
+                <summary
+                    class="cursor-pointer text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
+                    Показать данные
+                </summary>
+                <pre
+                    class="text-xs mt-2 bg-white dark:bg-gray-900 p-2 rounded overflow-auto text-gray-800 dark:text-gray-100 transition-colors duration-300">
+            {{ formattedData }}
+        </pre>
             </details>
         </div>
-        <div v-else class="mt-2 text-gray-500 italic">Нет данных</div>
+
+        <div v-else class="mt-2 text-gray-500 dark:text-gray-400 italic">
+            Нет данных
+        </div>
     </div>
 </template>

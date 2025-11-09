@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type { PageData } from '~/types/content';
+import MainBanner from './blocks/MainBanner.vue'
+import SliderArticles from './blocks/SliderArticles.vue'
+import Form from './blocks/Form.vue'
+import Slider from './blocks/Slider.vue'
 
 const props = defineProps<{
   pathName: string
@@ -10,11 +14,12 @@ const page = await useApi<PageData>('get-content', {
     pathName: props.pathName
   },
 })
-console.log(page.data.value?.data?.page)
 
 const componentsMap = {
-  main_banner: defineAsyncComponent(() => import('./blocks/MainBanner.vue')),
-  slider: defineAsyncComponent(() => import('./blocks/Slider.vue')),
+  main_banner: MainBanner,
+  slider_articles: SliderArticles,
+  form: Form,
+  slider: Slider,
 }
 
 const resolveComponent = (type: string) => {

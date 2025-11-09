@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Form;
+declare(strict_types=1);
 
-use Bitrix\Main\Context;
-use App\Form\Dto\FormNewDTO;
-use App\Form\Dto\FormNewFieldDTO;
+namespace Beeralex\Api\Domain\Form;
+
+use Beeralex\Api\Domain\Form\Dto\FormNewDTO;
+use Beeralex\Api\Domain\Form\Dto\FormNewFieldDTO;
 
 class FormNewBuilder
 {
@@ -17,14 +18,12 @@ class FormNewBuilder
 
     public function build(): FormNewDTO
     {
-        $context = Context::getCurrent();
         $dto = new FormNewDTO();
         $dto->id = (int)$this->arResult['arForm']['ID'];
         $dto->title = $this->arResult['FORM_TITLE'] ?? '';
         $dto->description = $this->arResult['FORM_DESCRIPTION'] ?? '';
         $dto->error = $this->arResult['FORM_ERRORS'] && !is_array($this->arResult['FORM_ERRORS']) ? $this->arResult['FORM_ERRORS'] : '';
-        $dto->url = $context->getServer()->getRequestUri();
-        $dto->successAdded = $context->getRequest()->get('formresult') === 'addok';
+        $dto->successAdded = $this->arResult['SUCCESS'] === true;
         $dto->fields = $this->buildFields();
         $dto->formIdsMap = $this->buildFormIdsMap($dto->fields);
 
@@ -37,23 +36,46 @@ class FormNewBuilder
     protected function buildFields(): array
     {
         $fields = [];
+
         foreach ($this->arResult['arQuestions'] ?? [] as $sid => $question) {
-            $answer = $this->arResult['arAnswers'][$sid][0] ?? null;
-            if (!$answer) {
+            $answers = $this->arResult['arAnswers'][$sid] ?? [];
+            if (empty($answers)) {
                 continue;
             }
 
+            $firstAnswer = $answers[0];
             $field = new FormNewFieldDTO();
-            $field->id = (int)$answer['ID'];
+            $field->id = (int)$firstAnswer['ID'];
             $field->name = $sid;
             $field->label = $question['TITLE'];
             $field->required = $question['REQUIRED'] === 'Y';
-            $field->type = $answer['FIELD_TYPE'] ?: 'text';
-            $field->attributes = $this->parseFieldParams($answer['FIELD_PARAM'] ?? '');
-            $field->error = $this->arResult['FORM_ERRORS'] && is_array($this->arResult['FORM_ERRORS']) ? $this->arResult['FORM_ERRORS'][$sid] ?? '' : '';
+            $field->type = $firstAnswer['FIELD_TYPE'] ?: 'text';
+            $field->isMultiple = in_array($firstAnswer['FIELD_TYPE'], ['multiselect', 'checkbox']);
+            $field->attributes = $this->parseFieldParams($firstAnswer['FIELD_PARAM'] ?? '');
+            $field->error = $this->arResult['FORM_ERRORS'] && is_array($this->arResult['FORM_ERRORS'])
+                ? $this->arResult['FORM_ERRORS'][$sid] ?? ''
+                : '';
+
+            if (count($answers) > 1) {
+                $field->options = [];
+                foreach ($answers as $answer) {
+                    $field->options[] = [
+                        'id' => (int)$answer['ID'],
+                        'label' => $answer['MESSAGE'],
+                        'value' => $answer['VALUE'] ?: (string)$answer['ID'],
+                        'sort' => (int)$answer['C_SORT'],
+                        'checked' => $answer['FIELD_PARAM'] === 'checked',
+                        'width' => (int)$answer['WIDTH'],
+                        'height' => (int)$answer['HEIGH'],
+                        'checked' => $answer['FIELD_PARAM'] === 'checked',
+                        'active' => $answer['ACTIVE'] === 'Y',
+                    ];
+                }
+            }
 
             $fields[] = $field;
         }
+
         return $fields;
     }
 
@@ -75,13 +97,15 @@ class FormNewBuilder
     protected function buildFormIdsMap(array $fields): array
     {
         $fieldsMap = [];
+
         foreach ($fields as $field) {
-            $fieldsMap[$field->name] = "form_{$field->type}_{$field->id}";
+            if (in_array($field->type, ['dropdown', 'multiselect', 'checkbox', 'radio'], true)) {
+                $fieldsMap[$field->name] = "form_{$field->type}_{$field->name}";
+            } else {
+                $fieldsMap[$field->name] = "form_{$field->type}_{$field->id}";
+            }
         }
-        return array_merge($fieldsMap, [
-            'ajax' => 'AJAX_CALL',
-            'formId' => 'WEB_FORM_ID',
-            'formApply' => 'web_form_apply',
-        ]);
+
+        return $fieldsMap;
     }
 }

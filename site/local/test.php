@@ -36,12 +36,14 @@
 // echo var_dump($_SERVER);
 // echo '</pre>';
 
+use Beeralex\Api\GlobalResult;
 use Beeralex\Api\UrlHelper;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Helpers\QueryHelper as HelpersQueryHelper;
 use Beeralex\Core\UserType\IblockLinkType;
+use Beeralex\Core\UserType\WebFormLinkType;
 use Beeralex\Notification\Events\SmsEvent;
 use Beeralex\Notification\Tables\NotificationLinkEventTypeTable;
 use Beeralex\Notification\Tables\NotificationTemplateLinkTable;
@@ -76,6 +78,7 @@ use Itb\Gigachat\Logger;
 use Itb\Ssr\SsrService;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
+global $APPLICATION;
 // require $_SERVER["DOCUMENT_ROOT"] . '/vendor/autoload.php';
 
 // use Bitrix\Main\Web\HttpClient;
@@ -346,7 +349,21 @@ require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.
 
 // $eventManager = EventManager::getInstance();
 // $eventManager->registerEventHandler('iblock', 'OnIBlockPropertyBuildList', 'beeralex.core', IblockLinkType::class, 'getUserTypeDescription');
-// FilesHelper::includeFile('menu');
-dd(service(CatalogService::class));
+//$eventManager = EventManager::getInstance();
+//$eventManager->registerEventHandler('iblock', 'OnIBlockPropertyBuildList', 'beeralex.core', WebFormLinkType::class, 'GetUserTypeDescription');
+// FilesHelper::includeFile('v1.index', [
+//     'pathName' => '/',
+// ]);
+// dd(GlobalResult::$result);
+$APPLICATION->IncludeComponent(
+    "beeralex:menu",
+    ".default",
+    [
+        "CACHE_TYPE" => "A",
+        "CACHE_TIME" => "86400",
+        "MENU_TYPE" => 'catalog_menu'
+    ]
+);
+//dd(service(CatalogService::class));
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

@@ -23,18 +23,24 @@ class BeeralexMenu extends CBitrixComponent
         return $this->arResult['MENU'];
     }
 
-    /**
-     * Получаем меню по символьному коду раздела верхнего уровня
-     */
     protected function getMenu(): array
     {
         $menuIblock = IblockHelper::getElementApiTableByCode('menu');
         $sectionCode = $this->arParams['MENU_TYPE'] ?? 'top_menu';
-        // Находим раздел меню (например, top_menu или bottom_menu)
+        $menuIblockId = IblockHelper::getIblockIdByCode('menu');
+
+        // Берём верхний раздел меню
         $menuSection = SectionTable::getList([
-            'select' => ['ID', 'NAME', 'CODE'],
+            'select' => [
+                'ID',
+                'NAME',
+                'CODE',
+                'LEFT_MARGIN',
+                'RIGHT_MARGIN',
+                'IBLOCK_ID',
+            ],
             'filter' => [
-                'IBLOCK_ID' => IblockHelper::getIblockIdByCode('menu'),
+                'IBLOCK_ID' => $menuIblockId,
                 '=CODE' => $sectionCode,
                 'ACTIVE' => 'Y',
             ],
@@ -45,38 +51,76 @@ class BeeralexMenu extends CBitrixComponent
             return [];
         }
 
-        // Получаем элементы этого раздела
+        // Получаем все элементы меню (включая вложенные разделы)
         $menuItems = $menuIblock::query()
-            ->setSelect(['ID', 'NAME', 'CODE', 'LINK_VALUE' => 'LINK.VALUE', 'IBLOCK_ID_LINK_VALUE' => 'IBLOCK_ID_LINK.VALUE'])
+            ->setSelect([
+                'ID',
+                'NAME',
+                'CODE',
+                'LINK_VALUE' => 'LINK.VALUE',
+                'IBLOCK_ID_LINK_VALUE' => 'IBLOCK_ID_LINK.VALUE',
+                'IBLOCK_SECTION_ID',
+                'SECTION_NAME' => 'SECTION.NAME',
+                'SECTION_ID' => 'SECTION.ID',
+            ])
+            ->registerRuntimeField(
+                'SECTION',
+                [
+                    'data_type' => SectionTable::class,
+                    'reference' => ['this.IBLOCK_SECTION_ID' => 'ref.ID'],
+                    'join_type' => 'inner',
+                ]
+            )
             ->setFilter([
                 'ACTIVE' => 'Y',
-                '=IBLOCK_SECTION_ID' => $menuSection['ID'],
+                'SECTION.IBLOCK_ID' => $menuSection['IBLOCK_ID'],
+                '>=SECTION.LEFT_MARGIN' => $menuSection['LEFT_MARGIN'],
+                '<=SECTION.RIGHT_MARGIN' => $menuSection['RIGHT_MARGIN'],
             ])
-            ->setOrder(['SORT' => 'ASC'])
+            ->setOrder(['SECTION.LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'])
             ->exec()
             ->fetchAll();
-        $result = [];
+
+        if (!$menuItems) {
+            return [];
+        }
+
+        $grouped = [];
+        
         foreach ($menuItems as $item) {
+            $sectionId = (int)$item['SECTION_ID'] ?? 0;
+            $sectionName = $item['SECTION_NAME'] ?? null;
+
             $link = trim($item['LINK_VALUE'] ?? '');
             $children = [];
 
             if (!empty($item['IBLOCK_ID_LINK_VALUE'])) {
                 $children = $this->buildMenuFromIblockSections((int)$item['IBLOCK_ID_LINK_VALUE']);
             }
-
-            $result[] = [
+            
+            $element = [
                 'NAME' => $item['NAME'],
                 'LINK' => $link ?: '#',
                 'CHILDREN' => $children,
             ];
+            
+            if ($sectionId && $sectionName && $sectionId !== (int)$menuSection['ID']) {
+                // Вложенный раздел — добавляем как группу
+                $grouped[$sectionId]['NAME'] = $sectionName;
+                $grouped[$sectionId]['LINK'] = null;
+                $grouped[$sectionId]['CHILDREN'][] = $element;
+            } else {
+                // Элементы верхнего уровня
+                $grouped[] = $element;
+            }
         }
 
+        // Преобразуем в финальный массив
+        $result = array_values($grouped);
+        
         return $result;
     }
 
-    /**
-     * Формирует вложенные пункты меню на основе разделов указанного инфоблока
-     */
     protected function buildMenuFromIblockSections(int $iblockId): array
     {
         $sections = SectionTable::getList([
@@ -84,11 +128,11 @@ class BeeralexMenu extends CBitrixComponent
             'filter' => ['IBLOCK_ID' => $iblockId, 'ACTIVE' => 'Y'],
             'order' => ['LEFT_MARGIN' => 'ASC'],
         ])->fetchAll();
+
         if (!$sections) {
             return [];
         }
 
-        // Строим древовидную структуру
         $tree = [];
         $byId = [];
 

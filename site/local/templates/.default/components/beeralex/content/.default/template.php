@@ -1,7 +1,9 @@
 <?php
 
-use Beeralex\Api\Domain\Content\Enum\ContentTypes;
+use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
+use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\Core\Helpers\IblockHelper;
+
 foreach ($arResult as $item) {
 	switch ($item['type']) {
 		case ContentTypes::SLIDER:
@@ -64,7 +66,9 @@ foreach ($arResult as $item) {
 					"PARENT_SECTION" => "",
 					"PARENT_SECTION_CODE" => "",
 					"PREVIEW_TRUNCATE_LEN" => "",
-					"PROPERTY_CODE" => array(0 => "", 1 => "DESCRIPTION", 2 => "",),
+					"PROPERTY_CODE" => [
+						"LINK"
+					],
 					"SET_BROWSER_TITLE" => "N",
 					"SET_LAST_MODIFIED" => "N",
 					"SET_META_DESCRIPTION" => "N",
@@ -76,7 +80,7 @@ foreach ($arResult as $item) {
 					"SORT_BY2" => "SORT",
 					"SORT_ORDER1" => "DESC",
 					"SORT_ORDER2" => "ASC",
-					"STRICT_SECTION_CHECK" => "N"
+					"STRICT_SECTION_CHECK" => "N",
 				)
 			);
 			break;
@@ -94,7 +98,6 @@ foreach ($arResult as $item) {
 				]
 			);
 			break;
-		case ContentTypes::TWO_ARTICLES:
 			$GLOBALS['arrFilterArticles'] = ['ID' => $item['ids']];
 			$APPLICATION->IncludeComponent(
 				"bitrix:news.list",
@@ -186,6 +189,12 @@ foreach ($arResult as $item) {
 				],
 				false
 			);
+			break;
+		case ContentTypes::FORM:
+			FilesHelper::includeFile('v1.form.index', [
+				'formId' => $item['id'],
+				'isContentAction' => true
+			]);
 			break;
 		default:
 			continue;

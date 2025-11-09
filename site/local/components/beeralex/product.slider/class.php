@@ -19,7 +19,7 @@ class BeeralexProductSlider extends CBitrixComponent
         if ($this->startResultCache()) {
             $this->arResult['items'] = $this->getProducts($this->arParams['IDS']);
             $this->arResult['title'] = $this->arParams['TITLE'];
-            $this->arResult['linkToAll'] = $this->arParams['LINK_TO_ALL'];
+            $this->arResult['link'] = $this->arParams['LINK_TO_ALL'];
             $this->includeComponentTemplate();
         }
     }

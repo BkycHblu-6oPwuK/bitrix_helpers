@@ -26,4 +26,6 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+
+  modules: ['@pinia/nuxt', 'nuxt-toast', '@nuxt/ui'],
 })

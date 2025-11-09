@@ -3,7 +3,7 @@ export interface PaginationPage {
   isSelected: boolean
 }
 
-export interface Pagination {
+export interface PaginationDTO {
   pages: PaginationPage[]
   pageSize: number
   currentPage: number

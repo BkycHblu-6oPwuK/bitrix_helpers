@@ -63,12 +63,4 @@ class PageHelper
     {
         return '/favourites/';
     }
-
-    public static function getCurUri(): \Bitrix\Main\Web\Uri
-    {
-        $server = \Bitrix\Main\Context::getCurrent()->getServer();
-        $host = $server->getHttpHost();
-        $scheme = $server->getRequestScheme();
-        return new \Bitrix\Main\Web\Uri($scheme . '://' . $host . $server->getRequestUri());
-    }
 }

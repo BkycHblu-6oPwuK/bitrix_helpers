@@ -1,5 +1,7 @@
-<?
-namespace App\Form\Dto;
+<?php
+declare(strict_types=1);
+
+namespace Beeralex\Api\Domain\Form\Dto;
 
 class FormNewDTO
 {

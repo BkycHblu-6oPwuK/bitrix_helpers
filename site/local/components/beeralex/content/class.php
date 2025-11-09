@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Collection;
 use Beeralex\Catalog\Service\CatalogService;
-use Beeralex\Api\Domain\Content\Enum\ContentTypes;
+use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Helpers\QueryHelper;
 
@@ -43,12 +43,11 @@ class BeeralexContent extends \CBitrixComponent
                 'VIDEO_TITLE.VALUE',
                 'VIDEO_TEXT.VALUE',
                 'VIDEO_LINK.VALUE',
-                'TWO_ARTICLES_IDS.VALUE',
                 'ARTICLES_IDS.VALUE',
                 'ARTICLES_TITLE.VALUE',
-                'CATALOG_RAZDEL_IDS.VALUE',
                 'MAIN_BANNER.VALUE',
                 'IBLOCK_MODEL_SECTION.UF_URL',
+                'FORM_ID.VALUE'
             ]
         )
             ->setOrder(['SORT' => 'ASC']);
@@ -66,7 +65,7 @@ class BeeralexContent extends \CBitrixComponent
                         'type' =>  ContentTypes::SLIDER,
                         'ids' => $ids ?? array_column($item['PRODUCTS_IDS'], 'VALUE'),
                         'title' => $item['TITLE'] ? $item['TITLE'] : $item['NAME'],
-                        'link' => $item['LINK_VALUE'],
+                        'link' => $item['LINK']['VALUE'],
                     ];
                 case ContentTypes::MAIN_BANNER->value:
                     return [
@@ -81,17 +80,17 @@ class BeeralexContent extends \CBitrixComponent
                         'text' => $item['VIDEO_TEXT'] ? unserialize($item['VIDEO_TEXT'])['TEXT'] : '',
                         'video_link' => $item['VIDEO_LINK'],
                     ];
-                case ContentTypes::TWO_ARTICLES->value:
-                    return [
-                        'type' =>  ContentTypes::TWO_ARTICLES,
-                        'ids' => $item->pluck(['TWO_ARTICLES_IDS'])->splice(0, 2)->toArray(),
-                    ];
                 case ContentTypes::ARTICLES->value:
                     return [
                         'type' =>  ContentTypes::ARTICLES,
-                        'ids' => $item->pluck(['ARTICLES_IDS'])->toArray(),
+                        'ids' => array_column($item['ARTICLES_IDS'], 'VALUE'),
                         'title' => $item['ARTICLES_TITLE'] ? $item['ARTICLES_TITLE'] : $item['NAME'],
-                        'link' => $item['LINK'],
+                        'link' => $item['LINK']['VALUE'],
+                    ];
+                case ContentTypes::FORM->value :
+                    return [
+                        'type' => ContentTypes::FORM,
+                        'id' => $item['FORM_ID']['VALUE']
                     ];
                 default:
                     return [];

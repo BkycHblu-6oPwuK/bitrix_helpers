@@ -1,4 +1,4 @@
-import type { Pagination } from "../pagination"
+import type { PaginationDTO } from "../pagination"
 import type { SeoData } from "../seo"
 
 export interface CatalogFilterValue {
@@ -66,7 +66,7 @@ export interface CatalogSectionList {
 
 export interface CatalogSection {
   items: any[]
-  pagination: Pagination
+  pagination: PaginationDTO
 }
 
 export interface CatalogPage {
