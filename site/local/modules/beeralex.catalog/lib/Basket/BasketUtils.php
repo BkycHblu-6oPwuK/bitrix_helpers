@@ -40,7 +40,7 @@ class BasketUtils
         Loader::includeModule('catalog');
 
         // Получаем идентификаторы торговых предложений
-        $offersIds = self::getOffersIds($basket);
+        $offersIds = static::getOffersIds($basket);
         
         // Получаем идентификаторы товаров и объединяем с offersIds - запишутся только те, что в корзине не офферы
         $productsIds = ProductsHelper::getProductsIdsByOffersIds($offersIds) + $offersIds;

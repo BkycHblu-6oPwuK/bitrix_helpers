@@ -1,2 +1,3 @@
 <?php
-if(!\Bitrix\Main\Loader::includeModule('beeralex.core')) throw new \Exception('Модуль beeralex.core не установлен');
+use Bitrix\Main\Loader;
+Loader::requireModule('beeralex.core');

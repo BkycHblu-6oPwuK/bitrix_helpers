@@ -5,6 +5,7 @@ import type { MainBannerContent } from '~/types/content'
 const props = defineProps<{
   data: MainBannerContent['result']
 }>()
+console.log(props.data)
 </script>
 
 <template>

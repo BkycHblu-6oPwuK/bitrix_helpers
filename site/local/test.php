@@ -39,6 +39,8 @@
 use Beeralex\Api\GlobalResult;
 use Beeralex\Api\UrlHelper;
 use Beeralex\Catalog\Service\CatalogService;
+use Beeralex\Content\Repository\HeaderRepository;
+use Beeralex\Content\Repository\MenuRepository;
 use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Helpers\QueryHelper as HelpersQueryHelper;
@@ -355,15 +357,7 @@ global $APPLICATION;
 //     'pathName' => '/',
 // ]);
 // dd(GlobalResult::$result);
-$APPLICATION->IncludeComponent(
-    "beeralex:menu",
-    ".default",
-    [
-        "CACHE_TYPE" => "A",
-        "CACHE_TIME" => "86400",
-        "MENU_TYPE" => 'catalog_menu'
-    ]
-);
+dd((new HeaderRepository)->getMenu(339));
 //dd(service(CatalogService::class));
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");
