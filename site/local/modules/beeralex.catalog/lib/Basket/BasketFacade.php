@@ -1,50 +1,25 @@
 <?php
-
 namespace Beeralex\Catalog\Basket;
 
 use Bitrix\Currency\CurrencyManager;
-use Bitrix\Main\Context;
-use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\BasketItem;
-use Bitrix\Sale\Fuser;
-use Bitrix\Sale\Internals\FuserTable;
 use Beeralex\Catalog\Discount\Coupons;
 use Beeralex\Catalog\Discount\Discount;
 use Beeralex\Catalog\Helper\PriceHelper;
-use Beeralex\Catalog\Helper\ProductsHelper;
-use Beeralex\User\User;
 
 /**
  * Обертка над корзиной
  */
 class BasketFacade
 {
-    private readonly BasketBase $basket;
-    private readonly Coupons $coupons;
-    private readonly Discount $discount;
-
-    public function __construct(BasketBase $basket)
-    {
-        $this->basket = $basket;
-        $this->coupons = new Coupons;
-        $this->discount = new Discount($basket);
-    }
-
-    public static function getForCurrentUser(?string $siteId = null)
-    {
-        return new self(Basket::loadItemsForFUser(Fuser::getId(), $siteId ?? Context::getCurrent()->getSite()));
-    }
-
-    public static function getByUser(User $user, ?string $siteId = null): ?self
-    {
-        $userId = $user->getId();
-        if ($userId) {
-            $fUserId = (int)FuserTable::query()->setSelect(['ID'])->where('USER_ID', $userId)->fetch()['ID'];
-            return $fUserId ? new self(Basket::loadItemsForFUser($fUserId, $siteId ?? Context::getCurrent()->getSite())) : null;
-        }
-        return null;
-    }
+    public function __construct(
+        protected readonly BasketBase $basket,
+        protected readonly BasketUtils $basketUtils,
+        protected readonly Coupons $coupons,
+        protected readonly Discount $discount,
+    )
+    {}
 
     public function add(int $offerId, int $quantity = 1)
     {
@@ -106,7 +81,7 @@ class BasketFacade
             throw new \InvalidArgumentException('Количество должно быть больше 0');
         }
 
-        $availableQuantity = ProductsHelper::getAvailableQuantity($offerId);
+        $availableQuantity = \Bitrix\Catalog\ProductTable::query()->setSelect(['QUANTITY'])->where('ID', $offerId)->fetch()['QUANTITY'] ?? 0;
         if ($quantity > $availableQuantity) {
             throw new \RuntimeException('Товара нет в наличии');
         }
@@ -137,7 +112,7 @@ class BasketFacade
     public function getItems(): array
     {
         if ($this->basket->count() > 0) {
-            $basketItems = BasketUtils::getItems($this->basket);
+            $basketItems = $this->basketUtils->getItems($this->basket);
 
             foreach ($basketItems as &$basketItem) {
                 $finalPrice = 0;

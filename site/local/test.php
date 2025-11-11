@@ -38,6 +38,7 @@
 
 use Beeralex\Api\GlobalResult;
 use Beeralex\Api\UrlHelper;
+use Beeralex\Catalog\Basket\BasketFacade;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Content\Repository\HeaderRepository;
 use Beeralex\Content\Repository\MenuRepository;
@@ -357,7 +358,9 @@ global $APPLICATION;
 //     'pathName' => '/',
 // ]);
 // dd(GlobalResult::$result);
-dd((new HeaderRepository)->getMenu(339));
+//dd((new HeaderRepository)->getMenu(339));
 //dd(service(CatalogService::class));
+
+dd(service(BasketFacade::class)->getItems());
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

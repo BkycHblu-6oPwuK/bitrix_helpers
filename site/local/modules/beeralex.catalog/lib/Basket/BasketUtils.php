@@ -2,64 +2,56 @@
 
 namespace Beeralex\Catalog\Basket;
 
-use Bitrix\Main\Loader;
+use Beeralex\Catalog\Contracts\OfferRepositoryContract;
+use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\BasketItem;
 use Bitrix\Sale\BasketPropertiesCollectionBase;
 use Bitrix\Sale\PropertyValueCollectionBase;
 use Beeralex\Catalog\Helper\PriceHelper;
-use Beeralex\Catalog\Helper\ProductsHelper;
 
-/**
- * Методы для работы с корзиной
- */
 class BasketUtils
 {
+    public function __construct(
+       protected readonly ProductRepositoryContract $productsRepository,
+       protected readonly OfferRepositoryContract $offersRepository,
+       protected readonly BasketBase $basket
+    ) {}
 
-    /**
-     * Получает идентификаторы всех торговых предложений в корзине
-     *
-     * @param BasketBase $basket
-     * @return array
-     */
-    public static function getOffersIds(BasketBase $basket)
+    public function getOffersIds()
     {
         $result = [];
 
-        foreach ($basket->getBasketItems() as $basketItem) {
+        foreach ($this->basket->getBasketItems() as $basketItem) {
 
             $result[$basketItem->getProductId()] = $basketItem->getProductId();
-
         }
         return $result;
-
     }
 
-    public static function getItems(BasketBase $basket)
+    public function getItems()
     {
-        Loader::includeModule('catalog');
-
         // Получаем идентификаторы торговых предложений
-        $offersIds = static::getOffersIds($basket);
-        
+        $offersIds = static::getOffersIds();
+
         // Получаем идентификаторы товаров и объединяем с offersIds - запишутся только те, что в корзине не офферы
-        $productsIds = ProductsHelper::getProductsIdsByOffersIds($offersIds) + $offersIds;
-        
+        $productsIds = $this->offersRepository->getProductsIdsByOffersIds($offersIds) + $offersIds;
+
         // Получаем информацию о товарах
-        $products = ProductsHelper::getProducts(array_values($productsIds));
-        
+        $products = $this->productsRepository->getProducts(array_values($productsIds));
+
         // Получаем информацию о торговых предложениях
-        $offers = ProductsHelper::getOffersByIds($offersIds);
+        $offers = $this->offersRepository->getOffersByIds($offersIds);
 
         // Формируем результат
         $basketItems = [];
         /** @var BasketItem $basketItem */
-        foreach ($basket->getBasketItems() as $basketItem) {
+        foreach ($this->basket->getBasketItems() as $basketItem) {
             $offerId = $basketItem->getProductId();
             $productId = $productsIds[$offerId] ?? $offerId;
             $isOffer = $offerId !== $productId;
-            
-            if($isOffer) {
+
+            if ($isOffer) {
                 $offerInfo = $offers[$offerId];
                 $productInfo = $products[$productId];
             } else {
@@ -86,7 +78,7 @@ class BasketUtils
 
             $basketInfo['url'] = $productInfo['url'] ?? $offerInfo['url'];
 
-            if($isOffer){
+            if ($isOffer) {
                 $basketInfo['url'] .=  '?offerId=' . $offerId;
             }
 
@@ -105,7 +97,7 @@ class BasketUtils
         return $basketItems;
     }
 
-    public static function getPropertyValues(BasketPropertiesCollectionBase $collection)
+    public function getPropertyValues(BasketPropertiesCollectionBase $collection)
     {
         $values = [];
         /** @var PropertyValueCollectionBase $item */

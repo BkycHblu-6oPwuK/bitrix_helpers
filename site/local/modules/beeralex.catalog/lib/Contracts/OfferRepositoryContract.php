@@ -20,4 +20,6 @@ interface OfferRepositoryContract extends CompiledEntityRepositoryContract
      * Получает предложения, сгруппированные по товарам.
      */
     public function getOffersByProductIds(array $productIds, bool $onlyAvailable = true): array;
+
+    public function getProductsIdsByOffersIds(array $offersIds): array;
 }

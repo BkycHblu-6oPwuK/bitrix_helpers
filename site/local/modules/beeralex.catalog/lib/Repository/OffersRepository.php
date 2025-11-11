@@ -1,4 +1,5 @@
 <?php
+
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
@@ -132,5 +133,25 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
         }
 
         return $grouped;
+    }
+
+    public function getProductsIdsByOffersIds(array $offersIds): array
+    {
+        if (empty($offersIds)) {
+            return [];
+        }
+
+        $query = $this->query()
+            ->setSelect(['ID', 'PROPERTY_CML2_LINK_VALUE' => 'CML2_LINK.VALUE'])
+            ->whereIn('ID', $offersIds);
+
+        $result = $query->exec();
+        $map = [];
+
+        while ($row = $result->fetch()) {
+            $map[(int)$row['ID']] = (int)$row['PROPERTY_CML2_LINK_VALUE'];
+        }
+
+        return $map;
     }
 }
