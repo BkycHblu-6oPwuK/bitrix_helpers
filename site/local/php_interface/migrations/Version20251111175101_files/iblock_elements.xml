@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items iblockUid="content:pages" exchangeVersion="2" >
+<item>
+ <field name="ACTIVE">
+  <value>Y</value>
+ </field>
+ <field name="ACTIVE_FROM"/>
+ <field name="ACTIVE_TO"/>
+ <field name="SORT">
+  <value>500</value>
+ </field>
+ <field name="NAME">
+  <value>Главная</value>
+ </field>
+ <field name="PREVIEW_PICTURE"/>
+ <field name="PREVIEW_TEXT"/>
+ <field name="PREVIEW_TEXT_TYPE">
+  <value>text</value>
+ </field>
+ <field name="DETAIL_PICTURE"/>
+ <field name="DETAIL_TEXT"/>
+ <field name="DETAIL_TEXT_TYPE">
+  <value>text</value>
+ </field>
+ <field name="CODE"/>
+ <field name="TAGS"/>
+ <field name="XML_ID">
+  <value>341</value>
+ </field>
+ <field name="IBLOCK_SECTION"/>
+ <field name="IPROPERTY_TEMPLATES"/>
+ <property name="HEADER">
+  <value element_xml_id="339">общая</value>
+ </property>
+ <property name="CONTENT">
+  <value section_depth_level="1">Главная</value>
+ </property>
+ <property name="FOOTER">
+  <value element_xml_id="340">общий</value>
+ </property>
+ <property name="URL">
+  <value>/</value>
+ </property>
+</item>
+
+</items>
