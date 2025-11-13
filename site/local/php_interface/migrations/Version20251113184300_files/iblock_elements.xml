@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items iblockUid="content:content" exchangeVersion="2" >
+<item>
+ <field name="ACTIVE">
+  <value>Y</value>
+ </field>
+ <field name="ACTIVE_FROM"/>
+ <field name="ACTIVE_TO"/>
+ <field name="SORT">
+  <value>500</value>
+ </field>
+ <field name="NAME">
+  <value>форма</value>
+ </field>
+ <field name="PREVIEW_PICTURE"/>
+ <field name="PREVIEW_TEXT"/>
+ <field name="PREVIEW_TEXT_TYPE">
+  <value>text</value>
+ </field>
+ <field name="DETAIL_PICTURE"/>
+ <field name="DETAIL_TEXT"/>
+ <field name="DETAIL_TEXT_TYPE">
+  <value>text</value>
+ </field>
+ <field name="CODE"/>
+ <field name="TAGS"/>
+ <field name="XML_ID">
+  <value>335</value>
+ </field>
+ <field name="IBLOCK_SECTION">
+  <value section_depth_level="1">Главная</value>
+ </field>
+ <field name="IPROPERTY_TEMPLATES"/>
+ <property name="PRODUCTS_TITLE"/>
+ <property name="PRODUCTS_IDS"/>
+ <property name="TYPE">
+  <value>form</value>
+ </property>
+ <property name="LINK"/>
+ <property name="PREVIEW_VIDEO"/>
+ <property name="VIDEO_TITLE"/>
+ <property name="VIDEO_TEXT"/>
+ <property name="VIDEO_LINK"/>
+ <property name="ARTICLES_IDS"/>
+ <property name="ARTICLES_TITLE"/>
+ <property name="PRODUCTS_TYPE"/>
+ <property name="MAIN_BANNER"/>
+ <property name="HTML"/>
+ <property name="FORM_ID">
+  <value>1</value>
+ </property>
+</item>
+
+</items>
