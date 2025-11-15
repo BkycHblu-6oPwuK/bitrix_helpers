@@ -12,7 +12,8 @@
     "require": {
         "php": "^8.1",
         "beeralex/beeralex.core": "*",
-        "league/oauth2-server": "*"
+        "league/oauth2-server": "*",
+        "firebase/php-jwt": "^6.0"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

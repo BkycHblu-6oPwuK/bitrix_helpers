@@ -1,14 +1,16 @@
 <?php
-namespace Beeralex\User\Repository;
+declare(strict_types=1);
+namespace Beeralex\User\Auth;
 
 use Beeralex\Core\Repository\Repository;
+use Beeralex\User\Auth\Contracts\UserPhoneAuthRepositoryContract;
 use Beeralex\User\Phone;
 use Bitrix\Main\UserPhoneAuthTable;
 
 /**
  * @extends Repository<UserPhoneAuthTable>
  */
-class UserPhoneAuthRepository extends Repository
+class UserPhoneAuthRepository extends Repository implements UserPhoneAuthRepositoryContract
 {
     public function __construct()
     {

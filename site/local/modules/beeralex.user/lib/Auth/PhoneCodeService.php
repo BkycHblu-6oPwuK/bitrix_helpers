@@ -1,23 +1,30 @@
 <?php
+declare(strict_types=1);
+namespace Beeralex\User\Auth;
 
-namespace Beeralex\User\Services;
-
+use Beeralex\User\Auth\Contracts\UserPhoneAuthRepositoryContract;
 use Beeralex\User\Phone;
-use Beeralex\User\Repository\UserPhoneAuthRepository;
 use Beeralex\User\Exceptions\PhoneCodeException;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Security\Mfa\TotpAlgorithm;
 use Bitrix\Main\Type\DateTime;
-use Bitrix\Main\Sms\Event as SmsEvent;
 
-final class PhoneCodeService
+class PhoneCodeService
 {
-    private const OTP_INTERVAL = 300;   // 5 минут
-    private const RESEND_INTERVAL = 60; // 1 минута
-    private const MAX_ATTEMPTS = 3;
+    protected const OTP_INTERVAL = 300;
+    protected const RESEND_INTERVAL = 60;
+    protected const MAX_ATTEMPTS = 3;
 
     public function __construct(
-        private readonly UserPhoneAuthRepository $repository
+        protected readonly UserPhoneAuthRepositoryContract $repository
     ) {}
+
+    protected function getTotp(string $secret): TotpAlgorithm
+    {
+        return (new TotpAlgorithm())
+            ->setInterval(self::OTP_INTERVAL)
+            ->setSecret($secret);
+    }
 
     /**
      * Генерирует одноразовый код и сохраняет дату отправки
@@ -25,7 +32,7 @@ final class PhoneCodeService
      * @return array{code: string, phone: string}
      * @throws PhoneCodeException
      */
-    private function generateCode(int $userId): array
+    protected function generateCode(int $userId): array
     {
         $row = $this->repository->getByUserId($userId);
 
@@ -33,10 +40,7 @@ final class PhoneCodeService
             throw new PhoneCodeException('Не найден секрет OTP для пользователя.');
         }
 
-        $totp = (new TotpAlgorithm())
-            ->setInterval(self::OTP_INTERVAL)
-            ->setSecret($row['OTP_SECRET']);
-
+        $totp = $this->getTotp($row['OTP_SECRET']);
         $code = $totp->generateOTP($totp->timecode(time()));
 
         $this->repository->update($userId, [
@@ -63,7 +67,6 @@ final class PhoneCodeService
             throw new PhoneCodeException('Пользователь с таким номером не найден.');
         }
 
-        // Проверяем таймаут между отправками
         if (!empty($row['DATE_SENT'])) {
             $now = new DateTime();
             $diff = $now->getTimestamp() - $row['DATE_SENT']->getTimestamp();
@@ -74,10 +77,18 @@ final class PhoneCodeService
 
         $data = $this->generateCode((int)$row['USER_ID']);
 
-        $sms = new SmsEvent($template, [
-            'USER_PHONE' => $data['phone'],
-            'CODE' => $data['code'],
-        ]);
+        if (Loader::includeModule('beeralex.notification')) {
+            $sms = new \Beeralex\Notification\Events\SmsEvent($template, [
+                'USER_PHONE' => $data['phone'],
+                'CODE' => $data['code'],
+            ]);
+        } else {
+            $sms = new \Bitrix\Main\Sms\Event($template, [
+                'USER_PHONE' => $data['phone'],
+                'CODE' => $data['code'],
+            ]);
+        }
+
 
         $sms->setSite($siteId);
 
@@ -107,9 +118,7 @@ final class PhoneCodeService
             throw new PhoneCodeException('Превышено количество попыток. Попробуйте позже.');
         }
 
-        $totp = (new TotpAlgorithm())
-            ->setInterval(self::OTP_INTERVAL)
-            ->setSecret($row['OTP_SECRET']);
+        $totp = $this->getTotp($row['OTP_SECRET']);
 
         try {
             [$isValid] = $totp->verify($code);

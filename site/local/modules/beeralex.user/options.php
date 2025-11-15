@@ -1,5 +1,7 @@
 <?
 
+use Beeralex\Core\Config\Fields\Checkbox;
+use Beeralex\Core\Config\Fields\Input;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\HttpApplication;
 use Bitrix\Main\Loader;
@@ -16,7 +18,13 @@ if ($POST_RIGHT < "S") {
 }
 Loader::includeModule($module_id);
 
-$accessTab = new Tab("edit2", Loc::getMessage("MAIN_TAB_RIGHTS"), Loc::getMessage("MAIN_TAB_TITLE_RIGHTS"));
+$tokenTab = new Tab("edit2", 'JWT', 'Токеновая авторизация (JWT)');
+$tokenTab->addField(
+    (new Checkbox('BEERALEX_USER_ENABLE_JWT_AUTH', 'Включить авторизацию по JWT токенам') )
+        ->setDefaultValue(false)
+);
+$tokenTab->addField((new Input('BEERALEX_USER_JWT_SECRET_KEY', 'Секретный ключ для JWT')));
+$accessTab = new Tab("edit3", Loc::getMessage("MAIN_TAB_RIGHTS"), Loc::getMessage("MAIN_TAB_TITLE_RIGHTS"));
 $tabsBuilder = (new TabsBuilder())->addTab($accessTab);
 
 $tabs = $tabsBuilder->getTabs();

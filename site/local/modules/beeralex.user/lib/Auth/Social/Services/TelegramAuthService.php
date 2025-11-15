@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth\Social\Services;
 
 use Beeralex\User\Auth\Social\BirixUser;

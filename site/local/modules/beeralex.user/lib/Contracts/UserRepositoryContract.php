@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Contracts;
 
 use Beeralex\User\Phone;
@@ -22,4 +22,5 @@ interface UserRepositoryContract extends RepositoryContract
     ];
     public function getByEmail(string $email, array $select = []): ?UserEntityContract;
     public function getByPhone(Phone $phone, array $select = []): ?UserEntityContract;
+    public function getCurrentUser(array $select = []): UserEntityContract;
 }

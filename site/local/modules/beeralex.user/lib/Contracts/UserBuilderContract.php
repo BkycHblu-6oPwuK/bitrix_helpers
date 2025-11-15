@@ -1,5 +1,5 @@
 <?
-
+declare(strict_types=1);
 namespace Beeralex\User\Contracts;
 
 use Beeralex\User\Contracts\UserEntityContract;

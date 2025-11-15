@@ -1,10 +1,14 @@
 <?
+declare(strict_types=1);
 namespace Beeralex\User;
 
 use Beeralex\User\Auth\Social\Services\Bitrix\BitrixTelegramService;
 
 class EventHandlers 
 {
+    /**
+     * Event handler для регистрации социальных сервисов
+     */
     public static function onAuthServicesBuildList()
     {
         $result = [];

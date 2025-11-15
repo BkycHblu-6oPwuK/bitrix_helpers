@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth\Social\Services\Bitrix;
 
 use Beeralex\User\Auth\Social\Contracts\AuthServiceContract;
@@ -63,7 +63,7 @@ abstract class AbstractSocServAuthService extends \CSocServAuth
     protected function getAuthUrl(): string
     {
         $id = $this->getId();
-        return (new Uri("/bitrix/services/main/ajax.php?action=beeralex:user.AuthController.callback&provider={$id}"))->toAbsolute();
+        return (new Uri("/bitrix/services/main/ajax.php?action=beeralex:user.AuthController.callback&provider={$id}"))->toAbsolute()->__toString();
     }
 
     protected function finalRedirect(string $authError): void

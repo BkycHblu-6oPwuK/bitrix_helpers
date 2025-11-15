@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User;
 
 use Beeralex\User\Contracts\UserEntityContract;
@@ -12,7 +12,6 @@ class User implements UserEntityContract
 {
     protected array $fields = [];
     protected ?Phone $phone = null;
-    protected static ?UserEntityContract $currentUser = null;
 
     public function __construct(array $fields)
     {
@@ -29,21 +28,6 @@ class User implements UserEntityContract
         $this->phone = Phone::fromString($this->fields['PERSONAL_PHONE']);
         $this->fields['phone'] = $this->phone;
     }
-
-    public static function current(): self
-    {
-        if (static::$currentUser === null) {
-            global $USER;
-            if ($userId = $USER->GetID()) {
-                static::$currentUser = service(UserRepositoryContract::class)->getById($userId);
-            } else {
-                static::$currentUser = new static([]);
-            }
-        }
-
-        return static::$currentUser;
-    }
-
 
     public function isAuthorized(): bool
     {

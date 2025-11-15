@@ -1,15 +1,11 @@
 <?php
-
-namespace Beeralex\User\Controllers;
+declare(strict_types=1);
+namespace Beeralex\Api\V1\Controllers\User;
 
 use Beeralex\User\Auth\AuthManager;
-use Beeralex\User\Auth\SocialAuthenticatorFactory;
-use Beeralex\User\Dto\BaseUserDto;
 use Beeralex\User\User;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Error;
-use Bitrix\Main\Web\HttpClient;
-use Bitrix\Main\Web\Json;
 use Throwable;
 
 /**

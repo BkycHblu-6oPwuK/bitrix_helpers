@@ -11,10 +11,17 @@ use Bitrix\Main\Routing\RoutingConfigurator;
 return function (RoutingConfigurator $routes): void {
     $routes->prefix('api')->group(function (RoutingConfigurator $routes) {
         $routes->prefix('v1')->group(function (RoutingConfigurator $routes) {
+            $routes->prefix('user')->group(function (RoutingConfigurator $routes) {
+                $routes->prefix('auth')->group(function (RoutingConfigurator $routes) {
+                    $routes->post('login', [AuthController::class, 'login']);
+                    $routes->post('register', [AuthController::class, 'register']);
+                    $routes->any('social/redirect/{provider}', [AuthController::class, 'redirect']);
+                    $routes->any('social/callback/{provider}', [AuthController::class, 'callback']);
+                });
+            });
+
             $routes->any('get-content', [MainController::class, 'getContent']);
             $routes->any('get-menu', [MainController::class, 'getMenu']);
-            $routes->any('user/auth/social/redirect/{provider}', [AuthController::class, 'redirect']);
-            $routes->any('user/auth/social/callback/{provider}', [AuthController::class, 'callback']);
             $routes->any(
                 'catalog/{search}',
                 [CatalogController::class, 'index']

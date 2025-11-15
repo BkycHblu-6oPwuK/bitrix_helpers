@@ -1,12 +1,21 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth;
 
 use Beeralex\User\Auth\Authenticators\SocialServiceAuthenticator;
+use Beeralex\User\Auth\Authenticators\SocialServiceAuthenticatorFactory;
 use Beeralex\User\Auth\Social\SocialManager;
 
+/**
+ * Фабрика для создания всех активных соц. аутентификаторов.
+ */
 class SocialAuthenticatorFactory
 {
+    public function __construct(
+        protected SocialManager $socialManager,
+        protected SocialServiceAuthenticatorFactory $factory
+    ){}
+
     /**
      * Возвращает список всех активных соц. аутентификаторов.
      *
@@ -14,12 +23,12 @@ class SocialAuthenticatorFactory
      */
     public function makeAll(): array
     {
-        $adapters = service(SocialManager::class)->adapters;
+        $adapters = $this->socialManager->adapters;
         $result = [];
         foreach ($adapters as $key => $adapter) {
             if(!$adapter->isEnable) continue;
             try {
-                $authenticator = new SocialServiceAuthenticator($adapter);
+                $authenticator = $this->factory->create($adapter);
                 $result[static::formatKey($authenticator->getKey())] = $authenticator;
             } catch (\Throwable $e) {
                 // можно залогировать ошибку, но не падать  

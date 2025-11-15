@@ -22,9 +22,9 @@ class PersonalBuilder
         $dto = new PersonalDTO;
         $dto->name = $user->getName();
         $dto->lastName = $user->getLastName();
-        $dto->phone = $user->getPhone()?->getFormatted() ?? '';
+        $dto->phone = $user->getPhone()?->formatE164() ?? '';
         $dto->email = $user->getEmail();
-        $dto->birthday = $user->getBirthday()?->format(Config::getInstance()->dateFormatSite) ?: '';
+        $dto->birthday = (string)$user->getBirthday();
         $dto->photo = $user->getPhoto();
         $dto->setGender($user->getGender());
         $dto->notifications = $this->buildNotifications();

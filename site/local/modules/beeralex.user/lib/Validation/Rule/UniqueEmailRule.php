@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Beeralex\User\Validation\Rule;
 
 use Beeralex\User\Validation\Validator\UniqueEmailValidator;

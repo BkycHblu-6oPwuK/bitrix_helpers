@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Beeralex\User\Auth\Social;
 
 use Beeralex\User\Auth\Social\BitrixSocialServiceAdapter;

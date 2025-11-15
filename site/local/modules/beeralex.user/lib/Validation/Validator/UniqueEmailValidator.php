@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 namespace Beeralex\User\Validation\Validator;
 
 use Beeralex\User\Contracts\UserRepositoryContract;

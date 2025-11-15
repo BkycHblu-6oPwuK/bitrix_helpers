@@ -1,12 +1,12 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth\Authenticators;
 
 use Beeralex\User\Auth\Contracts\PhoneAuthentificatorContract;
 use Beeralex\User\Contracts\UserRepositoryContract;
 use Beeralex\User\Dto\BaseUserDto;
 use Beeralex\User\Phone;
-use Beeralex\User\Services\PhoneCodeService;
+use Beeralex\User\Auth\PhoneCodeService;
 
 class PhoneAuthentificator extends BaseAuthentificator implements PhoneAuthentificatorContract
 {

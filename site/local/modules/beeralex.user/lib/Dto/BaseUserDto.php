@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Dto;
 
 use Beeralex\Core\Http\Request\AbstractRequestDto;

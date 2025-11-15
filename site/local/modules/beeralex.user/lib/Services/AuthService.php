@@ -1,7 +1,8 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth;
 
+use App\User\PasswordValidator as UserPasswordValidator;
 use Beeralex\User\Exceptions\IncorrectOldPasswordException;
 use Beeralex\User\Exceptions\RegistrationException;
 use Beeralex\User\Exceptions\UserNotFoundException;
@@ -29,7 +30,7 @@ class AuthService
             throw new UserNotFoundException("User with email {$email} not found");
         }
         // проверяем есть ли пользователь с данным емаилом и указанным паролем
-        if (!(new PasswordValidator())->validatePassword($password, $user->getPassword())) {
+        if (!(new UserPasswordValidator())->validatePassword($password, $user->getPassword())) {
             throw new IncorrectOldPasswordException();
         }
         

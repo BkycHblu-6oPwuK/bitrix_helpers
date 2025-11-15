@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth\Social\Services\Bitrix;
 
 use Beeralex\User\Auth\Social\Contracts\AuthServiceContract;

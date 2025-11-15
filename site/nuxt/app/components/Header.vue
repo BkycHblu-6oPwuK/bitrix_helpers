@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import { useColorMode } from '#imports'
 import Menu from '~/components/menu/Menu.vue'
+import AuthModal from '~/components/auth/AuthModal.vue'
 
 const colorMode = useColorMode()
 const query = ref('')
+const isAuthModalOpen = ref(false)
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -12,6 +14,10 @@ const toggleTheme = () => {
 
 const onSearch = () => {
   console.log('Search:', query.value)
+}
+
+const openAuthModal = () => {
+  isAuthModalOpen.value = true
 }
 </script>
 
@@ -62,8 +68,12 @@ const onSearch = () => {
           <UButton variant="ghost" icon="i-heroicons-chart-bar" label="Сравнение" size="sm" />
           <UButton variant="ghost" icon="i-heroicons-heart" label="Избранное" size="sm" />
           <UButton variant="ghost" icon="i-heroicons-shopping-cart" label="Корзина" size="sm" />
+          <UButton variant="ghost" icon="i-heroicons-user" label="Профиль" size="sm" @click="openAuthModal" />
         </div>
       </UContainer>
     </div>
+
+    <!-- Модальное окно авторизации -->
+    <AuthModal v-model="isAuthModalOpen" />
   </header>
 </template>

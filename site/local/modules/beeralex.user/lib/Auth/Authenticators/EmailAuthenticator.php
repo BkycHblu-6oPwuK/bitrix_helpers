@@ -1,13 +1,11 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Auth\Authenticators;
 
 use Beeralex\User\Auth\Contracts\EmailAuthenticatorContract;
 use Beeralex\User\Dto\BaseUserDto;
 use Beeralex\User\Exceptions\IncorrectOldPasswordException;
 use Beeralex\User\Exceptions\UserNotFoundException;
-use Beeralex\User\PasswordValidator;
-use Beeralex\User\User;
 use Bitrix\Main\Security\Password;
 
 class EmailAuthenticator extends BaseAuthentificator implements EmailAuthenticatorContract

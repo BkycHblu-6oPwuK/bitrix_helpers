@@ -1,6 +1,6 @@
 <?php
-
-namespace Beeralex\User\Repository;
+declare(strict_types=1);
+namespace Beeralex\User;
 
 use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\User\Exceptions\ValidationException;
@@ -9,6 +9,7 @@ use Beeralex\Core\Repository\AbstractRepository;
 use Beeralex\User\Contracts\UserEntityContract;
 use Beeralex\User\Contracts\UserFactoryContract;
 use Beeralex\User\Contracts\UserRepositoryContract;
+use Beeralex\User\UserTable;
 
 class UserRepository extends AbstractRepository implements UserRepositoryContract
 {
@@ -42,6 +43,24 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
     {
         $fields = FilesHelper::addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('ID', $userId)->enablePrivateFields()->fetch();
         return $fields ? $this->factory->create($fields) : null;
+    }
+
+    /**
+     * Получает текущего авторизованного пользователя
+     */
+    public function getCurrentUser(array $select = []): UserEntityContract
+    {
+        global $USER;
+        static $currentUser;
+        if ($currentUser === null) {
+            if ($userId = $USER->GetID()) {
+                $currentUser = $this->getById($userId, $select) ?? $this->factory->create([]);
+            } else {
+                $currentUser = $this->factory->create([]);
+            }
+        }
+        
+        return $currentUser;
     }
 
     /**

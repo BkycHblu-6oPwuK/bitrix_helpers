@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\User\Contracts;
 
 use Beeralex\User\Enum\Gender;
@@ -8,7 +8,6 @@ use Bitrix\Main\Type\Date;
 
 interface UserEntityContract
 {
-    public static function current(): self;
     public function isAuthorized(): bool;
     public function isAdmin(): bool;
     public function getId(): ?int;
