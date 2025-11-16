@@ -4,13 +4,16 @@ use Bitrix\Main\Loader;
 
 class beeralex_api extends CModule
 {
-    var $MODULE_ID = 'beeralex.api';
-    var $MODULE_NAME = 'beeralex.api';
-    var $MODULE_DESCRIPTION = "beeralex.api";
-    var $MODULE_VERSION = "1.0";
-    var $MODULE_VERSION_DATE = "2024-04-09 12:00:00";
-    var $PARTNER_NAME = 'beeralex';
-    var $PARTNER_URI = '#';
+    public function __construct()
+    {
+        $this->MODULE_ID = 'beeralex.api';
+        $this->MODULE_VERSION = '1.0';
+        $this->MODULE_VERSION_DATE = '2025-04-09 12:00:00';
+        $this->MODULE_NAME = 'beeralex.api';
+        $this->MODULE_DESCRIPTION = 'beeralex.api module';
+        $this->PARTNER_NAME = 'beeralex';
+        $this->PARTNER_URI = '#';
+    }
 
     public function DoInstall()
     {

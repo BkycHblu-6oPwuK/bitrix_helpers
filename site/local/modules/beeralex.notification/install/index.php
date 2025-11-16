@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Core\Helpers\FilesHelper;
+use Beeralex\Core\Service\FileService;
 use Beeralex\Notification\Events\EventHandlers;
 use Beeralex\Notification\Tables\NotificationChannelTable;
 use Beeralex\Notification\Tables\NotificationCodeTable;
@@ -28,7 +28,7 @@ class beeralex_notification extends CModule
             $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
             $this->MODULE_NAME         = Loc::getMessage('BEERALEX_NOTIFICATION_NAME');
             $this->MODULE_DESCRIPTION  = Loc::getMessage('BEERALEX_NOTIFICATION_DESCRIPTION');
-            $this->PARTNER_NAME = 'Beeralex';
+            $this->PARTNER_NAME = 'beeralex';
             $this->PARTNER_URI = '#';
         } else {
             CAdminMessage::showMessage(
@@ -40,7 +40,7 @@ class beeralex_notification extends CModule
     public function DoInstall()
     {
         global $APPLICATION;
-        if ($this->isVersionD7()) {
+        if ($this->checkRequirements()) {
             ModuleManager::registerModule($this->MODULE_ID);
             Loader::includeModule($this->MODULE_ID);
             $this->InstallDB();
@@ -55,9 +55,9 @@ class beeralex_notification extends CModule
         );
     }
 
-    protected function isVersionD7()
+    public function checkRequirements(): bool
     {
-        return version_compare(ModuleManager::getVersion('main'), '14.0.0') >= 0;
+        return version_compare(ModuleManager::getVersion('main'), '14.00.00') >= 0;
     }
 
     public function InstallFiles()
@@ -66,7 +66,7 @@ class beeralex_notification extends CModule
         $sourceDir = $moduleDir . '/files';
         $targetDir = Application::getDocumentRoot();
 
-        FilesHelper::copyRecursive($sourceDir, $targetDir);
+        service(FileService::class)->copyRecursive($sourceDir, $targetDir);
     }
 
     public function InstallDB()

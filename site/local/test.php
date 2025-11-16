@@ -42,9 +42,12 @@ use Beeralex\Catalog\Basket\BasketFacade;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Content\Repository\HeaderRepository;
 use Beeralex\Content\Repository\MenuRepository;
+use Beeralex\Core\Config\Config as CoreConfig;
 use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Helpers\QueryHelper as HelpersQueryHelper;
+use Beeralex\Core\Helpers\UserHelper;
+use Beeralex\Core\Service\UserService;
 use Beeralex\Core\UserType\IblockLinkType;
 use Beeralex\Core\UserType\WebFormLinkType;
 use Beeralex\Notification\Events\SmsEvent;
@@ -361,6 +364,10 @@ global $APPLICATION;
 //dd((new HeaderRepository)->getMenu(339));
 //dd(service(CatalogService::class));
 
-dd(service(BasketFacade::class)->getItems());
+// dd(service(BasketFacade::class)->getItems());
+// $userHelper = service(UserService::class);
+// dd($userHelper->generatePassword($userHelper->getDefaultUserGroups()));
+
+dd(service(CoreConfig::class));
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

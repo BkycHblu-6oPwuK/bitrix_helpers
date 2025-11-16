@@ -14,7 +14,7 @@ class EventHandlers
         ?array &$files,
         ?string $languageId
     ) {
-        return (new MailEventInterceptor(Options::getInstance()->moduleEnable))->handle($event, $lid, $arFields, $message_id, $files, $languageId);
+        return (new MailEventInterceptor(service(Options::class)->moduleEnable))->handle($event, $lid, $arFields, $message_id, $files, $languageId);
     }
 
     public static function mainOnBeforeSendSms(\Bitrix\Main\Event $event)
@@ -25,6 +25,6 @@ class EventHandlers
             return new \Bitrix\Main\Result(); // пока не знаю как обработать отсутствие полей
         }
         $eventName = $params['template']['EVENT_NAME'] ?? null;
-        return (new SmsEventInterceptor(Options::getInstance()->moduleEnable))->handle($eventName, $fields);
+        return (new SmsEventInterceptor(service(Options::class)->moduleEnable))->handle($eventName, $fields);
     }
 }

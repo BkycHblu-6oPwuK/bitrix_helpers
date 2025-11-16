@@ -1,7 +1,5 @@
 <?php
-
-use Beeralex\Core\Helpers\FilesHelper;
-use Beeralex\User\Auth\Table\ExternalAuthTable;
+use Beeralex\Core\Service\FileService;
 use Beeralex\User\EventHandlers;
 use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;
@@ -35,14 +33,14 @@ class beeralex_user extends CModule
     public function DoInstall()
     {
         global $APPLICATION;
-        if ($this->isVersionD7()) {
+        if ($this->checkRequirements()) {
             ModuleManager::registerModule($this->MODULE_ID);
             Loader::includeModule($this->MODULE_ID);
             $this->InstallDB();
             $this->InstallEvents();
             //$this->InstallFiles();
         } else {
-            $APPLICATION->ThrowException('Нет поддержки d7 в главном модуле');
+            $APPLICATION->ThrowException('Нет поддержки d7 в главном модуле или не установлен модуль beeralex.core');
         }
         $APPLICATION->IncludeAdminFile(
             'Установка модуля',
@@ -50,9 +48,9 @@ class beeralex_user extends CModule
         );
     }
 
-    protected function isVersionD7()
+    public function checkRequirements(): bool
     {
-        return version_compare(ModuleManager::getVersion('main'), '14.0.0') >= 0;
+        return version_compare(ModuleManager::getVersion('main'), '14.00.00') >= 0 && Loader::includeModule('beeralex.core');
     }
 
     public function InstallFiles()
@@ -61,7 +59,7 @@ class beeralex_user extends CModule
         $sourceDir = $moduleDir . '/files';
         $targetDir = Application::getDocumentRoot();
 
-        FilesHelper::copyRecursive($sourceDir, $targetDir);
+        service(FileService::class)->copyRecursive($sourceDir, $targetDir);
     }
 
     public function InstallDB() {}

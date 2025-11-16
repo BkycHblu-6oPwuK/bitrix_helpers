@@ -8,6 +8,7 @@ use Beeralex\Notification\Contracts\NotificationsRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTemplateLinkRepositoryContract;
 use Beeralex\Notification\Contracts\NotificationTypeRepositoryContract;
 use Beeralex\Notification\Contracts\UserNotificationPreferenceRepositoryContract;
+use Beeralex\Notification\Options;
 use Beeralex\Notification\Repository\EventTypeRepository;
 use Beeralex\Notification\Repository\NotificationChannelRepository;
 use Beeralex\Notification\Repository\NotificationCodeRepository;
@@ -20,6 +21,9 @@ use Beeralex\Notification\Repository\UserNotificationPreferenceRepository;
 return [
     'services' => [
         'value' => [
+            Options::class => [
+                'className' => Options::class,
+            ],
             NotificationChannelRepositoryContract::class => [
                 'className' => NotificationChannelRepository::class,
             ],
