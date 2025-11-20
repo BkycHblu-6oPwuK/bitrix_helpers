@@ -4,7 +4,8 @@ namespace Beeralex\User\Auth\Authenticators;
 
 use Beeralex\User\Auth\Contracts\AuthenticatorContract;
 use Beeralex\User\Auth\Social\Contracts\SocialServiceProviderContract;
-use Beeralex\User\Dto\BaseUserDto;
+use Beeralex\User\Dto\AuthCredentialsDto;
+use Bitrix\Main\Result;
 
 class SocialServiceAuthenticator implements AuthenticatorContract
 {
@@ -37,7 +38,7 @@ class SocialServiceAuthenticator implements AuthenticatorContract
         return true;
     }
 
-    public function register(BaseUserDto $user): void
+    public function register(AuthCredentialsDto $user): Result
     {
         throw new \LogicException("Registration handled internally by Bitrix socialservices");
     }
@@ -46,10 +47,12 @@ class SocialServiceAuthenticator implements AuthenticatorContract
      * Выполняем авторизацию пользователя через Bitrix socialservice.
      * Bitrix сам создаст пользователя и залогинит его.
      */
-    public function authenticate(?BaseUserDto $data = null): void
+    public function authenticate(?AuthCredentialsDto $data = null): Result
     {
+        $result = new Result();
         if (!$this->provider->authorize()) {
-            throw new \RuntimeException("Authorization failed via {$this->provider->getKey()}");
+            $result->addError(new \Bitrix\Main\Error("Authorization failed via {$this->provider->getKey()}"));
+            return $result;
         }
 
         // После успешной авторизации Bitrix уже выполнил login.
@@ -61,6 +64,7 @@ class SocialServiceAuthenticator implements AuthenticatorContract
         //     $data->first_name = $profile['first_name'] ?? '';
         //     $data->last_name = $profile['last_name'] ?? '';
         // }
+        return $result;
     }
 
     public function getAuthorizationUrlOrHtml(): ?array

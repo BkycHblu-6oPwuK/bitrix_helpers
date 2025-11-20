@@ -4,13 +4,15 @@ declare(strict_types=1);
 namespace Beeralex\User\Auth;
 
 use Beeralex\User\Auth\Contracts\AuthenticatorContract;
-use Beeralex\User\Auth\SocialAuthenticatorFactory;
-use Beeralex\User\Dto\BaseUserDto;
+use Beeralex\User\Contracts\UserRepositoryContract;
+use Beeralex\User\Dto\AuthCredentialsDto;
+use Bitrix\Main\Result;
 
 /**
- * Тонкий менеджер аутентификации для Bitrix:
- * - Аутентификаторы сами решают, авторизовывать ли через $USER->Authorize()
- * - AuthManager координирует флоу и при необходимости выдаёт JWT
+ * Менеджер аутентификации для Bitrix:
+ * - Координирует работу различных аутентификаторов (local, OAuth и т.д.)
+ * - Единая ответственность: управление процессом аутентификации
+ * - Не занимается JWT токенами (это делегировано AuthService)
  */
 class AuthManager
 {
@@ -19,138 +21,95 @@ class AuthManager
      * @param array<string, AuthenticatorContract> $authenticators
      */
     public function __construct(
-        public readonly array $authenticators,
-        protected readonly JwtTokenManager $jwtManager
+        public readonly array $authenticators
     ) {}
 
     /**
-     * Базовая аутентификация без выпуска токенов.
+     * Аутентификация пользователя через выбранный аутентификатор.
      * Возвращает userId и тип аутентификатора.
      *
-     * @return array{userId:int, auth_type:string}
-     * @throws \Throwable
+     * @return Result{userId:int, authType:string, email:string|null}
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
-    public function authenticateOnly(string $type, ?BaseUserDto $userDto = null): array
+    public function authenticate(string $type, ?AuthCredentialsDto $userDto = null): Result
     {
-        $type = SocialAuthenticatorFactory::formatKey($type);
+        $result = new Result();
         $authenticator = $this->authenticators[$type] ?? null;
 
         if (!$authenticator) {
-            throw new \InvalidArgumentException("Unknown auth type: {$type}");
+            $result->addError(new \Bitrix\Main\Error("Unknown auth type: {$type}"));
+            return $result;
         }
         if (!$authenticator->isService() && $userDto === null) {
-            throw new \InvalidArgumentException("User data must be provided for local authenticators");
+            $result->addError(new \Bitrix\Main\Error("User data must be provided for local authenticators"));
+            return $result;
         }
 
         // Аутентификатор сам решает — поднимать сессию ($USER->Authorize) или нет.
-        $authenticator->authenticate($userDto);
+        $resultAuth = $authenticator->authenticate($userDto);
 
-        $userId = $this->resolveUserId();
+        if(!$resultAuth->isSuccess()) {
+            return $resultAuth;
+        }
+
+        $userId = $this->bitrixCurrentUserId();
         if (!$userId) {
-            throw new \RuntimeException('Authenticated userId cannot be determined');
+            $result->addError(new \Bitrix\Main\Error("Authenticated userId cannot be determined"));
+            return $result;
         }
 
-        return ['userId' => $userId, 'auth_type' => $type];
-    }
-
-    /**
-     * Аутентификация с выдачей пары JWT (token-only флоу).
-     * Если аутентификатор по пути поднял сессию — это его решение.
-     *
-     * @return array{
-     *   userId:int,
-     *   auth_type:string,
-     *   tokens: array{access:string, refresh:string|null}
-     * }
-     * @throws \Throwable
-     */
-    public function loginToken(string $type, ?BaseUserDto $userDto = null, array $extraClaims = []): array
-    {
-        $auth = $this->authenticateOnly($type, $userDto);
-
-        if (!$this->jwtManager->isEnabled()) {
-            throw new \RuntimeException('JWT issuing is disabled by configuration');
-        }
-
-        $tokens = $this->jwtManager->generateTokenPair($auth['userId'], array_merge([
-            'auth_type' => $auth['auth_type'],
-            'email' => $userDto?->email ?? null,
-        ], $extraClaims));
-
-        return [
-            'userId' => $auth['userId'],
-            'auth_type' => $auth['auth_type'],
-            'tokens' => $tokens,
-        ];
-    }
-
-    /**
-     * Аутентификация + выдача JWT, оставлено для совместимости “session+token” флоу,
-     * но управление сессией не делает (её поднимет аутентификатор при необходимости).
-     */
-    public function loginBoth(string $type, ?BaseUserDto $userDto = null, array $extraClaims = []): array
-    {
-        return $this->loginToken($type, $userDto, $extraClaims);
-    }
-
-    /**
-     * Верификация только по access JWT (без изменения сессии).
-     *
-     * @return array{userId:int, auth_type:string}
-     */
-    public function loginByToken(string $accessToken): array
-    {
-        if (!$this->jwtManager->isEnabled()) {
-            throw new \RuntimeException('JWT authentication is disabled or not configured');
-        }
-        if (!$this->jwtManager->isAccessToken($accessToken)) {
-            throw new \InvalidArgumentException('Invalid access token');
-        }
-
-        $userId = $this->jwtManager->getUserIdFromToken($accessToken);
-        if (!$userId) {
-            throw new \RuntimeException('Cannot resolve user from access token');
-        }
-
-        return [
+        $result->setData([
             'userId' => $userId,
-            'auth_type' => 'bearer',
-        ];
+            'authType' => $type,
+            'email' => $userDto?->getEmail() ?? null,
+        ]);
+
+        return $result;
     }
 
-    /**
-     * Обновление пары токенов по refresh.
-     * @return array{access:string, refresh:string|null}
+        /**
+     * Регистрация пользователя через выбранный аутентификатор.
+     *
+     * @return Result{userId:int, authType:string, email:string|null}
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
-    public function refreshTokens(string $refreshToken): array
+    public function register(string $type, AuthCredentialsDto $userDto): Result
     {
-        return $this->jwtManager->refreshTokens($refreshToken);
-    }
+        $result = new Result();
+        $authenticator = $this->authenticators[$type] ?? null;
 
-    /**
-     * Явная генерация пары токенов без логина (например, после MFA).
-     * @return array{access:string, refresh:string|null}
-     */
-    public function generateTokens(int $userId, array $additionalClaims = []): array
-    {
-        return $this->jwtManager->generateTokenPair($userId, $additionalClaims);
-    }
-
-    public function register(string $type, BaseUserDto $userDto): void
-    {
-        $type = SocialAuthenticatorFactory::formatKey($type);
-        if (!isset($this->authenticators[$type])) {
-            throw new \RuntimeException("Unknown authenticator type: {$type}");
+        if (!$authenticator) {
+            $result->addError(new \Bitrix\Main\Error("Unknown auth type: {$type}"));
+            return $result;
         }
-        $this->authenticators[$type]->register($userDto);
+
+        $authenticator->register($userDto);
+
+        $userId = $this->bitrixCurrentUserId();
+        if (!$userId) {
+            $result->addError(new \Bitrix\Main\Error("Registered userId cannot be determined"));
+            return $result;
+        }
+
+        $result->setData([
+            'userId' => $userId,
+            'authType' => $type,
+            'email' => $userDto->getEmail(),
+        ]);
+        return $result;
     }
 
     /**
+     * Получение URL или HTML для авторизации через внешний сервис
+     * 
+     * @param string $type Тип авторизации
      * @return array{type:string, value:string}
+     * @throws \RuntimeException
      */
     public function getAuthorizationUrlOrHtml(string $type): array
     {
-        $type = SocialAuthenticatorFactory::formatKey($type);
         if (!isset($this->authenticators[$type])) {
             throw new \RuntimeException("Unknown authenticator type: {$type}");
         }
@@ -158,7 +117,8 @@ class AuthManager
     }
 
     /**
-     * Список доступных методов.
+     * Список доступных методов аутентификации.
+     * 
      * @return string[]
      */
     public function getAvailable(): array
@@ -168,17 +128,17 @@ class AuthManager
 
     // -------------------- Вспомогательное --------------------
 
+    /**
+     * Получение ID текущего авторизованного пользователя из Bitrix
+     * 
+     * @return int|null
+     */
     protected function bitrixCurrentUserId(): ?int
     {
-        global $USER;
-        if (isset($USER) && method_exists($USER, 'GetID') && method_exists($USER, 'IsAuthorized') && $USER->IsAuthorized()) {
-            return (int)$USER->GetID();
+        $user = service(UserRepositoryContract::class)->getCurrentUser();
+        if ($user->isAuthorized()) {
+            return $user->getId();
         }
         return null;
-    }
-
-    protected function resolveUserId(): ?int
-    {
-        return $this->bitrixCurrentUserId();
     }
 }

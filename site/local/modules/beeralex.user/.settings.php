@@ -19,13 +19,15 @@ use Beeralex\User\UserBuilder;
 use Beeralex\User\UserFactory;
 use Beeralex\User\UserRepository;
 use Beeralex\User\Auth\PhoneCodeService;
+use Beeralex\User\Options;
+use Beeralex\User\Service\AuthService;
 
 return [
     'services' => [
         'value' => [
             UserRepositoryContract::class => [
                 'constructor' => static function () {
-                    return new UserRepository(service(UserFactoryContract::class));
+                    return new UserRepository(service(UserFactoryContract::class), service(\Beeralex\Core\Service\FileService::class));
                 }
             ],
             UserFactoryContract::class => [
@@ -33,7 +35,7 @@ return [
             ],
             UserBuilderContract::class => [
                 'constructor' => static function () {
-                    return new UserBuilder(service(UserFactoryContract::class));
+                    return new UserBuilder(service(UserFactoryContract::class), service(\Beeralex\Core\Service\UserService::class));
                 }
             ],
             EmailAuthenticatorContract::class => [
@@ -55,7 +57,9 @@ return [
                 }
             ],
             JwtTokenManager::class => [
-                'className' => JwtTokenManager::class,
+                'constructor' => static function () {
+                    return new JwtTokenManager(service(Options::class));
+                }
             ],
             SocialAuthenticatorFactory::class => [
                 'constructor' => static function () {
@@ -74,7 +78,7 @@ return [
                     return new AuthManager(array_merge([
                         $emailAuth->getKey() => $emailAuth,
                         $phoneAuth->getKey() => $phoneAuth,
-                    ], $socialAuthenticators), service(JwtTokenManager::class));
+                    ], $socialAuthenticators));
                 }
             ],
             SocialManager::class => [
@@ -82,6 +86,13 @@ return [
                     $socialFactory = new SocialAdaptersFactory();
                     $adapters = $socialFactory->makeAll();
                     return new SocialManager($adapters);
+                }
+            ],
+            AuthService::class => [
+                'constructor' => static function () {
+                    return new AuthService(
+                        service(AuthManager::class), service(JwtTokenManager::class)
+                    );
                 }
             ],
         ],

@@ -6,6 +6,7 @@ use Beeralex\Core\Helpers\FilesHelper;
 use Beeralex\User\Exceptions\ValidationException;
 use Beeralex\User\Phone;
 use Beeralex\Core\Repository\AbstractRepository;
+use Beeralex\Core\Service\FileService;
 use Beeralex\User\Contracts\UserEntityContract;
 use Beeralex\User\Contracts\UserFactoryContract;
 use Beeralex\User\Contracts\UserRepositoryContract;
@@ -13,7 +14,7 @@ use Beeralex\User\UserTable;
 
 class UserRepository extends AbstractRepository implements UserRepositoryContract
 {
-    public function __construct(protected readonly UserFactoryContract $factory)
+    public function __construct(protected readonly UserFactoryContract $factory, protected readonly FileService $fileService)
     {
         parent::__construct(UserTable::class);
     }
@@ -23,7 +24,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      */
     public function getByEmail(string $email, array $select = []): ?UserEntityContract
     {
-        $fields = FilesHelper::addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('EMAIL', $email)->enablePrivateFields()->fetch();
+        $fields = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('EMAIL', $email)->enablePrivateFields()->fetch();
         return $fields ? $this->factory->create($fields) : null;
     }
 
@@ -32,7 +33,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      */
     public function getByPhone(Phone $phone, array $select = []): ?UserEntityContract
     {
-        $fields = FilesHelper::addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('PHONE_AUTH.PHONE_NUMBER', $phone->formatE164())->enablePrivateFields()->fetch();
+        $fields = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('PHONE_AUTH.PHONE_NUMBER', $phone->formatE164())->enablePrivateFields()->fetch();
         return $fields ? $this->factory->create($fields) : null;
     }
 
@@ -41,20 +42,20 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      */
     public function getById(int $userId, array $select = []): ?UserEntityContract
     {
-        $fields = FilesHelper::addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('ID', $userId)->enablePrivateFields()->fetch();
+        $fields = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->where('ID', $userId)->enablePrivateFields()->fetch();
         return $fields ? $this->factory->create($fields) : null;
     }
 
     /**
      * Получает текущего авторизованного пользователя
      */
-    public function getCurrentUser(array $select = []): UserEntityContract
+    public function getCurrentUser(): UserEntityContract
     {
         global $USER;
         static $currentUser;
         if ($currentUser === null) {
             if ($userId = $USER->GetID()) {
-                $currentUser = $this->getById($userId, $select) ?? $this->factory->create([]);
+                $currentUser = $this->getById((int)$userId) ?? $this->factory->create([]);
             } else {
                 $currentUser = $this->factory->create([]);
             }
@@ -156,7 +157,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      */
     public function one(array $filter = [], array $select = []): ?UserEntityContract
     {
-        $fields = FilesHelper::addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->setFilter($filter)->setLimit(1)->enablePrivateFields()->fetch();
+        $fields = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->setFilter($filter)->setLimit(1)->enablePrivateFields()->fetch();
         return $fields ? $this->factory->create($fields) : null;
     }
 
@@ -167,7 +168,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
     public function all(array $filter = [], array $select = [], array $order = []): array
     {
         $result = [];
-        $res = FilesHelper::addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setFilter($filter)->setSelect(array_merge(static::FIELD_SELECT_DEFAULT, $select))->setOrder($order)->enablePrivateFields()->exec();
+        $res = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setFilter($filter)->setSelect(array_merge(static::FIELD_SELECT_DEFAULT, $select))->setOrder($order)->enablePrivateFields()->exec();
         while ($item = $res->fetch()) {
             $result[] = $this->factory->create($item);
         }

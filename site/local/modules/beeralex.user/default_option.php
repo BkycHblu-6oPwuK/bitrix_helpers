@@ -1,10 +1,11 @@
 <?
-
-$beeralex_user_default_option = [
-    'BEERALEX_USER_ENABLE_JWT_AUTH' => 'Y',
-    'BEERALEX_USER_JWT_SECRET_KEY' => 'J3p6o4VwJkqU3yX7J2JQ0vS8Z0jvJmJjzqJjCj7y7v4jS2WlDgYj6Q==',
-    'BEERALEX_USER_JWT_TTL' => '3600',
-    'BEERALEX_USER_JWT_REFRESH_TTL' => '2592000',
-    'BEERALEX_USER_JWT_ALGORITHM' => 'HS256',
-    'BEERALEX_USER_JWT_ISSUER' => 'beeralex.user',
-];
+$localOptionsFileName = 'beeralex_user_options.php';
+$moduleDirPath = __DIR__;
+$bitrixPath = $_SERVER['DOCUMENT_ROOT'] . '/bitrix';
+$localPath = $_SERVER['DOCUMENT_ROOT'] . '/local';
+$basePathToOptions = '/modules/beeralex.core/include/base_module_default_options.php';
+if(file_exists($bitrixPath . $basePathToOptions)) {
+    $beeralex_user_default_option = include $bitrixPath . $basePathToOptions;
+} elseif (file_exists($localPath . $basePathToOptions)) {
+    $beeralex_user_default_option = include $localPath . $basePathToOptions;
+}

@@ -55,7 +55,7 @@ class TelegramAuthService implements AuthServiceContract
             $data['photo_url'] ?? '',
             $data['auth_date'] ?? 0,
             $this->bitrixService->getId(),
-            mb_strtolower($this->bitrixService->getId())
+            mb_strtolower($this->bitrixService->getLoginPrefix())
         );
     }
 }

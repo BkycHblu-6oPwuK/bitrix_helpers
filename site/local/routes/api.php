@@ -5,19 +5,19 @@ use Beeralex\Api\V1\Controllers\ArticlesController;
 use Beeralex\Api\V1\Controllers\CatalogController;
 use Beeralex\Api\V1\Controllers\FormController;
 use Beeralex\Api\V1\Controllers\MainController;
-use Beeralex\User\Controllers\AuthController;
+use Beeralex\Api\V1\Controllers\User\AuthController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
     $routes->prefix('api')->group(function (RoutingConfigurator $routes) {
         $routes->prefix('v1')->group(function (RoutingConfigurator $routes) {
             $routes->prefix('user')->group(function (RoutingConfigurator $routes) {
-                $routes->prefix('auth')->group(function (RoutingConfigurator $routes) {
-                    $routes->post('login', [AuthController::class, 'login']);
-                    $routes->post('register', [AuthController::class, 'register']);
-                    $routes->any('social/redirect/{provider}', [AuthController::class, 'redirect']);
-                    $routes->any('social/callback/{provider}', [AuthController::class, 'callback']);
-                });
+                $routes->post('login', [AuthController::class, 'login']);
+                $routes->post('refresh', [AuthController::class, 'refresh']);
+                $routes->post('register', [AuthController::class, 'register']);
+                $routes->get('profile', [AuthController::class, 'profile']);
+                $routes->post('logout', [AuthController::class, 'logout']);
+                $routes->get('methods', [AuthController::class, 'methods']);
             });
 
             $routes->any('get-content', [MainController::class, 'getContent']);

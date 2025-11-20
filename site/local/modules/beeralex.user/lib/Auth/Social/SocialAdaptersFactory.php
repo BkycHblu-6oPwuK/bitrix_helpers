@@ -31,7 +31,6 @@ class SocialAdaptersFactory
                 $adapter = new BitrixSocialServiceAdapter($serviceCode, $isEnabled === 'Y');
                 $result[$serviceCode] = $adapter;
             } catch (\Throwable $e) {
-                dd($e);
                 // можно залогировать ошибку, но не падать
             }
         }

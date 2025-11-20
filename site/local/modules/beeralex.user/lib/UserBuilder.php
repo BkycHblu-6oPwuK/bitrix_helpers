@@ -4,9 +4,11 @@ namespace Beeralex\User;
 
 use Bitrix\Main\Context;
 use Beeralex\Core\Helpers\UserHelper;
+use Beeralex\Core\Service\UserService;
 use Beeralex\User\Contracts\UserBuilderContract;
 use Beeralex\User\Contracts\UserFactoryContract;
 use Beeralex\User\Phone;
+use Beeralex\User\Dto\AuthCredentialsDto;
 
 class UserBuilder implements UserBuilderContract
 {
@@ -18,7 +20,7 @@ class UserBuilder implements UserBuilderContract
     protected ?Phone $phone = null;
     protected string $authKey = '';
 
-    public function __construct(protected readonly UserFactoryContract $factory) {}
+    public function __construct(protected readonly UserFactoryContract $factory, protected readonly UserService $userService) {}
 
     public function setEmail(string $email): self
     {
@@ -62,32 +64,32 @@ class UserBuilder implements UserBuilderContract
         return $this;
     }
 
-    public static function fromDto(\Beeralex\User\Dto\BaseUserDto $dto): self
+    public static function fromDto(AuthCredentialsDto $dto): self
     {
         $builder = service(UserBuilderContract::class);
 
-        if (!empty($dto->email)) {
-            $builder->setEmail($dto->email);
+        if ($email = $dto->getEmail()) {
+            $builder->setEmail($email);
         }
 
-        if (!empty($dto->first_name)) {
-            $builder->setName($dto->first_name);
+        if ($firstName = $dto->getFirstName()) {
+            $builder->setName($firstName);
         }
 
-        if (!empty($dto->last_name)) {
-            $builder->setLastName($dto->last_name);
+        if ($lastName = $dto->getLastName()) {
+            $builder->setLastName($lastName);
         }
 
-        if (!empty($dto->password)) {
-            $builder->setPassword($dto->password);
+        if ($password = $dto->getPassword()) {
+            $builder->setPassword($password);
         }
 
-        if (!empty($dto->group)) {
-            $builder->setGroup($dto->group);
+        if ($group = $dto->getGroup()) {
+            $builder->setGroup($group);
         }
 
-        if (!empty($dto->phone)) {
-            $builder->setPhone(Phone::fromString($dto->phone));
+        if ($phone = $dto->getPhone()) {
+            $builder->setPhone(Phone::fromString($phone));
         }
 
         return $builder;
@@ -101,8 +103,9 @@ class UserBuilder implements UserBuilderContract
         if (!$this->email) {
             throw new \InvalidArgumentException("Email обязателен");
         }
+        $group = $this->group ?? $this->userService->getDefaultUserGroups();
         if (!$this->password) {
-            $this->password = UserHelper::generatePassword();
+            $this->password = $this->userService->generatePassword($group);
         }
         return $this->factory->create([
             'EMAIL'            => $this->email,
@@ -114,7 +117,7 @@ class UserBuilder implements UserBuilderContract
             'CONFIRM_PASSWORD' => $this->password,
             'ACTIVE' => 'Y',
             'LID' => Context::getCurrent()->getSite(),
-            'GROUP_ID' => $this->group ?? UserHelper::getDefaultUserGroups(),
+            'GROUP_ID' =>  $group,
         ]);
     }
 }

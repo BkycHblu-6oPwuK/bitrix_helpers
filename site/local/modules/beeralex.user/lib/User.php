@@ -43,9 +43,8 @@ class User implements UserEntityContract
 
     public function getId(): ?int
     {
-        return $this->fields['ID'];
+        return (int)$this->fields['ID'] ?: null;
     }
-
 
     public function getName(): string
     {

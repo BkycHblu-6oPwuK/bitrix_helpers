@@ -49,7 +49,6 @@ class BitrixSocialServiceAdapter implements SocialServiceProviderContract
      */
     public function getAuthorizationUrlOrHtml(array $params = []): array
     {
-
         if (method_exists($this->service, 'getUrl')) {
             $ref = new \ReflectionMethod($this->service, 'getUrl');
             $url = match ($ref->getNumberOfParameters()) {
