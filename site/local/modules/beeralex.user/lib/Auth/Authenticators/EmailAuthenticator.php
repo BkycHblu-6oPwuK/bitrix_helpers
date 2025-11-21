@@ -3,9 +3,7 @@ declare(strict_types=1);
 namespace Beeralex\User\Auth\Authenticators;
 
 use Beeralex\User\Auth\Contracts\EmailAuthenticatorContract;
-use Beeralex\User\Dto\AuthCredentialsDto;
-use Beeralex\User\Exceptions\IncorrectOldPasswordException;
-use Beeralex\User\Exceptions\UserNotFoundException;
+use Beeralex\User\Auth\AuthCredentialsDto;
 use Beeralex\User\Validation\Validator\EmailRegisterValidator;
 use Bitrix\Main\Result;
 use Bitrix\Main\Security\Password;
@@ -22,9 +20,9 @@ class EmailAuthenticator extends BaseAuthentificator implements EmailAuthenticat
         return 'Авторизация по E-mail';
     }
 
-    public function authenticate(?AuthCredentialsDto $data = null): Result
+    public function authenticate(AuthCredentialsDto $credentials): Result
     {
-        if ($data === null) {
+        if ($credentials->isEmpty()) {
             $result = new Result();
             $result->addError(new \Bitrix\Main\Error("data must be provided for email authentication"));
             return $result;
@@ -40,8 +38,8 @@ class EmailAuthenticator extends BaseAuthentificator implements EmailAuthenticat
         //     }
         // }
         return $this->authenticateByEmail(
-            $data->getEmail(),
-            $data->getPassword()
+            $credentials->getEmail(),
+            $credentials->getPassword()
         );
     }
 
@@ -61,13 +59,5 @@ class EmailAuthenticator extends BaseAuthentificator implements EmailAuthenticat
 
         $this->authorizeByUserId($user->getId());
         return $result;
-    }
-
-    /**
-     * @return EmailRegisterValidator
-     */
-    protected function getValidator() : ?\Bitrix\Main\Validation\Validator\ValidatorInterface
-    {
-        return new EmailRegisterValidator();
     }
 }

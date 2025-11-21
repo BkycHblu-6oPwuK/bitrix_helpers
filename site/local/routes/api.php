@@ -15,7 +15,6 @@ return function (RoutingConfigurator $routes): void {
                 $routes->post('login', [AuthController::class, 'login']);
                 $routes->post('refresh', [AuthController::class, 'refresh']);
                 $routes->post('register', [AuthController::class, 'register']);
-                $routes->get('profile', [AuthController::class, 'profile']);
                 $routes->post('logout', [AuthController::class, 'logout']);
                 $routes->get('methods', [AuthController::class, 'methods']);
             });

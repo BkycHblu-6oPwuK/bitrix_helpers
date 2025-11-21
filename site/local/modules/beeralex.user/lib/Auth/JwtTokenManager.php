@@ -207,6 +207,10 @@ class JwtTokenManager
      */
     public function refreshTokens(string $refreshToken, array $additionalClaims = []): array
     {
+        if(!$this->isEnabled()) {
+            throw new \RuntimeException('JWT authentication is disabled');
+        }
+
         if (!$this->isRefreshToken($refreshToken)) {
             throw new \InvalidArgumentException('Invalid refresh token');
         }

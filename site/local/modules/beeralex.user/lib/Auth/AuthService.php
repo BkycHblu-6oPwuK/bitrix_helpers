@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Beeralex\User\Service;
+namespace Beeralex\User\Auth;
 
 use Beeralex\User\Auth\AuthManager;
 use Beeralex\User\Auth\JwtTokenManager;
-use Beeralex\User\Dto\AuthCredentialsDto;
+use Beeralex\User\Auth\AuthCredentialsDto;
 use Bitrix\Main\Result;
 
 /**
@@ -37,29 +37,27 @@ class AuthService
             return $authResult;
         }
 
-        // Проверяем, что JWT включен
-        if (!$this->jwtManager->isEnabled()) {
-            $result->addError(new \Bitrix\Main\Error('JWT issuing is disabled by configuration'));
-            return $result;
+        $authData = $authResult->getData();
+        $resultData = [
+            'userId' => $authData['userId'],
+            'authType' => $authData['authType'],
+        ];
+
+        // Если JWT включен, генерируем и добавляем токены
+        if ($this->jwtManager->isEnabled()) {
+            $tokens = $this->jwtManager->generateTokenPair(
+                $authData['userId'],
+                array_merge([
+                    'auth_type' => $authData['authType'],
+                    'email' => $authData['email'],
+                ], $metadata)
+            );
+
+            $resultData['accessToken'] = $tokens['access'];
+            $resultData['refreshToken'] = $tokens['refresh'];
         }
 
-        $authResult = $authResult->getData();
-
-        // Генерируем JWT токены
-        $tokens = $this->jwtManager->generateTokenPair(
-            $authResult['userId'],
-            array_merge([
-                'auth_type' => $authResult['authType'],
-                'email' => $authResult['email'],
-            ], $metadata)
-        );
-
-        $result->setData([
-            'userId' => $authResult['userId'],
-            'authType' => $authResult['authType'],
-            'accessToken' => $tokens['access'],
-            'refreshToken' => $tokens['refresh'],
-        ]);
+        $result->setData($resultData);
 
         return $result;
     }
@@ -76,31 +74,35 @@ class AuthService
     {
         $result = new Result();
         // Регистрируем пользователя через AuthManager
-        $this->authManager->register($credentials->type, $credentials);
+        $registerResult = $this->authManager->register($credentials->type, $credentials);
+        if (!$registerResult->isSuccess()) {
+            return $registerResult;
+        }
 
         // Аутентифицируем после успешной регистрации
         $authResult = $this->authManager->authenticate($credentials->type, $credentials);
-
-        // Проверяем, что JWT включен
-        if (!$this->jwtManager->isEnabled()) {
-            $result->addError(new \Bitrix\Main\Error('JWT issuing is disabled by configuration'));
-            return $result;
+        if (!$authResult->isSuccess()) {
+            return $authResult;
         }
 
-        // Генерируем JWT токены
-        $tokens = $this->jwtManager->generateTokenPair(
-            $authResult['userId'],
-            [
-                'auth_type' => $authResult['authType'],
-                'email' => $authResult['email'],
-            ]
-        );
+        $authData = $authResult->getData();
+        $resultData = [
+            'userId' => $authData['userId'],
+        ];
 
-        $result->setData([
-            'userId' => $authResult['userId'],
-            'accessToken' => $tokens['access'],
-            'refreshToken' => $tokens['refresh'],
-        ]);
+        if ($this->jwtManager->isEnabled()) {
+            $tokens = $this->jwtManager->generateTokenPair(
+                $authData['userId'],
+                [
+                    'auth_type' => $authData['authType'],
+                    'email' => $authData['email'],
+                ]
+            );
+            $resultData['accessToken'] = $tokens['access'];
+            $resultData['refreshToken'] = $tokens['refresh'];
+        }
+
+        $result->setData($resultData);
 
         return $result;
     }
@@ -114,7 +116,6 @@ class AuthService
      */
     public function refreshTokens(string $refreshToken): array
     {
-        // Работа с токенами - ответственность JwtTokenManager
         $tokens = $this->jwtManager->refreshTokens($refreshToken);
 
         $result = [
@@ -122,32 +123,6 @@ class AuthService
             'refreshToken' => $tokens['refresh'],
         ];
         return $result;
-    }
-
-    /**
-     * Получение данных профиля пользователя
-     * 
-     * @param int $userId ID пользователя
-     * @return array{id: int, email: string, name: string|null, lastName: string|null, login: string, phone: string|null}
-     * @throws \RuntimeException
-     */
-    public function getUserProfile(int $userId): array
-    {
-        $rsUser = \CUser::GetByID($userId);
-        $arUser = $rsUser->Fetch();
-
-        if (!$arUser) {
-            throw new \RuntimeException("User with ID {$userId} not found");
-        }
-
-        return [
-            'id' => (int)$arUser['ID'],
-            'email' => $arUser['EMAIL'],
-            'name' => $arUser['NAME'] ?: null,
-            'lastName' => $arUser['LAST_NAME'] ?: null,
-            'login' => $arUser['LOGIN'],
-            'phone' => $arUser['PERSONAL_PHONE'] ?: null,
-        ];
     }
 
     /**
@@ -159,7 +134,6 @@ class AuthService
      */
     public function logout(?string $refreshToken = null, bool $logoutFromBitrix = false): void
     {
-        // Отзываем refresh токен если передан
         if ($refreshToken) {
             try {
                 $this->jwtManager->revokeRefreshToken($refreshToken);

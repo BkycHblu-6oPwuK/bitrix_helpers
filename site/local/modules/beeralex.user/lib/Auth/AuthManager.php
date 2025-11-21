@@ -1,11 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\User\Auth;
 
 use Beeralex\User\Auth\Contracts\AuthenticatorContract;
+use Beeralex\User\Auth\Contracts\AuthValidatorInterface;
 use Beeralex\User\Contracts\UserRepositoryContract;
-use Beeralex\User\Dto\AuthCredentialsDto;
+use Beeralex\User\Auth\AuthCredentialsDto;
 use Bitrix\Main\Result;
 
 /**
@@ -19,9 +21,11 @@ class AuthManager
     /**
      * ключом выступает название интерфейса/ключ аутентификатора
      * @param array<string, AuthenticatorContract> $authenticators
+     * @param array<string, AuthValidatorInterface> $validators
      */
     public function __construct(
-        public readonly array $authenticators
+        public readonly array $authenticators,
+        public readonly array $validators = []
     ) {}
 
     /**
@@ -32,7 +36,7 @@ class AuthManager
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    public function authenticate(string $type, ?AuthCredentialsDto $userDto = null): Result
+    public function authenticate(string $type, AuthCredentialsDto $userDto): Result
     {
         $result = new Result();
         $authenticator = $this->authenticators[$type] ?? null;
@@ -41,15 +45,23 @@ class AuthManager
             $result->addError(new \Bitrix\Main\Error("Unknown auth type: {$type}"));
             return $result;
         }
-        if (!$authenticator->isService() && $userDto === null) {
+        if (!$authenticator->isService() && $userDto->isEmpty()) {
             $result->addError(new \Bitrix\Main\Error("User data must be provided for local authenticators"));
             return $result;
         }
 
-        // Аутентификатор сам решает — поднимать сессию ($USER->Authorize) или нет.
+        if (!$userDto->isEmpty()) {
+            $validator = $this->validators[$type];
+            $validationResult = $validator->validateForLogin($userDto);
+            if (!$validationResult->isSuccess()) {
+                $result->addErrors($validationResult->getErrors());
+                return $result;
+            }
+        }
+
         $resultAuth = $authenticator->authenticate($userDto);
 
-        if(!$resultAuth->isSuccess()) {
+        if (!$resultAuth->isSuccess()) {
             return $resultAuth;
         }
 
@@ -68,7 +80,7 @@ class AuthManager
         return $result;
     }
 
-        /**
+    /**
      * Регистрация пользователя через выбранный аутентификатор.
      *
      * @return Result{userId:int, authType:string, email:string|null}
@@ -83,6 +95,12 @@ class AuthManager
         if (!$authenticator) {
             $result->addError(new \Bitrix\Main\Error("Unknown auth type: {$type}"));
             return $result;
+        }
+
+        $validator = $this->validators[$type];
+        $validationResult = $validator->validateForRegistration($userDto);
+        if (!$validationResult->isSuccess()) {
+            $result->addErrors($validationResult->getErrors());
         }
 
         $authenticator->register($userDto);

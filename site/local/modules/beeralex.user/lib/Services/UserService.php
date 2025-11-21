@@ -9,6 +9,9 @@ use Beeralex\User\Repository\UserRepository;
 use Beeralex\User\User;
 use Beeralex\User\UserValidator;
 
+/**
+ * @deprecated
+ */
 class UserService
 {
     /**

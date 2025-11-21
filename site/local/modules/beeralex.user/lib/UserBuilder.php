@@ -8,7 +8,7 @@ use Beeralex\Core\Service\UserService;
 use Beeralex\User\Contracts\UserBuilderContract;
 use Beeralex\User\Contracts\UserFactoryContract;
 use Beeralex\User\Phone;
-use Beeralex\User\Dto\AuthCredentialsDto;
+use Beeralex\User\Auth\AuthCredentialsDto;
 
 class UserBuilder implements UserBuilderContract
 {
@@ -64,31 +64,31 @@ class UserBuilder implements UserBuilderContract
         return $this;
     }
 
-    public static function fromDto(AuthCredentialsDto $dto): self
+    public static function fromDto(AuthCredentialsDto $credentials): self
     {
         $builder = service(UserBuilderContract::class);
 
-        if ($email = $dto->getEmail()) {
+        if ($email = $credentials->getEmail()) {
             $builder->setEmail($email);
         }
 
-        if ($firstName = $dto->getFirstName()) {
+        if ($firstName = $credentials->getFirstName()) {
             $builder->setName($firstName);
         }
 
-        if ($lastName = $dto->getLastName()) {
+        if ($lastName = $credentials->getLastName()) {
             $builder->setLastName($lastName);
         }
 
-        if ($password = $dto->getPassword()) {
+        if ($password = $credentials->getPassword()) {
             $builder->setPassword($password);
         }
 
-        if ($group = $dto->getGroup()) {
+        if ($group = $credentials->getGroup()) {
             $builder->setGroup($group);
         }
 
-        if ($phone = $dto->getPhone()) {
+        if ($phone = $credentials->getPhone()) {
             $builder->setPhone(Phone::fromString($phone));
         }
 

@@ -4,10 +4,9 @@ namespace Beeralex\User\Auth\Authenticators;
 
 use Beeralex\User\Auth\Contracts\AuthenticatorContract;
 use Beeralex\User\Contracts\UserRepositoryContract;
-use Beeralex\User\Dto\AuthCredentialsDto;
+use Beeralex\User\Auth\AuthCredentialsDto;
 use Beeralex\User\UserBuilder;
 use Bitrix\Main\Result;
-use Bitrix\Main\Validation\Validator\ValidatorInterface;
 
 abstract class BaseAuthentificator implements AuthenticatorContract
 {
@@ -20,11 +19,11 @@ abstract class BaseAuthentificator implements AuthenticatorContract
         (new \CUser())->Authorize($userId);
     }
 
-    public function register(AuthCredentialsDto $userDto): Result
+    public function register(AuthCredentialsDto $credentials): Result
     {
         $result = new Result();
         try {
-            $this->userRepository->add(UserBuilder::fromDto($userDto)->build());
+            $this->userRepository->add(UserBuilder::fromDto($credentials)->build());
         } catch (\Exception $e) {
             $result->addError(new \Bitrix\Main\Error($e->getMessage()));
         }
@@ -47,11 +46,6 @@ abstract class BaseAuthentificator implements AuthenticatorContract
     }
 
     public function getAuthorizationUrlOrHtml(): ?array
-    {
-        return null;
-    }
-
-    protected function getValidator() : ?ValidatorInterface
     {
         return null;
     }

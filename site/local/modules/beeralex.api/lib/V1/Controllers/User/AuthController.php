@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers\User;
@@ -6,20 +7,9 @@ namespace Beeralex\Api\V1\Controllers\User;
 use Beeralex\Core\Http\Controllers\ApiController;
 use Bitrix\Main\Error;
 use Beeralex\User\Auth\ActionFilter\JwtAuthFilter;
-use Beeralex\User\Service\AuthService;
-use Beeralex\User\Dto\AuthCredentialsDto;
+use Beeralex\User\Auth\AuthService;
+use Beeralex\User\Auth\AuthCredentialsDto;
 
-/**
- * REST API контроллер для аутентификации
- * 
- * Endpoints:
- * - POST /api/auth/login - Логин с выдачей JWT токенов
- * - POST /api/auth/refresh - Обновление токенов
- * - POST /api/auth/register - Регистрация нового пользователя
- * - GET /api/auth/profile - Получение профиля (требует авторизации)
- * - POST /api/auth/logout - Выход с отзывом refresh токена
- * - GET /api/auth/methods - Список доступных методов авторизации
- */
 class AuthController extends ApiController
 {
     protected AuthService $authService;
@@ -27,8 +17,6 @@ class AuthController extends ApiController
     protected function init(): void
     {
         parent::init();
-        
-        // Получаем AuthService из DI контейнера
         $this->authService = \service(AuthService::class);
     }
 
@@ -45,9 +33,6 @@ class AuthController extends ApiController
                 'prefilters' => [],
             ],
             'register' => [
-                'prefilters' => [],
-            ],
-            'profile' => [
                 'prefilters' => [],
             ],
             'logout' => [
@@ -83,38 +68,12 @@ class AuthController extends ApiController
             ];
 
             $result = $this->authService->login($credentials, $metadata);
-
-            if(!$result->isSuccess()) {
+            if (!$result->isSuccess()) {
                 $this->addErrors($result->getErrors());
                 return [];
             }
 
             return $result->getData();
-            
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return [];
-        }
-    }
-
-    /**
-     * Обновление пары токенов по refresh токену
-     * 
-     * POST /api/auth/refresh
-     * Body: {
-     *   "refreshToken": "..."
-     * }
-     * 
-     * @param string $refreshToken Refresh токен
-     * @return array
-     */
-    public function refreshAction(string $refreshToken): array
-    {
-        try {
-            $result = $this->authService->refreshTokens($refreshToken);
-
-            return $result;
-            
         } catch (\Throwable $e) {
             $this->addError(new Error($e->getMessage()));
             return [];
@@ -140,13 +99,35 @@ class AuthController extends ApiController
         try {
             $result = $this->authService->register($credentials);
 
-            if(!$result->isSuccess()) {
+            if (!$result->isSuccess()) {
                 $this->addErrors($result->getErrors());
                 return [];
             }
 
             return $result->getData();
-            
+        } catch (\Throwable $e) {
+            $this->addError(new Error($e->getMessage()));
+            return [];
+        }
+    }
+
+    /**
+     * Обновление пары токенов по refresh токену
+     * 
+     * POST /api/auth/refresh
+     * Body: {
+     *   "refreshToken": "..."
+     * }
+     * 
+     * @param string $refreshToken Refresh токен
+     * @return array
+     */
+    public function refreshAction(string $refreshToken): array
+    {
+        try {
+            $result = $this->authService->refreshTokens($refreshToken);
+
+            return $result;
         } catch (\Throwable $e) {
             $this->addError(new Error($e->getMessage()));
             return [];
@@ -176,7 +157,6 @@ class AuthController extends ApiController
             return [
                 'message' => 'Logout successful',
             ];
-            
         } catch (\Throwable $e) {
             $this->addError(new Error($e->getMessage()));
             return [];
@@ -194,9 +174,8 @@ class AuthController extends ApiController
     {
         try {
             $methods = $this->authService->getAvailableAuthMethods();
-            
+
             return $methods;
-            
         } catch (\Throwable $e) {
             $this->addError(new Error($e->getMessage()));
             return [];

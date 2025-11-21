@@ -10,6 +10,9 @@ use Beeralex\User\Repository\UserRepository;
 use Beeralex\User\PasswordValidator;
 use Beeralex\User\User;
 
+/**
+ * @deprecated
+ */
 class ProfileService
 {
     /**

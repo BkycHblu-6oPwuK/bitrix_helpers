@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Beeralex\User\Auth\Contracts;
 
-use Beeralex\User\Dto\AuthCredentialsDto;
+use Beeralex\User\Auth\AuthCredentialsDto;
 use Beeralex\User\User;
 use Bitrix\Main\Result;
 
@@ -16,12 +16,12 @@ interface AuthenticatorContract
     /**
      * Аутентифицировать пользователя.
      */
-    public function authenticate(?AuthCredentialsDto $data = null): Result;
+    public function authenticate(AuthCredentialsDto $credentials): Result;
 
     /**
      * Зарегистрировать нового пользователя.
      */
-    public function register(AuthCredentialsDto $user): Result;
+    public function register(AuthCredentialsDto $credentials): Result;
 
     /**
      * Человекочитаемое название аутентификатора.

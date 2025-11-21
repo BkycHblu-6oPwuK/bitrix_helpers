@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Beeralex\User\Dto;
+namespace Beeralex\User\Auth;
 
 use Beeralex\Core\Http\Request\AbstractRequestDto;
 
@@ -79,5 +79,10 @@ class AuthCredentialsDto extends AbstractRequestDto
     public function get(string $key): mixed
     {
         return $this->payload[$key] ?? null;
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->payload);
     }
 }

@@ -5,6 +5,9 @@ namespace App\User;
 use Beeralex\User\User;
 use Bitrix\Main\Security\Password;
 
+/**
+ * @deprecated
+ */
 class PasswordValidator
 {
     /**

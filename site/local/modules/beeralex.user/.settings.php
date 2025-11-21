@@ -19,8 +19,10 @@ use Beeralex\User\UserBuilder;
 use Beeralex\User\UserFactory;
 use Beeralex\User\UserRepository;
 use Beeralex\User\Auth\PhoneCodeService;
+use Beeralex\User\Auth\Validator\AuthEmailValidator;
+use Beeralex\User\Auth\Validator\AuthPhoneValidator;
 use Beeralex\User\Options;
-use Beeralex\User\Service\AuthService;
+use Beeralex\User\Auth\AuthService;
 
 return [
     'services' => [
@@ -69,6 +71,12 @@ return [
             SocialServiceAuthenticatorFactory::class => [
                 'className' => SocialServiceAuthenticatorFactory::class,
             ],
+            AuthEmailValidator::class => [
+                'className' => AuthEmailValidator::class
+            ],
+            AuthPhoneValidator::class => [
+                'className' => AuthPhoneValidator::class
+            ],  
             AuthManager::class => [
                 'constructor' => static function () {
                     $emailAuth = service(EmailAuthenticatorContract::class);
@@ -78,7 +86,10 @@ return [
                     return new AuthManager(array_merge([
                         $emailAuth->getKey() => $emailAuth,
                         $phoneAuth->getKey() => $phoneAuth,
-                    ], $socialAuthenticators));
+                    ], $socialAuthenticators), [
+                        $emailAuth->getKey() => service(AuthEmailValidator::class),
+                        $phoneAuth->getKey() => service(AuthPhoneValidator::class)
+                    ]);
                 }
             ],
             SocialManager::class => [
