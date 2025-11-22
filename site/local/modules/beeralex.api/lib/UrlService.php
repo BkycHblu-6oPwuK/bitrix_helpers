@@ -6,11 +6,16 @@ namespace Beeralex\Api;
 use Bitrix\Main\Config\Configuration;
 use Bitrix\Main\Loader;
 
-class UrlHelper
+class UrlService
 {
-    /**
-     * Возвращает массив строк для удаления из URL из .settings.php
-     */
+    protected readonly array $removeParts;
+    
+    public function __construct()
+    {
+        Loader::requireModule('iblock');
+        $this->removeParts = static::getRemoveParts();
+    }
+
     public static function getRemoveParts(): array
     {
         $config = Configuration::getInstance()->get('beeralex.api');
@@ -20,11 +25,9 @@ class UrlHelper
     /**
      * Удаляет указанные части из URL
      */
-    public static function cleanUrl(string $url): string
+    public function cleanUrl(string $url): string
     {
-        $removeParts = static::getRemoveParts();
-
-        foreach ($removeParts as $part) {
+        foreach ($this->removeParts as $part) {
             $url = preg_replace('#(^|/)' . preg_quote($part, '#') . '(/|$)#', '/', $url);
         }
 
@@ -45,11 +48,10 @@ class UrlHelper
      *     clean_url: string,
      * }
      */
-    public static function getSectionUrl(array $sectionFields, string $template, bool $serverName = false, string $arrType = 'S'): array
+    public function getSectionUrl(array $sectionFields, string $template, bool $serverName = false, string $arrType = 'S'): array
     {
-        Loader::requireModule('iblock');
         $url = \CIBlock::ReplaceSectionUrl($template, $sectionFields, $serverName, $arrType);
-        return ['url' => $url, 'clean_url' => static::cleanUrl($url)];
+        return ['url' => $url, 'clean_url' => $this->cleanUrl($url)];
     }
 
     /**
@@ -59,10 +61,9 @@ class UrlHelper
      *     clean_url: string,
      * }
      */
-    public static function getDetailUrl(array $elementFields, string $template, bool $serverName = false, string $arrType = 'E'): array
+    public function getDetailUrl(array $elementFields, string $template, bool $serverName = false, string $arrType = 'E'): array
     {
-        Loader::requireModule('iblock');
         $url = \CIBlock::ReplaceDetailUrl($template, $elementFields, $serverName, $arrType);
-        return ['url' => $url, 'clean_url' => static::cleanUrl($url)];
+        return ['url' => $url, 'clean_url' => $this->cleanUrl($url)];
     }
 }

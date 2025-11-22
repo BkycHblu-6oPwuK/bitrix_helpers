@@ -8,7 +8,7 @@ use Beeralex\User\Validation\Validator\EmailRegisterValidator;
 use Bitrix\Main\Result;
 use Bitrix\Main\Security\Password;
 
-class EmailAuthenticator extends BaseAuthentificator implements EmailAuthenticatorContract
+class EmailAuthenticator extends AbstractAuthentificator implements EmailAuthenticatorContract
 {
     public function getKey(): string
     {
@@ -27,16 +27,6 @@ class EmailAuthenticator extends BaseAuthentificator implements EmailAuthenticat
             $result->addError(new \Bitrix\Main\Error("data must be provided for email authentication"));
             return $result;
         }
-        // if($validator = $this->getValidator()) {
-        //     $validationResult = $validator->validate($data);
-        //     if (!$validationResult->isSuccess()) {
-        //         $result = new Result();
-        //         foreach ($validationResult->getErrors() as $error) {
-        //             $result->addError($error);
-        //         }
-        //         return $result;
-        //     }
-        // }
         return $this->authenticateByEmail(
             $credentials->getEmail(),
             $credentials->getPassword()

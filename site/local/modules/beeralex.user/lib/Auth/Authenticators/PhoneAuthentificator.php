@@ -11,7 +11,7 @@ use Beeralex\User\Phone;
 use Beeralex\User\Auth\PhoneCodeService;
 use Bitrix\Main\Result;
 
-class PhoneAuthentificator extends BaseAuthentificator implements PhoneAuthentificatorContract
+class PhoneAuthentificator extends AbstractAuthentificator implements PhoneAuthentificatorContract
 {
     public function __construct(
         protected readonly PhoneCodeService $codeService,

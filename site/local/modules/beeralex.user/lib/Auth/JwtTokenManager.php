@@ -3,7 +3,11 @@ declare(strict_types=1);
 
 namespace Beeralex\User\Auth;
 
+use Beeralex\Core\Dto\CacheSettingsDto;
+use Beeralex\Core\Traits\Cacheable;
 use Beeralex\User\Options;
+use Bitrix\Main\Result;
+use Bitrix\Main\Web\Json;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
@@ -15,36 +19,41 @@ use Firebase\JWT\SignatureInvalidException;
  */
 class JwtTokenManager
 {
-    /**
-     * Простейший in-memory blacklist для refresh токенов (по jti или hash).
-     * В проде имеет смысл заменить на persistent storage (DB/Redis).
-     * Ключ: string (jti либо sha256(token)), значение: true.
-     * Внимание: живёт в рамках процесса PHP (CLI/FPM воркера).
-     *
-     * @var array<string,bool>
-     */
-    private static array $revokedRefreshIndex = [];
+    use Cacheable;
 
     public function __construct(
         protected readonly Options $options
-    ) {}
+    ) 
+    {}
+
+    protected function makeCacheSettingsDto(string $key): CacheSettingsDto
+    {
+        return new CacheSettingsDto(
+            time: 3600,
+            key: $key,
+            dir: 'beeralex/user/jwt',
+        );
+    }
 
     /**
      * Генерация access токена
      *
      * @param int $userId ID пользователя
      * @param array $additionalClaims Дополнительные данные для токена
-     * @return string JWT токен
+     * @return Result<array<string, string>> JWT токен
      * @throws \InvalidArgumentException
      */
-    public function generateAccessToken(int $userId, array $additionalClaims = []): string
+    public function generateAccessToken(int $userId, array $additionalClaims = []): Result
     {
+        $result = new Result();
         if (!$this->options->enableJwtAuth) {
-            throw new \RuntimeException('JWT authentication is disabled');
+            $result->addError(new \Bitrix\Main\Error('JWT authentication is disabled', 'token'));
+            return $result;
         }
 
         if (empty($this->options->jwtSecretKey)) {
-            throw new \InvalidArgumentException('JWT secret key is not configured');
+            $result->addError(new \Bitrix\Main\Error('JWT secret key is not configured', 'token'));
+            return $result;
         }
 
         $now = time();
@@ -60,24 +69,31 @@ class JwtTokenManager
         // Добавляем дополнительные claims
         $payload = array_merge($payload, $additionalClaims);
 
-        return JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm);
+        $result->setData([
+            'accessToken' => JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm)
+        ]);
+
+        return $result;
     }
 
     /**
      * Генерация refresh токена
      *
      * @param int $userId ID пользователя
-     * @return string JWT refresh токен
+     * @return Result<array<string, string>> JWT refresh токен
      * @throws \InvalidArgumentException
      */
-    public function generateRefreshToken(int $userId): string
+    public function generateRefreshToken(int $userId): Result
     {
+        $result = new Result();
         if (!$this->options->enableJwtAuth) {
-            throw new \RuntimeException('JWT authentication is disabled');
+            $result->addError(new \Bitrix\Main\Error('JWT authentication is disabled', 'token'));
+            return $result;
         }
 
         if (empty($this->options->jwtSecretKey)) {
-            throw new \InvalidArgumentException('JWT secret key is not configured');
+            $result->addError(new \Bitrix\Main\Error('JWT secret key is not configured', 'token'));
+            return $result;
         }
 
         $now = time();
@@ -90,7 +106,11 @@ class JwtTokenManager
             'jti' => $this->generateJti(),
         ];
 
-        return JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm);
+        $result->setData([
+            'refreshToken' => JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm)
+        ]);
+
+        return $result;
     }
 
     /**
@@ -98,44 +118,72 @@ class JwtTokenManager
      *
      * @param int $userId ID пользователя
      * @param array $additionalClaims Дополнительные данные для access токена
-     * @return array{access: string, refresh: string}
+     * @return Result<array<{accessToken: string, refreshToken: string}>>
      */
-    public function generateTokenPair(int $userId, array $additionalClaims = []): array
+    public function generateTokenPair(int $userId, array $additionalClaims = []): Result
     {
-        return [
-            'access' => $this->generateAccessToken($userId, $additionalClaims),
-            'refresh' => $this->generateRefreshToken($userId),
-        ];
+        $result = new Result();
+        if(!$this->isEnabled()) {
+            $result->addError(new \Bitrix\Main\Error('JWT authentication is disabled', 'token'));
+            return $result;
+        }
+        $accessTokenResult = $this->generateAccessToken($userId, $additionalClaims);
+        $refreshTokenResult = $this->generateRefreshToken($userId);
+
+        if (!$accessTokenResult->isSuccess()) {
+            foreach ($accessTokenResult->getErrors() as $error) {
+                $result->addError($error);
+            }
+        }
+
+        if (!$refreshTokenResult->isSuccess()) {
+            foreach ($refreshTokenResult->getErrors() as $error) {
+                $result->addError($error);
+            }
+        }
+
+        if (!$result->isSuccess()) {
+            return $result;
+        }
+
+        $result->setData([
+            'accessToken' => $accessTokenResult->getData()['accessToken'],
+            'refreshToken' => $refreshTokenResult->getData()['refreshToken'],
+        ]);
+
+        return $result;
     }
 
     /**
      * Валидация и декодирование токена
      *
      * @param string $token JWT токен
-     * @return object Декодированные данные токена
-     * @throws ExpiredException Токен истёк
-     * @throws SignatureInvalidException Неверная подпись
-     * @throws \InvalidArgumentException Невалидный токен
+     * @return Result<array<string,mixed>> Декодированные данные токена
      */
-    public function verifyToken(string $token): object
+    public function verifyToken(string $token): Result
     {
+        $result = new Result();
         if (!$this->options->enableJwtAuth) {
-            throw new \RuntimeException('JWT authentication is disabled');
+            $result->addError(new \Bitrix\Main\Error('JWT authentication is disabled', 'token'));
+            return $result;
         }
 
         if (empty($this->options->jwtSecretKey)) {
-            throw new \InvalidArgumentException('JWT secret key is not configured');
+            $result->addError(new \Bitrix\Main\Error('JWT secret key is not configured', 'token'));
+            return $result;
         }
 
         try {
-            return JWT::decode($token, new Key($this->options->jwtSecretKey, $this->options->jwtAlgorithm));
+            $decoded = JWT::decode($token, new Key($this->options->jwtSecretKey, $this->options->jwtAlgorithm));
+            $result->setData((array)$decoded);
         } catch (ExpiredException $e) {
-            throw new ExpiredException('Token has expired');
+            $result->addError(new \Bitrix\Main\Error('Token has expired', 'token'));
         } catch (SignatureInvalidException $e) {
-            throw new SignatureInvalidException('Invalid token signature');
+            $result->addError(new \Bitrix\Main\Error('Invalid token signature', 'token'));
         } catch (\Exception $e) {
-            throw new \InvalidArgumentException('Invalid token: ' . $e->getMessage());
+            $result->addError(new \Bitrix\Main\Error('Invalid token: ' . $e->getMessage(), 'token'));
         }
+        return $result;
     }
 
     /**
@@ -147,7 +195,11 @@ class JwtTokenManager
     public function getUserIdFromToken(string $token): int
     {
         $decoded = $this->verifyToken($token);
-        return (int)$decoded->sub;
+        if (!$decoded->isSuccess()) {
+            return 0;
+        }
+        $decoded = $decoded->getData();
+        return (int)$decoded['sub'];
     }
 
     /**
@@ -158,12 +210,12 @@ class JwtTokenManager
      */
     public function isAccessToken(string $token): bool
     {
-        try {
-            $decoded = $this->verifyToken($token);
-            return isset($decoded->type) && $decoded->type === 'access';
-        } catch (\Exception $e) {
+        $decoded = $this->verifyToken($token);
+        if (!$decoded->isSuccess()) {
             return false;
         }
+        $decoded = $decoded->getData();
+        return isset($decoded['type']) && $decoded['type'] === 'access';
     }
 
     /**
@@ -174,12 +226,12 @@ class JwtTokenManager
      */
     public function isRefreshToken(string $token): bool
     {
-        try {
-            $decoded = $this->verifyToken($token);
-            return isset($decoded->type) && $decoded->type === 'refresh';
-        } catch (\Exception $e) {
+        $decoded = $this->verifyToken($token);
+        if (!$decoded->isSuccess()) {
             return false;
         }
+        $decoded = $decoded->getData();
+        return isset($decoded['type']) && $decoded['type'] === 'refresh';
     }
 
     /**
@@ -187,14 +239,21 @@ class JwtTokenManager
      */
     public function isRefreshRevoked(string $refreshToken): bool
     {
-        try {
-            $decoded = $this->verifyToken($refreshToken);
-        } catch (\Throwable) {
-            // Невалидный/истёкший — с точки зрения ревокации считать как "неактивен"
+        $decoded = $this->verifyToken($refreshToken);
+        if (!$decoded->isSuccess()) {
             return true;
         }
-        $key = $this->makeRevocationKey($decoded, $refreshToken);
-        return isset(static::$revokedRefreshIndex[$key]);
+        $key = $this->makeRevocationKey($decoded->getData(), $refreshToken);
+        try {
+            $revokedArr = $this->getCached($this->makeCacheSettingsDto($key), function() {
+                return [
+                    'revoked' => false,
+                ];
+            });
+        } catch (\Exception $e) {
+            return false;
+        }
+        return isset($revokedArr['revoked']) && $revokedArr['revoked'] === true;
     }
 
     /**
@@ -205,44 +264,50 @@ class JwtTokenManager
      * @return array{access: string, refresh: string}
      * @throws \InvalidArgumentException
      */
-    public function refreshTokens(string $refreshToken, array $additionalClaims = []): array
+    public function refreshTokens(string $refreshToken, array $additionalClaims = []): Result
     {
+        $result = new Result();
         if(!$this->isEnabled()) {
-            throw new \RuntimeException('JWT authentication is disabled');
+            $result->addError(new \Bitrix\Main\Error('JWT authentication is disabled', 'token'));
+            return $result;
         }
 
         if (!$this->isRefreshToken($refreshToken)) {
-            throw new \InvalidArgumentException('Invalid refresh token');
+            $result->addError(new \Bitrix\Main\Error('Invalid refresh token', 'token'));
+            return $result;
         }
 
         if ($this->isRefreshRevoked($refreshToken)) {
-            throw new \InvalidArgumentException('Refresh token has been revoked');
+            $result->addError(new \Bitrix\Main\Error('Refresh token has been revoked', 'token'));
+            return $result;
         }
 
         $decoded = $this->verifyToken($refreshToken);
-        $userId = (int)$decoded->sub;
-
-        // По желанию можно реализовать rotate: при успешном рефреше отзывать старый refresh.
-        // $this->revokeRefreshToken($refreshToken);
+        if (!$decoded->isSuccess()) {
+            return $decoded;
+        }
+        $decoded = $decoded->getData();
+        $userId = (int)$decoded['sub'];
 
         return $this->generateTokenPair($userId, $additionalClaims);
     }
 
     /**
      * Отзыв (ревокация) refresh токена. Нужен для logout или ручного отзыва.
-     * По умолчанию — добавляет запись в in-memory blacklist.
-     * Для production лучше заменить на persistent storage (DB/Redis) и TTL.
      */
     public function revokeRefreshToken(string $refreshToken): void
     {
-        try {
-            $decoded = $this->verifyToken($refreshToken);
-        } catch (\Throwable) {
-            // уже невалиден — можно считать отозванным
+        $decoded = $this->verifyToken($refreshToken);
+        if (!$decoded->isSuccess()) {
             return;
         }
+        $decoded = $decoded->getData();
         $key = $this->makeRevocationKey($decoded, $refreshToken);
-        static::$revokedRefreshIndex[$key] = true;
+        $this->getCached($this->makeCacheSettingsDto($key), function() {
+            return [
+                'revoked' => true,
+            ];
+        });
     }
 
     /**
@@ -264,25 +329,27 @@ class JwtTokenManager
     /**
      * Получить claims в виде массива (helper).
      *
-     * @return array<string,mixed>
+     * @return Result<array<string,mixed>>
      */
-    public function getTokenClaims(string $token): array
+    public function getTokenClaims(string $token): Result
     {
         $decoded = $this->verifyToken($token);
-        return json_decode(json_encode($decoded, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+        if (!$decoded->isSuccess()) {
+            return $decoded;
+        }
+        $result = new Result();
+        $decoded = $decoded->getData();
+        $result->setData(Json::decode(Json::encode($decoded)));
+        return $result;
     }
 
     /**
      * Проверка, включена ли JWT авторизация
-     *
-     * @return bool
      */
     public function isEnabled(): bool
     {
         return $this->options->enableJwtAuth && !empty($this->options->jwtSecretKey);
     }
-
-    // -------------------- Внутренние помощники --------------------
 
     private function generateJti(): string
     {
@@ -291,13 +358,11 @@ class JwtTokenManager
 
     /**
      * Ключ для black/allow-листа: по возможности jti, иначе sha256 от всего токена.
-     *
-     * @param object $decoded
      */
-    private function makeRevocationKey(object $decoded, string $rawToken): string
+    private function makeRevocationKey(array $decoded, string $rawToken): string
     {
         /** @var string|null $jti */
-        $jti = isset($decoded->jti) && is_string($decoded->jti) ? $decoded->jti : null;
+        $jti = isset($decoded['jti']) && is_string($decoded['jti']) ? $decoded['jti'] : null;
         return $jti ?: hash('sha256', $rawToken);
     }
 }

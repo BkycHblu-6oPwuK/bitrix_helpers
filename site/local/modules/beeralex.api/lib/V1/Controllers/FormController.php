@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
 
-use Beeralex\Api\GlobalResult;
-use Beeralex\Core\Helpers\FilesHelper;
+use Beeralex\Api\ApiProcessResultTrait;
+use Beeralex\Api\ApiResult;
+use Beeralex\Core\Service\FileService;
 use Bitrix\Main\Engine\Controller;
 
 class FormController extends Controller
 {
+    use ApiProcessResultTrait;
+    
     public function configureActions()
     {
         return [
@@ -23,19 +26,19 @@ class FormController extends Controller
 
     public function indexAction(int $formId)
     {
-        FilesHelper::includeFile('v1.form.index', [
+        service(FileService::class)->includeFile('v1.form.index', [
             'formId' => $formId
         ]);
-        return GlobalResult::$result;
+        return service(ApiResult::class)->getData();
     }
 
     public function storeAction(int $formId)
     {
         $_POST['WEB_FORM_ID'] = $formId;
         $_REQUEST['web_form_apply'] = 'Y';
-        FilesHelper::includeFile('v1.form.index', [
+        service(FileService::class)->includeFile('v1.form.index', [
             'formId' => $formId
         ]);
-        return GlobalResult::$result;
+        return service(ApiResult::class)->getData();
     }
 }

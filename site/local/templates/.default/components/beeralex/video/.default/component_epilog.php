@@ -1,10 +1,10 @@
 <?
 /** @var array $arResult */
 
+use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
-use Beeralex\Api\GlobalResult;
 
-GlobalResult::addPageData([
+service(ApiResult::class)->addPageData([
     'type' => ContentTypes::VIDEO,
     'result' => $arResult
 ]);

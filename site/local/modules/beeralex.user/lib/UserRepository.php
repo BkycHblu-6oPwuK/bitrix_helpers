@@ -2,8 +2,6 @@
 declare(strict_types=1);
 namespace Beeralex\User;
 
-use Beeralex\Core\Helpers\FilesHelper;
-use Beeralex\User\Exceptions\ValidationException;
 use Beeralex\User\Phone;
 use Beeralex\Core\Repository\AbstractRepository;
 use Beeralex\Core\Service\FileService;
@@ -68,7 +66,6 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      * Добавляет нового пользователя
      *
      * @throws RuntimeException
-     * @throws ValidationException
      */
     public function addByUser(User $user): int
     {
@@ -88,7 +85,6 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      * Обновляет данные пользователя
      *
      * @throws RuntimeException
-     * @throws ValidationException
      */
     public function update(int $userId, array|object $data): void
     {

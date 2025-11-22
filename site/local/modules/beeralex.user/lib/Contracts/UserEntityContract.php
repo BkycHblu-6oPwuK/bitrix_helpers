@@ -18,6 +18,7 @@ interface UserEntityContract
     public function getPhone(): ?Phone;
     public function getEmail(): string;
     public function getPassword(): string;
+    public function getCheckword(): string;
     public function getBirthday(): ?Date;
     public function getFullName(): string;
     public function getPhoto(): ?string;

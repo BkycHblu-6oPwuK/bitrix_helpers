@@ -81,6 +81,11 @@ class User implements UserEntityContract
         return $this->fields['PASSWORD'] ?? '';
     }
 
+    public function getCheckword(): string
+    {
+        return $this->fields['CHECKWORD'] ?? '';
+    }
+
     public function getBirthday(): ?Date
     {
         $birthday = $this->fields['PERSONAL_BIRTHDAY'];

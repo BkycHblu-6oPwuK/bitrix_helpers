@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
 
-use Beeralex\Api\GlobalResult;
-use Beeralex\Core\Helpers\FilesHelper;
+use Beeralex\Api\ApiProcessResultTrait;
+use Beeralex\Api\ApiResult;
+use Beeralex\Core\Service\FileService;
 use Bitrix\Main\Engine\Controller;
 
 class CatalogController extends Controller
 {
+    use ApiProcessResultTrait;
+
     public function configureActions()
     {
         return [
@@ -20,8 +23,10 @@ class CatalogController extends Controller
 
     public function indexAction()
     {
-        FilesHelper::includeFile('v1.catalog.index');
-        GlobalResult::setSeo();
-        return GlobalResult::$result;
+        return $this->process(function () {
+            service(FileService::class)->includeFile('v1.catalog.index');
+            service(ApiResult::class)->setSeo();
+            return service(ApiResult::class);
+        });
     }
 }

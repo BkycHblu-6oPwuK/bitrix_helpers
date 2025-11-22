@@ -1,6 +1,7 @@
 <?php
 
 use Beeralex\User\Auth\Authenticators\EmailAuthenticator;
+use Beeralex\User\Auth\Authenticators\EmptyAuthentificator;
 use Beeralex\User\Auth\Authenticators\PhoneAuthentificator;
 use Beeralex\User\Auth\Authenticators\SocialServiceAuthenticatorFactory;
 use Beeralex\User\Auth\AuthManager;
@@ -39,6 +40,9 @@ return [
                 'constructor' => static function () {
                     return new UserBuilder(service(UserFactoryContract::class), service(\Beeralex\Core\Service\UserService::class));
                 }
+            ],
+            EmptyAuthentificator::class => [
+                'className' => EmptyAuthentificator::class,
             ],
             EmailAuthenticatorContract::class => [
                 'constructor' => static function () {

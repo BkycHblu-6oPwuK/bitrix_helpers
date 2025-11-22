@@ -1,8 +1,8 @@
 <?php
 
-use Beeralex\Api\GlobalResult;
+use Beeralex\Api\ApiResult;
 
-GlobalResult::addPageData([
+service(ApiResult::class)->addPageData([
     'items' => $arResult['ITEMS'],
     'pagination' => $arResult['PAGINATION'],
 ], 'catalogSection');

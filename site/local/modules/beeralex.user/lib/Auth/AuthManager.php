@@ -46,7 +46,7 @@ class AuthManager
             return $result;
         }
         if (!$authenticator->isService() && $userDto->isEmpty()) {
-            $result->addError(new \Bitrix\Main\Error("User data must be provided for local authenticators"));
+            $result->addError(new \Bitrix\Main\Error("User data must be provided for local authenticators", 'authentificator'));
             return $result;
         }
 
@@ -67,7 +67,7 @@ class AuthManager
 
         $userId = $this->bitrixCurrentUserId();
         if (!$userId) {
-            $result->addError(new \Bitrix\Main\Error("Authenticated userId cannot be determined"));
+            $result->addError(new \Bitrix\Main\Error("Authenticated userId cannot be determined", 'authentificator'));
             return $result;
         }
 
@@ -93,7 +93,7 @@ class AuthManager
         $authenticator = $this->authenticators[$type] ?? null;
 
         if (!$authenticator) {
-            $result->addError(new \Bitrix\Main\Error("Unknown auth type: {$type}"));
+            $result->addError(new \Bitrix\Main\Error("Unknown auth type: {$type}", 'authentificator'));
             return $result;
         }
 
@@ -107,7 +107,7 @@ class AuthManager
 
         $userId = $this->bitrixCurrentUserId();
         if (!$userId) {
-            $result->addError(new \Bitrix\Main\Error("Registered userId cannot be determined"));
+            $result->addError(new \Bitrix\Main\Error("Registered userId cannot be determined", 'authentificator'));
             return $result;
         }
 
@@ -123,15 +123,17 @@ class AuthManager
      * Получение URL или HTML для авторизации через внешний сервис
      * 
      * @param string $type Тип авторизации
-     * @return array{type:string, value:string}
+     * @return Result<array{type:string, value:string}>
      * @throws \RuntimeException
      */
-    public function getAuthorizationUrlOrHtml(string $type): array
+    public function getAuthorizationUrlOrHtml(string $type): Result
     {
+        $result = new Result();
         if (!isset($this->authenticators[$type])) {
-            throw new \RuntimeException("Unknown authenticator type: {$type}");
+            $result->addError(new \Bitrix\Main\Error("Unknown authenticator type: {$type}", 'authentificator'));
+            return $result;
         }
-        return $this->authenticators[$type]->getAuthorizationUrlOrHtml() ?? [];
+        return $result->setData($this->authenticators[$type]->getAuthorizationUrlOrHtml() ?? []);
     }
 
     /**

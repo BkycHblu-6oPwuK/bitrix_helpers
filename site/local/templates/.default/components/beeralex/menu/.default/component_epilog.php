@@ -1,5 +1,7 @@
 <?
 
-use Beeralex\Api\GlobalResult;
+use Beeralex\Api\ApiResult;
 
-GlobalResult::$result['menu'] = $arResult['MENU'];
+service(ApiResult::class)->setData([
+    'menu' => $arResult['MENU'],
+]);

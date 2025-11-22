@@ -3,7 +3,6 @@ declare(strict_types=1);
 namespace Beeralex\User\Auth\Contracts;
 
 use Beeralex\User\Auth\AuthCredentialsDto;
-use Beeralex\User\User;
 use Bitrix\Main\Result;
 
 interface AuthenticatorContract

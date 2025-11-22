@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Api\UrlHelper;
+use Beeralex\Api\UrlService;
 use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Model\SectionModel;
 
@@ -252,7 +252,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
 
     protected function replaceUrl(&$item): void
     {
-        $url = UrlHelper::getSectionUrl([
+        $url = service(UrlService::class)->getSectionUrl([
             'SECTION_CODE' => $item['CODE'],
             'IBLOCK_SECTION_ID' => $item['ID']
         ], $item['SECTION_TEMPLATE']);

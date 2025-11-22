@@ -1,5 +1,5 @@
 <?php
 
-use Beeralex\Api\GlobalResult;
+use Beeralex\Api\ApiResult;
 
-GlobalResult::addPageData($arResult, 'catalogSectionList');
+service(ApiResult::class)->addPageData($arResult, 'catalogSectionList');

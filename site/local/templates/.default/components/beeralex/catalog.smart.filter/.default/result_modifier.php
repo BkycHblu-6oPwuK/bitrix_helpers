@@ -1,7 +1,7 @@
 <?php
 
+use Beeralex\Api\ApiResult;
 use Bitrix\Iblock\SectionPropertyTable;
-use Beeralex\Api\GlobalResult;
 use Beeralex\Catalog\Helper\CatalogSectionHelper;
 
 $items = [];
@@ -28,5 +28,5 @@ $arResult['VUE_DATA'] = [
         'range' => SectionPropertyTable::NUMBERS_WITH_SLIDER
     ]
 ];
-GlobalResult::addPageData($arResult['VUE_DATA'], 'catalogFilter');
+service(ApiResult::class)->addPageData($arResult['VUE_DATA'], 'catalogFilter');
 $this->getComponent()->setResultCacheKeys(['VUE_DATA']);

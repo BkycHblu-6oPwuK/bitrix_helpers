@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\User\Auth\ActionFilter;
 
+use Beeralex\User\Auth\Authenticators\EmptyAuthentificator;
 use Beeralex\User\Auth\JwtTokenManager;
 use Bitrix\Main\Engine\ActionFilter\Base;
 use Bitrix\Main\Error;
@@ -90,6 +91,13 @@ class JwtAuthFilter extends Base
         try {
             // Валидируем токен
             $decoded = $this->jwtManager->verifyToken($token);
+
+            if(!$decoded->isSuccess()) {
+                $this->addErrors($decoded->getErrors());
+                return new EventResult(EventResult::ERROR, null, null, $this);
+            }
+
+            $decoded = $decoded->getData();
             
             // Проверяем, что это access токен
             if (!$this->jwtManager->isAccessToken($token)) {
@@ -97,13 +105,12 @@ class JwtAuthFilter extends Base
             }
 
             // Получаем ID пользователя
-            $userId = (int)$decoded->sub;
+            $userId = (int)$decoded['sub'];
 
             if ($userId > 0) {
-                // Авторизуем пользователя в Bitrix
                 global $USER;
                 if ($USER instanceof \CUser && (!$USER->IsAuthorized() || $USER->GetID() != $userId)) {
-                    $USER->Authorize($userId);
+                    service(EmptyAuthentificator::class)->authorizeByUserId($userId);
                 }
             }
 

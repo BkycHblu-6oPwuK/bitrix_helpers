@@ -1,4 +1,7 @@
 <?
 
-use Beeralex\Api\GlobalResult;
-GlobalResult::$result['element'] = (array)$arResult['dto'];
+use Beeralex\Api\ApiResult;
+
+service(ApiResult::class)->setData([
+    'element' => (array)$arResult['dto'],
+]);

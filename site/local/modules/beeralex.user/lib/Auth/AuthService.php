@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\User\Auth;
@@ -33,7 +34,7 @@ class AuthService
         $result = new Result();
         $authResult = $this->authManager->authenticate($credentials->type, $credentials);
 
-        if(!$authResult->isSuccess()) {
+        if (!$authResult->isSuccess()) {
             return $authResult;
         }
 
@@ -159,18 +160,21 @@ class AuthService
     public function getAvailableAuthMethods(): array
     {
         $methods = $this->authManager->getAvailable();
-        
+
         $result = [];
         foreach ($methods as $method) {
             try {
-                $authData = $this->authManager->getAuthorizationUrlOrHtml($method);
+                $authDataResult = $this->authManager->getAuthorizationUrlOrHtml($method);
+                if (!$authDataResult->isSuccess()) {
+                    continue;
+                }
+                $authData = $authDataResult->getData();
                 $result[] = [
                     'type' => $method,
                     'authType' => $authData['type'] ?? null,
                     'value' => $authData['value'] ?? null,
                 ];
             } catch (\Throwable) {
-                // Пропускаем методы, которые не смогли вернуть данные
                 continue;
             }
         }
@@ -181,22 +185,28 @@ class AuthService
      * Верификация access токена
      * 
      * @param string $accessToken Access токен
-     * @return array{userId: int, claims: array}
+     * @return Result<array{userId: int, claims: array}>
      * @throws \InvalidArgumentException
      */
-    public function verifyAccessToken(string $accessToken): array
+    public function verifyAccessToken(string $accessToken): Result
     {
+        $result = new Result();
         if (!$this->jwtManager->isAccessToken($accessToken)) {
-            throw new \InvalidArgumentException('Invalid access token');
+            $result->addError(new \Bitrix\Main\Error('Invalid access token', 'accessToken'));
+            return $result;
         }
 
         $userId = $this->jwtManager->getUserIdFromToken($accessToken);
         $claims = $this->jwtManager->getTokenClaims($accessToken);
 
-        return [
+        if (!$claims->isSuccess()) {
+            return $claims;
+        }
+
+        return $result->setData([
             'userId' => $userId,
-            'claims' => $claims,
-        ];
+            'claims' => $claims->getData(),
+        ]);
     }
 
     /**

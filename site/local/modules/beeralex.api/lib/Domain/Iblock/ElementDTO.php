@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Iblock;
 
-use Beeralex\Api\UrlHelper;
+use Beeralex\Api\UrlService;
 
 class ElementDTO
 {
@@ -42,7 +42,7 @@ class ElementDTO
             name: (string)$element['NAME'],
             previewText: $element['PREVIEW_TEXT'] ?? null,
             previewPicture: $element['PREVIEW_PICTURE']['SRC'] ?? null,
-            detailPageUrl: UrlHelper::cleanUrl($element['DETAIL_PAGE_URL']) ?? null,
+            detailPageUrl: service(UrlService::class)->cleanUrl($element['DETAIL_PAGE_URL']) ?? null,
             dateCreate: $element['DATE_CREATE'] ?? null,
             properties: $props,
         );
@@ -68,7 +68,7 @@ class ElementDTO
             previewText: $element['PREVIEW_TEXT'] ?? null,
             detailPicture: $element['DETAIL_PICTURE']['SRC'] ?? null,
             previewPicture: $element['PREVIEW_PICTURE']['SRC'] ?? null,
-            listPageUrl: UrlHelper::cleanUrl($element['LIST_PAGE_URL']) ?? null,
+            listPageUrl: service(UrlService::class)->cleanUrl($element['LIST_PAGE_URL']) ?? null,
             dateCreate: $element['DATE_CREATE'] ?? null,
             properties: $props,
         );

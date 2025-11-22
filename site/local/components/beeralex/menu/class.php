@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Api\UrlHelper;
+use Beeralex\Api\UrlService;
 use Bitrix\Main\Loader;
 use Bitrix\Iblock\SectionTable;
 use Beeralex\Core\Helpers\IblockHelper;
@@ -137,7 +137,7 @@ class BeeralexMenu extends CBitrixComponent
         $byId = [];
 
         foreach ($sections as $section) {
-            $section['LINK'] = UrlHelper::getSectionUrl(
+            $section['LINK'] = service(UrlService::class)->getSectionUrl(
                 ['CODE' => $section['CODE'], 'ID' => $section['ID']],
                 $section['SECTION_PAGE_URL'],
                 false,

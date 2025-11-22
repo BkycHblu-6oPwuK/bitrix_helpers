@@ -8,7 +8,7 @@ use Beeralex\User\Auth\AuthCredentialsDto;
 use Beeralex\User\UserBuilder;
 use Bitrix\Main\Result;
 
-abstract class BaseAuthentificator implements AuthenticatorContract
+abstract class AbstractAuthentificator implements AuthenticatorContract
 {
     public function __construct(
         protected readonly UserRepositoryContract $userRepository,

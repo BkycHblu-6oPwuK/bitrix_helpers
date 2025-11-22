@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers\User;
 
+use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Core\Http\Controllers\ApiController;
-use Bitrix\Main\Error;
 use Beeralex\User\Auth\ActionFilter\JwtAuthFilter;
 use Beeralex\User\Auth\AuthService;
 use Beeralex\User\Auth\AuthCredentialsDto;
 
 class AuthController extends ApiController
 {
+    use ApiProcessResultTrait;
     protected AuthService $authService;
 
     protected function init(): void
@@ -61,7 +62,7 @@ class AuthController extends ApiController
      */
     public function loginAction(AuthCredentialsDto $credentials): array
     {
-        try {
+        return $this->process(function () use ($credentials) {
             $metadata = [
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
@@ -69,15 +70,11 @@ class AuthController extends ApiController
 
             $result = $this->authService->login($credentials, $metadata);
             if (!$result->isSuccess()) {
-                $this->addErrors($result->getErrors());
-                return [];
+                return $result;
             }
 
-            return $result->getData();
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return [];
-        }
+            return $result;
+        });
     }
 
     /**
@@ -96,19 +93,9 @@ class AuthController extends ApiController
      */
     public function registerAction(AuthCredentialsDto $credentials): array
     {
-        try {
-            $result = $this->authService->register($credentials);
-
-            if (!$result->isSuccess()) {
-                $this->addErrors($result->getErrors());
-                return [];
-            }
-
-            return $result->getData();
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return [];
-        }
+        return $this->process(function () use ($credentials) {
+            return $this->authService->register($credentials);
+        });
     }
 
     /**
@@ -124,16 +111,11 @@ class AuthController extends ApiController
      */
     public function refreshAction(string $refreshToken): array
     {
-        try {
-            $result = $this->authService->refreshTokens($refreshToken);
-
-            return $result;
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return [];
-        }
+        return $this->process(function () use ($refreshToken) {
+            return $this->authService->refreshTokens($refreshToken);
+        });
     }
-
+    
     /**
      * Выход с отзывом refresh токена
      * Требует JWT авторизации
@@ -151,16 +133,12 @@ class AuthController extends ApiController
      */
     public function logoutAction(?string $refreshToken = null, bool $logoutFromBitrix = true): array
     {
-        try {
+        return $this->process(function () use ($refreshToken, $logoutFromBitrix) {
             $this->authService->logout($refreshToken, $logoutFromBitrix);
-
             return [
                 'message' => 'Logout successful',
             ];
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return [];
-        }
+        });
     }
 
     /**
@@ -172,13 +150,8 @@ class AuthController extends ApiController
      */
     public function methodsAction(): array
     {
-        try {
-            $methods = $this->authService->getAvailableAuthMethods();
-
-            return $methods;
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return [];
-        }
+        return $this->process(function () {
+            return $this->authService->getAvailableAuthMethods();
+        });
     }
 }

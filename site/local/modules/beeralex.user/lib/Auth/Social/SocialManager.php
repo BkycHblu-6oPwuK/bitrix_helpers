@@ -13,7 +13,7 @@ class SocialManager
     public function __construct(public readonly array $adapters) {}
 
     /**
-     * @param string|\Beeralex\User\Auth\Authenticators\BaseAuthentificator $type
+     * @param string|\Beeralex\User\Auth\Authenticators\AbstractAuthentificator $type
      * @throws \Exception
      */
     public function get(string $key) : BitrixSocialServiceAdapter

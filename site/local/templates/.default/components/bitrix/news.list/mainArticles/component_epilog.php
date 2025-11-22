@@ -1,4 +1,5 @@
 <?
-use Beeralex\Api\GlobalResult;
 
-GlobalResult::addPageData((array)$arResult['dto']);
+use Beeralex\Api\ApiResult;
+
+service(ApiResult::class)->addPageData((array)$arResult['dto']);

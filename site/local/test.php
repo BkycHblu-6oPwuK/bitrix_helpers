@@ -36,8 +36,6 @@
 // echo var_dump($_SERVER);
 // echo '</pre>';
 
-use Beeralex\Api\GlobalResult;
-use Beeralex\Api\UrlHelper;
 use Beeralex\Catalog\Basket\BasketFacade;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Content\Repository\HeaderRepository;

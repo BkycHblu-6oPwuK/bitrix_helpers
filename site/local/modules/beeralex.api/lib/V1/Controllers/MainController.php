@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
 
-use Beeralex\Api\GlobalResult;
-use Beeralex\Core\Helpers\FilesHelper;
+use Beeralex\Api\ApiProcessResultTrait;
+use Beeralex\Api\ApiResult;
+use Beeralex\Core\Service\FileService;
 use Bitrix\Main\Engine\Controller;
 
 class MainController extends Controller
 {
+    use ApiProcessResultTrait;
+
     public function configureActions()
     {
         return [
@@ -18,33 +21,34 @@ class MainController extends Controller
             'getMenu' => [
                 'prefilters' => [],
             ],
-            'getCsrf' => [
-                'prefilters' => [],
-            ]
         ];
     }
 
     public function getContentAction(string $pathName)
     {
-        $pathName = $this->normalizePath($pathName);
-        FilesHelper::includeFile('v1.index', [
-            'pathName' => $pathName,
-        ]);
+        return $this->process(function () use ($pathName) {
+            $pathName = $this->normalizePath($pathName);
+            service(FileService::class)->includeFile('v1.index', [
+                'pathName' => $pathName,
+            ]);
 
-        GlobalResult::setSeo();
-        GlobalResult::setEmptyPageData();
-        return GlobalResult::$result;
+            service(ApiResult::class)->setSeo();
+            service(ApiResult::class)->setEmptyPageData();
+            return service(ApiResult::class);
+        });
     }
 
     public function getMenuAction(string $menuType)
     {
-        FilesHelper::includeFile('v1.menu', [
-            'menuType' => $menuType,
-        ]);
+        return $this->process(function () use ($menuType) {
+            service(FileService::class)->includeFile('v1.menu', [
+                'menuType' => $menuType,
+            ]);
 
-        return GlobalResult::$result;
+            return service(ApiResult::class);
+        });
     }
-
+    
     /**
      * Приводит путь к виду:
      * - всегда начинается со слеша (/)
