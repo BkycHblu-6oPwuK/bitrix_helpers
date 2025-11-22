@@ -10,12 +10,11 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Web\Json;
 use Beeralex\Catalog\Helper\ProductsHelper;
-use Beeralex\Core\Helpers\DateHelper;
 use App\Reviews\ComponentParams;
 use App\Reviews\Options;
 use App\Reviews\Services\ReviewsService;
-use Beeralex\Core\Helpers\CatalogHelper;
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\CatalogService;
+use Beeralex\Core\Service\IblockService;
 use Beeralex\User\User;
 
 class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
@@ -124,7 +123,6 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
         $arResult['colors'] = $this->getColors($arResult['product']['id'], $arResult['product']['article'], $arResult['propertiesDefault']['TSVET_NA_SAYTE']['TABLE_NAME']);
         // url аякс действий
         $arResult['actions'] = $this->getActions();
-        $arResult['delivery']['sdekDate'] = DateHelper::getDateFormatted((new DateTime())->add('+7 days')) . ' г., с 10 до 20';
 
         if (!$this->options->is_quick_view) {
             // seo
@@ -267,7 +265,7 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
         $highload = $this->getHighload($hlTableName);
         if (!$highload) return [];
         $colors = [];
-        $elements = CatalogHelper::addCatalogToQuery(IblockHelper::getElementApiTableByCode('catalog')::query())->setSelect(['ID', 'TSVET_ID' => 'TSVET_NA_SAYTE.VALUE'])
+        $elements = service(CatalogService::class)->addCatalogToQuery(service(IblockService::class)->getElementApiTableByCode('catalog')::query())->setSelect(['ID', 'TSVET_ID' => 'TSVET_NA_SAYTE.VALUE'])
             //->where('CML2_ARTICLE.VALUE', $acticle)
             ->where('ACTIVE', 'Y')
             ->where('CATALOG.AVAILABLE', 'Y')

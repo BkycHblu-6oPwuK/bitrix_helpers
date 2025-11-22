@@ -1,7 +1,5 @@
 <?php
 
-use Beeralex\Core\Assets\Vite;
-
 //Vite::getInstance()->includeAssets(['src/app/catalog_element/index.js']);
 
 /** 

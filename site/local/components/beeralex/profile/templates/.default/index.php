@@ -1,7 +1,5 @@
 <?
 
-use Beeralex\Core\Assets\Vite;
-
 // Vite::getInstance()->includeAssets([
 //     'src/app/profile/index.js'
 // ]);

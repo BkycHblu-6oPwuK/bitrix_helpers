@@ -2,7 +2,7 @@
 
 use Beeralex\Catalog\Helper\ProductsHelper;
 use App\Main\PageHelper;
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\IblockService;
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
 
@@ -21,7 +21,7 @@ $APPLICATION->IncludeComponent(
 	"main-catalog", 
 	array(
 		"IBLOCK_TYPE" => "catalog",
-		"IBLOCK_ID" => IblockHelper::getIblockIdByCode('catalog'),
+		"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode('catalog'),
 		"TEMPLATE_THEME" => "blue",
 		"HIDE_NOT_AVAILABLE" => "Y",
 		"BASKET_URL" => "/personal/cart/",

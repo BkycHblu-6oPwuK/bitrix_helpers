@@ -1,9 +1,9 @@
 <?php
 
 use Beeralex\Api\UrlService;
+use Beeralex\Core\Service\IblockService;
 use Bitrix\Main\Loader;
 use Bitrix\Iblock\SectionTable;
-use Beeralex\Core\Helpers\IblockHelper;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -25,9 +25,9 @@ class BeeralexMenu extends CBitrixComponent
 
     protected function getMenu(): array
     {
-        $menuIblock = IblockHelper::getElementApiTableByCode('menu');
+        $menuIblock = service(IblockService::class)->getElementApiTableByCode('menu');
         $sectionCode = $this->arParams['MENU_TYPE'] ?? 'top_menu';
-        $menuIblockId = IblockHelper::getIblockIdByCode('menu');
+        $menuIblockId = service(IblockService::class)->getIblockIdByCode('menu');
 
         // Берём верхний раздел меню
         $menuSection = SectionTable::getList([

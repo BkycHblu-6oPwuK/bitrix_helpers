@@ -6,7 +6,7 @@ use Beeralex\Catalog\Contracts\OfferRepositoryContract;
 use Beeralex\Core\Repository\IblockRepository;
 use Beeralex\Catalog\Helper\PriceHelper;
 use Beeralex\Catalog\Repository\StoreRepository;
-use Beeralex\Core\Helpers\CatalogHelper;
+use Beeralex\Core\Service\CatalogService;
 
 class OffersRepository extends IblockRepository implements OfferRepositoryContract
 {
@@ -26,7 +26,7 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
             ->whereIn('CML2_LINK.VALUE', $productIds);
 
         if ($onlyAvailable) {
-            $query = CatalogHelper::addCatalogToQuery($query)
+            $query = service(CatalogService::class)->addCatalogToQuery($query)
                 ->where('CATALOG.AVAILABLE', 'Y')
                 ->where('ACTIVE', 'Y');
         }
@@ -53,10 +53,11 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
         $allowedStores = (new StoreRepository())->getAllowedStores();
         $basePriceId = PriceHelper::getBasePriceId();
         $discountPriceId = PriceHelper::getDiscountPriceId();
+        $catalogService = service(CatalogService::class);
 
-        $query = CatalogHelper::addStoreToQuery(
-            CatalogHelper::addPriceToQuery(
-                CatalogHelper::addCatalogToQuery(
+        $query = $catalogService->addStoreToQuery(
+            $catalogService->addPriceToQuery(
+                $catalogService->addCatalogToQuery(
                     $this->query()
                 )
             )

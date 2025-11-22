@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Pagination;
 
-use Beeralex\Core\Helpers\PaginationHelper;
+use Beeralex\Core\Service\PaginationService;
 
 class PaginationDTO
 {
@@ -17,7 +17,7 @@ class PaginationDTO
 
     public static function fromResult(\CIBlockResult $nav, int $pageWindow = 5) : static
     {
-        $pagination = PaginationHelper::toArray($nav, $pageWindow);
+        $pagination = service(PaginationService::class)->toArray($nav, $pageWindow);
         return new static($pagination['pages'], $pagination['pageSize'], $pagination['currentPage'], $pagination['pageCount'], $pagination['paginationUrlParam']);
     }
 }

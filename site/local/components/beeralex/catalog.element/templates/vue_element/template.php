@@ -1,9 +1,9 @@
 <?
 
-use Beeralex\Core\Helpers\LanguageHelper;
+use Beeralex\Core\Service\LanguageService;
 
 $price = $arResult['product']['preselectedOffer'] && $arResult['product']['preselectedOffer']['price']['priceValue'] ? $arResult['product']['preselectedOffer']['price'] : $arResult['product']['price'];
-$reviewsText = "{$arResult['reviews']['eval_info']['countNumber']} " . LanguageHelper::getPlural($arResult['reviews']['eval_info']['countNumber'], ['отзыва', 'отзывов', 'отзывов']);
+$reviewsText = "{$arResult['reviews']['eval_info']['countNumber']} " . service(LanguageService::class)->getPlural($arResult['reviews']['eval_info']['countNumber'], ['отзыва', 'отзывов', 'отзывов']);
 ?>
 
 <div id="catalog_element">

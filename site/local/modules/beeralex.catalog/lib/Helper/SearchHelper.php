@@ -3,8 +3,8 @@ namespace Beeralex\Catalog\Helper;
 
 use Bitrix\Main\Loader;
 use CSearch;
-use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Model\SectionModel;
+use Beeralex\Core\Service\IblockService;
 
 class SearchHelper
 {
@@ -42,7 +42,7 @@ class SearchHelper
                 'SITE_ID' => SITE_ID,
                 'MODULE_ID' => 'iblock',
                 'CHECK_DATES' => 'Y',
-                'PARAM2' => IblockHelper::getIblockIdByCode('catalog'),
+                'PARAM2' => service(IblockService::class)->getIblockIdByCode('catalog'),
             ],
             [
                 'RANK' => 'DESC',

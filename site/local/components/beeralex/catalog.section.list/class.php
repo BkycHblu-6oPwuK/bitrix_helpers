@@ -1,8 +1,8 @@
 <?php
 
 use Beeralex\Api\UrlService;
-use Beeralex\Core\Helpers\IblockHelper;
 use Beeralex\Core\Model\SectionModel;
+use Beeralex\Core\Service\IblockService;
 
 class BeeralexCatalogSectionList extends \CBitrixComponent
 {
@@ -13,7 +13,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
 
     public function onPrepareComponentParams($params)
     {
-        $catalogId = IblockHelper::getIblockIdByCode('catalog');
+        $catalogId = service(IblockService::class)->getIblockIdByCode('catalog');
         $this->sectionEntity = SectionModel::compileEntityByIblock($catalogId);
 
         $params['SMART_FILTER_NAME'] = $params['SMART_FILTER_NAME'] ?: 'arrFilter';
@@ -32,7 +32,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                 $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
                 $taggedCache->startTagCache('beeralex/catalog.section.list');
                 try {
-                    $taggedCache->registerTag('iblock_id_' . IblockHelper::getIblockIdByCode('catalog'));
+                    $taggedCache->registerTag('iblock_id_' . service(IblockService::class)->getIblockIdByCode('catalog'));
                     $this->arResult['sections'] = $this->getRootSections();
                     $this->includeComponentTemplate();
                 } catch (\Throwable $e) {
@@ -49,7 +49,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
             $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
             $taggedCache->startTagCache('beeralex/catalog.section.list');
             try {
-                $taggedCache->registerTag('iblock_id_' . IblockHelper::getIblockIdByCode('catalog'));
+                $taggedCache->registerTag('iblock_id_' . service(IblockService::class)->getIblockIdByCode('catalog'));
                 $this->arResult['sections'] = $this->getSections();
                 $this->includeComponentTemplate();
             } catch (\Throwable $e) {
@@ -233,7 +233,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     {
         $filter = array_merge(
             [
-                'IBLOCK_ID' => IblockHelper::getIblockIdByCode('catalog'),
+                'IBLOCK_ID' => service(IblockService::class)->getIblockIdByCode('catalog'),
                 'ACTIVE' => 'Y',
                 '=AVAILABLE' => 'Y',
                 'SECTION_ID' => $sectionId,

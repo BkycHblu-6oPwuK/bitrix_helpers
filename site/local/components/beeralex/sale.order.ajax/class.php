@@ -8,7 +8,7 @@ use Beeralex\Catalog\Checkout\DeliveriesBuilder;
 use Beeralex\Catalog\Helper\OrderHelper;
 use Beeralex\Catalog\Checkout\PaymentsBuilder;
 use Beeralex\Catalog\Checkout\PersonTypeBuilder;
-use Beeralex\Core\Helpers\LocationHelper;
+use Beeralex\Core\Service\LocationService;
 use Beeralex\User\Phone;
 use Beeralex\User\User;
 use Beeralex\User\UserBuilder;
@@ -167,7 +167,7 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
             $oldLocation = $this->request->get(BitrixLocationResolverContract::OLD_LOCATION_REQUEST_KEY);
             $requestAddress = $requestProperties[$props->get('ADDRESS')['ID']];
             if (empty($requestAddress) && !empty($oldLocation)) {
-                $location = LocationHelper::getNearestCityByLocationCode($oldLocation, BitrixLocationResolverContract::CACHE_TIME);
+                $location = service(LocationService::class)->getNearestCityByLocationCode($oldLocation, BitrixLocationResolverContract::CACHE_TIME);
                 if (!empty($location)) {
                     $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['LOCATION_NAME_NAME'];
                     $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['CODE'];

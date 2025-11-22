@@ -2,7 +2,7 @@
 
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\Controller;
-use Beeralex\Core\Helpers\LocationHelper;
+use Beeralex\Core\Service\LocationService;
 
 class BeeralexLocationController extends Controller
 {
@@ -23,7 +23,7 @@ class BeeralexLocationController extends Controller
         try {
             return [
                 'success' => true,
-                'data' => LocationHelper::find($query, $pageSize, $page)
+                'data' => service(LocationService::class)->find($query, $pageSize, $page)
             ];
         } catch (\Exception $e) {
         }

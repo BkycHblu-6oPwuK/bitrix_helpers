@@ -1,7 +1,5 @@
 <?
 
-use Beeralex\Core\Assets\Vite;
-
 // Vite::getInstance()->includeAssets(['src/app/cart/index.js']);
 ?>
 <div class="section__container">

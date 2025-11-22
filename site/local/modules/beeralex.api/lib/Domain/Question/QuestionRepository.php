@@ -2,7 +2,7 @@
 
 namespace App\Iblock\Repository;
 
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\IblockService;
 
 class QuestionRepository
 {
@@ -13,7 +13,7 @@ class QuestionRepository
 
     public function __construct()
     {
-        $this->entity = IblockHelper::getElementApiTableByCode('questions');
+        $this->entity = service(IblockService::class)->getElementApiTableByCode('questions');
     }
 
     public function getQuestions(array $select = ['NAME', 'PREVIEW_TEXT'], array $filter = ['ACTIVE' => 'Y'], array $sort = ['SORT' =>'ASC']) : array

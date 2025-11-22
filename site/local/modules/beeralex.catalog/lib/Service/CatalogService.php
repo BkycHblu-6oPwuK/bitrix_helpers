@@ -7,7 +7,7 @@ use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Catalog\Discount\ProductsDiscount;
 use Beeralex\Catalog\Helper\PriceHelper;
 use Beeralex\Catalog\Helper\SizeComparatorHelper;
-use Beeralex\Core\Helpers\CatalogHelper;
+use Beeralex\Core\Service\CatalogService as ServiceCatalogService;
 use Bitrix\Catalog\CatalogViewedProductTable;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ORM\Fields\ExpressionField;
@@ -123,7 +123,7 @@ class CatalogService
             return [];
         }
 
-        $dbResult = CatalogHelper::addCatalogToQuery($this->productsRepository->query())
+        $dbResult = service(ServiceCatalogService::class)->addCatalogToQuery($this->productsRepository->query())
             ->setSelect(['ID'])
             ->where('ACTIVE', 'Y')
             ->where('CATALOG.AVAILABLE', 'Y')

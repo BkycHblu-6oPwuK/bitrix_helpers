@@ -4,14 +4,14 @@ namespace App\Agents;
 
 use Bitrix\Main\Loader;
 use Beeralex\Catalog\Helper\PriceHelper;
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\IblockService;
 
 class SetMinPrice
 {
     public static function setMinPrice()
     {
         Loader::includeModule('iblock');
-        $catalogIblockId = IblockHelper::getIblockIdByCode('catalog');
+        $catalogIblockId = service(IblockService::class)->getIblockIdByCode('catalog');
         $basePriceId = PriceHelper::getBasePriceId();
         $salePriceId = PriceHelper::getDiscountPriceId();
         $newPrice = [];

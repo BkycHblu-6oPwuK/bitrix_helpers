@@ -5,7 +5,7 @@ namespace Beeralex\Catalog\Repository;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Core\Repository\IblockRepository;
 use Beeralex\Catalog\Helper\PriceHelper;
-use Beeralex\Core\Helpers\CatalogHelper;
+use Beeralex\Catalog\Service\CatalogService;
 use Bitrix\Main\ORM\Fields\ExpressionField;
 
 class ProductsRepository extends IblockRepository implements ProductRepositoryContract
@@ -73,8 +73,10 @@ class ProductsRepository extends IblockRepository implements ProductRepositoryCo
      */
     private function buildProductQuery(array $ids, bool $onlyActive)
     {
-        $query = CatalogHelper::addPriceToQuery(
-            CatalogHelper::addCatalogToQuery(
+        $catalogService = service(CatalogService::class);
+
+        $query = $catalogService->addPriceToQuery(
+            $catalogService->addCatalogToQuery(
                 $this->query()
             )
         )

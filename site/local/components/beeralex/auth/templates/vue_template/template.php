@@ -1,7 +1,6 @@
 <?php
 
 use Bitrix\Main\Web\Json;
-use Beeralex\Core\Assets\Vite;
 
 //Vite::getInstance()->includeAssets(['src/app/auth/index.js']); импорт в bundle
 ?>

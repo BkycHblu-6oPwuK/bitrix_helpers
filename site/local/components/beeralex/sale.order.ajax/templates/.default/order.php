@@ -2,7 +2,6 @@
 
 use Bitrix\Main\Security\Sign\Signer;
 use Bitrix\Main\Web\Json;
-use Beeralex\Core\Assets\Vite;
 
 // Vite::getInstance()->includeAssets(['src/app/checkout/index.js']);
 

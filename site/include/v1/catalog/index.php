@@ -1,6 +1,6 @@
 <?
 
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\IblockService;
 
 global $APPLICATION;
 
@@ -9,7 +9,7 @@ $APPLICATION->IncludeComponent(
     "main-catalog",
     array(
         "IBLOCK_TYPE" => "catalog",
-        "IBLOCK_ID" => IblockHelper::getIblockIdByCode('catalog'),
+        "IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode('catalog'),
         "TEMPLATE_THEME" => "blue",
         "HIDE_NOT_AVAILABLE" => "Y",
         "BASKET_URL" => "/personal/cart/",

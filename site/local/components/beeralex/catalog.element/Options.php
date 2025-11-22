@@ -2,7 +2,7 @@
 
 use Bitrix\Iblock\SectionTable;
 use Beeralex\Catalog\Helper\CatalogSectionHelper;
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\IblockService;
 
 final class Options
 {
@@ -34,7 +34,7 @@ final class Options
     private function initParamsByCode()
     {
         if(!$this->element_id && $this->element_code){
-            $result = IblockHelper::getElementApiTable($this->iblock_id)::query()->setSelect(['ID','IBLOCK_SECTION_ID'])->where('CODE', $this->element_code)->setCacheTtl(360000)->exec()->fetch();
+            $result = service(IblockService::class)->getElementApiTable($this->iblock_id)::query()->setSelect(['ID','IBLOCK_SECTION_ID'])->where('CODE', $this->element_code)->setCacheTtl(360000)->exec()->fetch();
             $this->element_id = (int)$result['ID'];
             $this->section_id = (int)$result['IBLOCK_SECTION_ID'];
         }

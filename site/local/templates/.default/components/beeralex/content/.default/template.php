@@ -1,8 +1,8 @@
 <?php
 
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
-use Beeralex\Core\Helpers\FilesHelper;
-use Beeralex\Core\Helpers\IblockHelper;
+use Beeralex\Core\Service\FileService;
+use Beeralex\Core\Service\IblockService;
 
 foreach ($arResult as $item) {
 	switch ($item['type']) {
@@ -48,7 +48,7 @@ foreach ($arResult as $item) {
 					"FIELD_CODE" => array(0 => "ID", 1 => "",),
 					"FILTER_NAME" => "mainBannerFilter",
 					"HIDE_LINK_WHEN_NO_DETAIL" => "Y",
-					"IBLOCK_ID" => IblockHelper::getIblockIdByCode("mainBanner"),
+					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode("mainBanner"),
 					"IBLOCK_TYPE" => "content",
 					"INCLUDE_IBLOCK_INTO_CHAIN" => "N",
 					"INCLUDE_SUBSECTIONS" => "Y",
@@ -103,7 +103,7 @@ foreach ($arResult as $item) {
 				"bitrix:news.list",
 				"twoArticles",
 				array(
-					"IBLOCK_ID" => IblockHelper::getIblockIdByCode("articles"),
+					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode("articles"),
 					"NEWS_COUNT" => "2",
 					"SET_BROWSER_TITLE" => "N",
 					"SET_LAST_MODIFIED" => "N",
@@ -174,7 +174,7 @@ foreach ($arResult as $item) {
 					"CACHE_TYPE" => "A",
 					"CACHE_TIME" => "3600000",
 					"FILTER_NAME" => "arrFilterArticles",
-					"IBLOCK_ID" => IblockHelper::getIblockIdByCode('articles'),
+					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode('articles'),
 					"NEWS_COUNT" => "20",
 					"SET_BROWSER_TITLE" => "N",
 					"SET_LAST_MODIFIED" => "N",
@@ -191,7 +191,7 @@ foreach ($arResult as $item) {
 			);
 			break;
 		case ContentTypes::FORM:
-			FilesHelper::includeFile('v1.form.index', [
+			service(FileService::class)->includeFile('v1.form.index', [
 				'formId' => $item['id'],
 				'isContentAction' => true
 			]);

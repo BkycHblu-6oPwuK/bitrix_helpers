@@ -2,8 +2,8 @@
 
 use Bitrix\Main\Loader;
 use Beeralex\Catalog\Helper\ProductsHelper;
-use Beeralex\Core\Helpers\PaginationHelper;
 use App\Favorite\Helper;
+use Beeralex\Core\Service\PaginationService;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -23,7 +23,7 @@ class BeeralexFavourite extends \CBitrixComponent
     private function getTemplateData(): array
     {
         $favoriteProductIds = collect(Helper::getByUser());
-        $pagination = PaginationHelper::getPagination($favoriteProductIds->count(), 16);
+        $pagination = service(PaginationService::class)->getPagination($favoriteProductIds->count(), 16);
         $favoriteProductIds = $favoriteProductIds->forPage($pagination['currentPage'], $pagination['pageSize']);
         return [
             'pagination' => $pagination,

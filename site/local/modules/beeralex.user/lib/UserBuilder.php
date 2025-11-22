@@ -3,7 +3,6 @@ declare(strict_types=1);
 namespace Beeralex\User;
 
 use Bitrix\Main\Context;
-use Beeralex\Core\Helpers\UserHelper;
 use Beeralex\Core\Service\UserService;
 use Beeralex\User\Contracts\UserBuilderContract;
 use Beeralex\User\Contracts\UserFactoryContract;

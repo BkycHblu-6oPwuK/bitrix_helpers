@@ -4,11 +4,11 @@ namespace Beeralex\Catalog\Location;
 
 use Beeralex\Catalog\Location\Contracts\LocationApiClientContract;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
-use Beeralex\Core\Helpers\LocationHelper;
 use Beeralex\Core\Traits\Cacheable;
 use Psr\Log\LoggerInterface;
 use Bitrix\Main\Web\Json;
 use Beeralex\Core\Dto\CacheSettingsDto;
+use Beeralex\Core\Service\LocationService;
 
 class BitrixLocationResolver implements BitrixLocationResolverContract
 {
@@ -110,7 +110,7 @@ class BitrixLocationResolver implements BitrixLocationResolverContract
         foreach ($variants as $variant) {
             $variant = trim(mb_strtolower($variant));
             if ($variant === '') continue;
-            $items = LocationHelper::find($variant, 20, 0);
+            $items = service(LocationService::class)->find($variant, 20, 0);
             if (!empty($items)) {
                 return $items;
             }

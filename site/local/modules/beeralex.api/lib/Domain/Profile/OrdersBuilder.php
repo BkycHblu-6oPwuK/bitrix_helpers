@@ -6,8 +6,6 @@ use Illuminate\Support\Collection;
 use Beeralex\Catalog\Basket\BasketFacade;
 use Beeralex\Catalog\Helper\OrderHelper;
 use Beeralex\Catalog\Checkout\TotalBuilder;
-use Beeralex\Core\Helpers\PaginationHelper;
-use Beeralex\Catalog\Enum\OrderStatuses;
 use Beeralex\Catalog\Repository\OrderRepository;
 use Beeralex\User\User;
 use Bitrix\Main\ORM\Query\Query;
@@ -16,6 +14,7 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Web\Json;
 use Bitrix\Sale\Internals\BasketTable;
 use Beeralex\Catalog\Helper\SearchHelper;
+use Beeralex\Core\Service\PaginationService;
 use Beeralex\User\Phone;
 use Bitrix\Sale\Fuser;
 
@@ -36,7 +35,7 @@ class OrdersBuilder
         $this->user = User::current();
         $this->ordersRepository = $ordersRepository;
         $this->setOrdersIds();
-        $this->pagination = PaginationHelper::getPagination($this->ordersIds->count(), 5);
+        $this->pagination = service(PaginationService::class)->getPagination($this->ordersIds->count(), 5);
     }
 
     protected function setOrdersIds(): void

@@ -3,8 +3,8 @@
 use Illuminate\Support\Collection;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
-use Beeralex\Core\Helpers\IblockHelper;
-use Beeralex\Core\Helpers\QueryHelper;
+use Beeralex\Core\Service\IblockService;
+use Beeralex\Core\Service\QueryService;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -26,8 +26,8 @@ class BeeralexContent extends \CBitrixComponent
 
     protected function getContent(): array
     {
-        $contentIblockId = IblockHelper::getIblockIdByCode('content');
-        $query = IblockHelper::addSectionModelToQuery($contentIblockId, IblockHelper::getElementApiTable($contentIblockId)::query())
+        $contentIblockId = service(IblockService::class)->getIblockIdByCode('content');
+        $query = service(IblockService::class)->addSectionModelToQuery($contentIblockId, service(IblockService::class)->getElementApiTable($contentIblockId)::query())
         ->where('ACTIVE', 'Y')
         ->where('IBLOCK_MODEL_SECTION.UF_URL', $this->arParams['PATH'])
         ->setSelect(
@@ -51,7 +51,7 @@ class BeeralexContent extends \CBitrixComponent
             ]
         )
             ->setOrder(['SORT' => 'ASC']);
-        return collect(QueryHelper::decomposeToArray($query))->map(function ($item) {
+        return collect(service(QueryService::class)->decomposeToArray($query))->map(function ($item) {
             $type = $item['TYPE']['ITEM']['XML_ID'];
             switch ($type) {
                 case ContentTypes::SLIDER->value:
