@@ -10,8 +10,10 @@ use Beeralex\Catalog\Location\BitrixLocationResolver;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Beeralex\Catalog\Location\Contracts\LocationApiClientContract;
 use Beeralex\Catalog\Location\Services\DadataService;
+use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Catalog\Repository\EmptyOffersRepository;
 use Beeralex\Catalog\Repository\OffersRepository;
+use Beeralex\Catalog\Repository\PriceTypeRepository;
 use Beeralex\Catalog\Repository\ProductsRepository;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Logger\LoggerFactoryContract;
@@ -19,10 +21,15 @@ use Bitrix\Main\Context;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\Fuser;
+use Beeralex\Catalog\Options;
+use Beeralex\Catalog\Service\PriceService;
 
 return [
     'services' => [
         'value' => [
+            Options::class => [
+                'className' => Options::class,
+            ],
             LocationApiClientContract::class => [
                 'className' => DadataService::class,
             ],
@@ -32,18 +39,45 @@ return [
                 }
             ],
             DIServiceKey::CATALOG_REPOSITORY->value => [
-                'className' => ProductsRepository::class,
+                'constructor' => static function () {
+                    $options = service(Options::class);
+                    return new ProductsRepository(
+                        'catalog',
+                        $options,
+                        service(\Beeralex\Core\Service\CatalogService::class)
+                    );
+                },
             ],
             DIServiceKey::OFFERS_REPOSITORY->value => [
-                'className' => OffersRepository::class,
+                'constructor' => static function () {
+                    $options = service(Options::class);
+                    return new OffersRepository(
+                        'offers',
+                        $options,
+                        service(\Beeralex\Core\Service\CatalogService::class)
+                    );
+                },
             ],
             DIServiceKey::EMPTY_OFFERS_REPOSITORY->value => [
                 'className' => EmptyOffersRepository::class,
             ],
+            PriceTypeRepository::class => [
+                'className' => PriceTypeRepository::class,
+            ],
+            CatalogViewedProductRepository::class => [
+                'className' => CatalogViewedProductRepository::class,
+            ],
             CatalogService::class => [
                 'constructor' => static function () {
-                    return new CatalogService(service(DIServiceKey::CATALOG_REPOSITORY->value), service(DIServiceKey::OFFERS_REPOSITORY->value));
+                    return new CatalogService(
+                        service(DIServiceKey::CATALOG_REPOSITORY->value),
+                        service(DIServiceKey::OFFERS_REPOSITORY->value),
+                        service(CatalogViewedProductRepository::class)
+                    );
                 }
+            ],
+            PriceService::class => [
+                'className' => PriceService::class,
             ],
             /** возможно стоит создать фабрику, а не создавать объекты для текущего пользователя из сессии */
             BasketUtils::class => [

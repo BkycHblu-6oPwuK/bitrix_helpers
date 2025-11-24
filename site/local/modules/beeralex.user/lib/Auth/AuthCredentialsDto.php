@@ -3,24 +3,23 @@ declare(strict_types=1);
 
 namespace Beeralex\User\Auth;
 
-use Beeralex\Core\Http\Request\AbstractRequestDto;
+use Beeralex\Core\Http\Resources\Resource;
 
 /**
  * DTO для передачи данных аутентификации/регистрации.
  * Позволяет работать с "размытыми" входными данными (массив),
  * предоставляя типизированный доступ к стандартным полям.
  */
-class AuthCredentialsDto extends AbstractRequestDto
+class AuthCredentialsDto extends Resource
 {
     public string $type = '';
-    public array $payload = [];
 
-    public static function fromArray(array $data): static
+    public static function make(array $data): static
     {
-        $dto = new static();
-        $dto->type = (string)($data['type'] ?? '');
+        $type = (string)($data['type'] ?? '');
         unset($data['type']);
-        $dto->payload = $data;
+        $dto = new static($data);
+        $dto->type = $type;
         return $dto;
     }
 
@@ -66,23 +65,7 @@ class AuthCredentialsDto extends AbstractRequestDto
 
     public function getGroup(): ?array
     {
-        $val = $this->get('group');
+        $val = $this->__get('group');
         return is_array($val) ? $val : null;
-    }
-
-    public function getString(string $key): ?string
-    {
-        $value = $this->payload[$key] ?? null;
-        return is_string($value) ? $value : null;
-    }
-
-    public function get(string $key): mixed
-    {
-        return $this->payload[$key] ?? null;
-    }
-
-    public function isEmpty(): bool
-    {
-        return empty($this->payload);
     }
 }

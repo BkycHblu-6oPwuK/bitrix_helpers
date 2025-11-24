@@ -5,7 +5,7 @@ global $APPLICATION;
 
 use Beeralex\Api\ApiResult;
 
-service(ApiResult::class)->setData((array)$arResult['dto']);
-
-$APPLICATION->SetPageProperty("title", "Статьи");
-$APPLICATION->SetPageProperty("description", "Статьи описание");
+service(ApiResult::class)->setData([
+    'articles' => $arResult['ITEMS'],
+    'pagination' => $arResult['PAGINATION'],
+]);

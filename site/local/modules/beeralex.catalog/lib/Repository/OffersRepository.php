@@ -3,16 +3,17 @@
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
-use Beeralex\Core\Repository\IblockRepository;
-use Beeralex\Catalog\Helper\PriceHelper;
-use Beeralex\Catalog\Repository\StoreRepository;
+use Beeralex\Catalog\Options;
 use Beeralex\Core\Service\CatalogService;
 
-class OffersRepository extends IblockRepository implements OfferRepositoryContract
+class OffersRepository extends AbstractCatalogRepository implements OfferRepositoryContract
 {
-    public function __construct()
-    {
-        parent::__construct('offers');
+    public function __construct(
+        string $iblockCode,
+        Options $options,
+        CatalogService $catalogService
+    ) {
+        parent::__construct($iblockCode, $options, $catalogService);
     }
 
     public function getOfferIdsByProductIds(array $productIds, bool $onlyAvailable = true): array
@@ -26,7 +27,7 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
             ->whereIn('CML2_LINK.VALUE', $productIds);
 
         if ($onlyAvailable) {
-            $query = service(CatalogService::class)->addCatalogToQuery($query)
+            $query = $this->catalogService->addCatalogToQuery($query)
                 ->where('CATALOG.AVAILABLE', 'Y')
                 ->where('ACTIVE', 'Y');
         }
@@ -36,7 +37,6 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
         while ($row = $result->fetch()) {
             $map[(int)$row['PROPERTY_CML2_LINK_VALUE']][] = (int)$row['ID'];
         }
-
         return $map;
     }
 
@@ -46,72 +46,17 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
             return [];
         }
 
+        // Используем универсальный метод findAll
+        // Запрашиваем основные поля, каталог, цены, склады и привязку к товару
+        $items = $this->findAll(
+            ['ID' => $offerIds],
+            [
+                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'STORE_PRODUCT', 'CML2_LINK.VALUE'
+            ]
+        );
         $offers = [];
-        $basePrices = [];
-        $discountPrices = [];
-
-        $allowedStores = (new StoreRepository())->getAllowedStores();
-        $basePriceId = PriceHelper::getBasePriceId();
-        $discountPriceId = PriceHelper::getDiscountPriceId();
-        $catalogService = service(CatalogService::class);
-
-        $query = $catalogService->addStoreToQuery(
-            $catalogService->addPriceToQuery(
-                $catalogService->addCatalogToQuery(
-                    $this->query()
-                )
-            )
-        )
-            ->setSelect([
-                'ID',
-                'ACTIVE',
-                'AVAILABLE' => 'CATALOG.AVAILABLE',
-                'PRICE_VALUE' => 'PRICE.PRICE',
-                'PRICE_GROUP_ID' => 'PRICE.CATALOG_GROUP_ID',
-                'PROPERTY_CML2_LINK_VALUE' => 'CML2_LINK.VALUE',
-                'STORE_ID' => 'STORE_PRODUCT.STORE_ID',
-                'AMOUNT' => 'STORE_PRODUCT.AMOUNT',
-            ])
-            ->whereIn('ID', $offerIds);
-
-        $result = $query->exec();
-        while ($row = $result->fetch()) {
-            $id = (int)$row['ID'];
-            $productId = (int)$row['PROPERTY_CML2_LINK_VALUE'];
-
-            $offers[$id] ??= [
-                'id' => $id,
-                'productId' => $productId,
-                'active' => $row['ACTIVE'] === 'Y',
-                'available' => $row['AVAILABLE'] === 'Y',
-                'storesAvailability' => [],
-                'allowedStoresAvailability' => [],
-                'price' => null,
-            ];
-
-            if ($row['STORE_ID'] && $row['AMOUNT']) {
-                $offers[$id]['storesAvailability'][(int)$row['STORE_ID']] = (int)$row['AMOUNT'];
-            }
-
-            if ((int)$row['PRICE_GROUP_ID'] === $basePriceId) {
-                $basePrices[$id] = (float)$row['PRICE_VALUE'];
-            }
-
-            if ((int)$row['PRICE_GROUP_ID'] === $discountPriceId) {
-                $discountPrices[$id] = (float)$row['PRICE_VALUE'];
-            }
-        }
-
-        foreach ($offers as $id => &$offer) {
-            $base = $basePrices[$id] ?? 0.0;
-            $discount = $discountPrices[$id] ?? 0.0;
-            $offer['price'] = PriceHelper::preparePrice($base, $discount);
-
-            foreach ($offer['storesAvailability'] as $storeId => $qty) {
-                if (isset($allowedStores[$storeId])) {
-                    $offer['allowedStoresAvailability'][$storeId] = $qty;
-                }
-            }
+        foreach ($items as $item) {
+            $offers[(int)$item['ID']] = $item;
         }
 
         return $offers;
@@ -121,7 +66,6 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
     {
         $map = $this->getOfferIdsByProductIds($productIds, $onlyAvailable);
         $ids = array_merge(...array_values($map));
-
         if (empty($ids)) {
             return [];
         }
@@ -130,7 +74,10 @@ class OffersRepository extends IblockRepository implements OfferRepositoryContra
         $grouped = [];
 
         foreach ($offers as $offer) {
-            $grouped[$offer['productId']][] = $offer;
+            $productId = (int)($offer['CML2_LINK']['VALUE'] ?? 0);
+            if ($productId) {
+                $grouped[$productId][] = $offer;
+            }
         }
 
         return $grouped;

@@ -4,20 +4,18 @@ namespace Beeralex\Catalog\Repository;
 use Beeralex\Catalog\Contracts\StoreRepositoryContract;
 use Bitrix\Catalog\StoreTable;
 use Bitrix\Main\Loader;
-use Beeralex\Catalog\Dto\PickPointDTO;
 use Beeralex\Core\Repository\Repository;
-
-Loader::includeModule('catalog');
 
 class StoreRepository extends Repository implements StoreRepositoryContract
 {
     public function __construct()
     {
+        Loader::includeModule('catalog');
         parent::__construct(StoreTable::class);
     }
 
     /**
-     * @return PickPointDTO[]
+     * @return array
      */
     public function getPickPoints(?array $storeIds = null): array
     {
@@ -55,21 +53,7 @@ class StoreRepository extends Repository implements StoreRepositoryContract
             } else {
                 $store['IMAGE'] = null;
             }
-            $dto = new PickPointDTO;
-            $dto->id = (int)$store['ID'];
-            $dto->name = $store['TITLE'];
-            $dto->address = $store['ADDRESS'];
-            $dto->description = $store['DESCRIPTION'];
-            if ($store['IMAGE']) {
-                $dto->images[] = $store['IMAGE'];
-            }
-            $dto->phone = $store['PHONE'];
-            $dto->schedule = $store['SCHEDULE'];
-            $dto->location = [
-                'latitude' => $store['GPS_N'],
-                'longitude' => $store['GPS_S']
-            ];
-            $storeData[$store['ID']] = $dto;
+            $storeData[(int)$store['ID']] = $store;
         }
         return $storeData;
     }
@@ -109,10 +93,13 @@ class StoreRepository extends Repository implements StoreRepositoryContract
         $stores = $this->getAllowedStores();
 
         foreach ($offers as $offer) {
-            if (!$offer['id']) continue;
-            foreach ($offer['storesAvailability'] as $storeId => $amount) {
-                if ($amount > 0 && $stores[$storeId]) {
-                    $stores[$storeId]['sizes'][] = $offer['sizeForStore'];
+            $offerId = $offer['ID'] ?? null;
+            if (!$offerId) continue;
+            
+            $storesAvailability = $offer['stores'] ?? [];
+            foreach ($storesAvailability as $storeId => $amount) {
+                if ($amount > 0 && isset($stores[$storeId])) {
+                    $stores[$storeId]['sizes'][] = $offer['sizeForStore'] ?? null;
                 }
             }
         }

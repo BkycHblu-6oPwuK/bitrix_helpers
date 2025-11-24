@@ -4,69 +4,34 @@ namespace Beeralex\Catalog\Dto;
 
 class PickPointDTO
 {
-
-    /** @var string $id */
-    public $id;
-
-    /** @var string $name */
-    public $name;
-
-    /** @var string $city */
-    public $city;
-
-    /** @var string $phone*/
-    public $phone;
-
-    /** @var string $email*/
-    public $email;
-
-    /** @var string $address */
-    public $address;
-
-    /** @var string $addressComment */
-    public $addressComment;
-
-    /** @var string $metro */
-    public $metro;
-
-    /** @var string */
-    public $station;
-
-    /** @var string $schedule */
+    public string $id;
+    public string $name;
+    public string $city;
+    public string $phone;
+    public string $email;
+    public string $address;
+    public string $addressComment;
+    public string $metro;
+    public string $station;
     public $schedule;
-
-    /** @var string $description */
-    public $description;
-
-    /** @var bool $card */
+    public string $description;
     public $card = false;
-
-    /** @var bool $cash */
-    public $cash = false;
-
-    /** @var bool $fitting */
-    public $fitting = false;
-
-    /** @var bool $return */
-    public $return = false;
-
-    /** @var array $images */
-    public $images = [];
-
-    public $price = [
+    public bool $cash = false;
+    public bool$fitting = false;
+    public bool $return = false;
+    public array $images = [];
+    public array $price = [
         'value' => '',
         'periodMin' => '',
         'periodMax' => '',
         'dateMin' => '',
         'dateMax' => '',
     ];
-
-    public $location = [
+    public array $location = [
         'latitude' => '',
         'longitude' => ''
     ];
-
-    public $weight = [
+    public array $weight = [
         'min' => '',
         'max' => ''
     ];

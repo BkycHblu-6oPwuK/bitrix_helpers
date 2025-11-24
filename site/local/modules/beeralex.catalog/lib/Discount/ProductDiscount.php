@@ -3,6 +3,7 @@
 namespace Beeralex\Catalog\Discount;
 
 use Beeralex\Catalog\Helper\PriceHelper;
+use Beeralex\Catalog\Service\PriceService;
 use Bitrix\Catalog\Discount\DiscountManager;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Basket;
@@ -58,13 +59,15 @@ class ProductDiscount extends Discount
         if (empty($priceRow)) {
             throw new \Exception();
         }
-        if (PriceHelper::getBaseCurrency() != $priceRow['CURRENCY']) {
+        $priceService = service(PriceService::class);
+        $baseCurrency = $priceService->getBaseCurrency();
+        if ($baseCurrency != $priceRow['CURRENCY']) {
             $priceRow['PRICE'] = \CCurrencyRates::ConvertCurrency(
                 $priceRow['PRICE'],
                 $priceRow['CURRENCY'],
-                PriceHelper::getBaseCurrency()
+                $baseCurrency
             );
-            $priceRow['CURRENCY'] = PriceHelper::getBaseCurrency();
+            $priceRow['CURRENCY'] = $baseCurrency;
         }
         return $priceRow;
     }

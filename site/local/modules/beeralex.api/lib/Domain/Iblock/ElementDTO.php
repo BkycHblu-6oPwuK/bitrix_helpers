@@ -4,48 +4,52 @@ declare(strict_types=1);
 namespace Beeralex\Api\Domain\Iblock;
 
 use Beeralex\Api\UrlService;
+use Beeralex\Core\Http\Resources\Resource;
 
-class ElementDTO
+/**
+ * @property int $id
+ * @property string $code
+ * @property string $name
+ * @property string $previewText
+ * @property string $detailText
+ * @property string $previewPictureSrc
+ * @property string $detailPictureSrc
+ * @property string $detailPageUrl
+ * @property string $listPageUrl
+ * @property string $dateCreate
+ * @property PropertyItemDTO[] $properties
+ */
+class ElementDTO extends Resource
 {
-    /**
-     * @param PropertyItemDTO[] $properties
-     */
-    public function __construct(
-        public int $id,
-        public string $code,
-        public string $name,
-        public ?string $previewText = null,
-        public ?string $previewPicture = null,
-        public ?string $detailText = null,
-        public ?string $detailPicture = null,
-        public ?string $detailPageUrl = null,
-        public ?string $listPageUrl = null,
-        public ?string $dateCreate = null,
-        public array $properties = [],
-    ) {}
+    public static function make(array $data): static
+    {
+        throw new \LogicException('Use fromNewsListElement or fromNewsDetailElement methods.');
+    }
 
     public static function fromNewsListElement(array $element): static
     {
         $props = [];
         if (!empty($element['DISPLAY_PROPERTIES'])) {
             foreach ($element['DISPLAY_PROPERTIES'] as $prop) {
-                $dto = PropertyItemDTO::fromArray($prop);
+                $dto = PropertyItemDTO::make($prop);
                 if ($dto) {
                     $props[] = $dto;
                 }
             }
         }
 
-        return new static(
-            id: (int)$element['ID'],
-            code: (string)$element['CODE'],
-            name: (string)$element['NAME'],
-            previewText: $element['PREVIEW_TEXT'] ?? null,
-            previewPicture: $element['PREVIEW_PICTURE']['SRC'] ?? null,
-            detailPageUrl: service(UrlService::class)->cleanUrl($element['DETAIL_PAGE_URL']) ?? null,
-            dateCreate: $element['DATE_CREATE'] ?? null,
-            properties: $props,
-        );
+        return new static([
+            'id' => (int)$element['ID'],
+            'code' => (string)$element['CODE'],
+            'name' => (string)$element['NAME'],
+            'previewText' => $element['PREVIEW_TEXT'] ?? '',
+            'detailText' => $element['DETAIL_TEXT'] ?? '',
+            'previewPictureSrc' => $element['PREVIEW_PICTURE']['SRC'] ?? '',
+            'detailPictureSrc' => $element['DETAIL_PICTURE']['SRC'] ?? '',
+            'detailPageUrl' => service(UrlService::class)->cleanUrl($element['DETAIL_PAGE_URL']) ?? '',
+            'dateCreate' => $element['DATE_CREATE'] ?? '',
+            'properties' => $props,
+        ]);
     }
 
     public static function fromNewsDetailElement(array $element): static
@@ -53,24 +57,24 @@ class ElementDTO
         $props = [];
         if (!empty($element['DISPLAY_PROPERTIES'])) {
             foreach ($element['DISPLAY_PROPERTIES'] as $prop) {
-                $dto = PropertyItemDTO::fromArray($prop);
+                $dto = PropertyItemDTO::make($prop);
                 if ($dto) {
                     $props[] = $dto;
                 }
             }
         }
 
-        return new static(
-            id: (int)$element['ID'],
-            code: (string)$element['CODE'],
-            name: (string)$element['NAME'],
-            detailText: $element['DETAIL_TEXT'] ?? null,
-            previewText: $element['PREVIEW_TEXT'] ?? null,
-            detailPicture: $element['DETAIL_PICTURE']['SRC'] ?? null,
-            previewPicture: $element['PREVIEW_PICTURE']['SRC'] ?? null,
-            listPageUrl: service(UrlService::class)->cleanUrl($element['LIST_PAGE_URL']) ?? null,
-            dateCreate: $element['DATE_CREATE'] ?? null,
-            properties: $props,
-        );
+        return new static([
+            'id' => (int)$element['ID'],
+            'code' => (string)$element['CODE'],
+            'name' => (string)$element['NAME'],
+            'detailText' => $element['DETAIL_TEXT'] ?? '',
+            'previewText' => $element['PREVIEW_TEXT'] ?? '',
+            'detailPictureSrc' => $element['DETAIL_PICTURE']['SRC'] ?? '',
+            'previewPictureSrc' => $element['PREVIEW_PICTURE']['SRC'] ?? '',
+            'listPageUrl' => service(UrlService::class)->cleanUrl($element['LIST_PAGE_URL']) ?? '',
+            'dateCreate' => $element['DATE_CREATE'] ?? '',
+            'properties' => $props,
+        ]);
     }
 }

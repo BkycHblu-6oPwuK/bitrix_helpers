@@ -51,7 +51,7 @@ class BeeralexContent extends \CBitrixComponent
             ]
         )
             ->setOrder(['SORT' => 'ASC']);
-        return collect(service(QueryService::class)->decomposeToArray($query))->map(function ($item) {
+        return collect(service(QueryService::class)->fetchGroupedEntities($query))->map(function ($item) {
             $type = $item['TYPE']['ITEM']['XML_ID'];
             switch ($type) {
                 case ContentTypes::SLIDER->value:

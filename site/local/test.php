@@ -41,6 +41,7 @@ use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Content\Repository\HeaderRepository;
 use Beeralex\Content\Repository\MenuRepository;
 use Beeralex\Core\Config\Config as CoreConfig;
+use Beeralex\Core\Service\IblockService;
 use Beeralex\Core\Service\UserService;
 use Beeralex\Core\UserType\IblockLinkType;
 use Beeralex\Core\UserType\WebFormLinkType;
@@ -356,12 +357,12 @@ global $APPLICATION;
 // ]);
 // dd(GlobalResult::$result);
 //dd((new HeaderRepository)->getMenu(339));
-//dd(service(CatalogService::class));
+//dd(service('catalogRepository'));
+//dd(service(IblockService::class)->getTableEntityByPropertyId(5));
+dd(service(CatalogService::class)->getProductsWithOffers([16]));
 
 // dd(service(BasketFacade::class)->getItems());
 // $userHelper = service(UserService::class);
 // dd($userHelper->generatePassword($userHelper->getDefaultUserGroups()));
-
-dd(service(CoreConfig::class));
 
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

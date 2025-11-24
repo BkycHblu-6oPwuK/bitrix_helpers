@@ -3,16 +3,17 @@
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
-use Beeralex\Core\Repository\IblockRepository;
-use Beeralex\Catalog\Helper\PriceHelper;
-use Beeralex\Catalog\Service\CatalogService;
-use Bitrix\Main\ORM\Fields\ExpressionField;
+use Beeralex\Catalog\Options;
+use Beeralex\Core\Service\CatalogService;
 
-class ProductsRepository extends IblockRepository implements ProductRepositoryContract
+class ProductsRepository extends AbstractCatalogRepository implements ProductRepositoryContract
 {
-    public function __construct()
-    {
-        parent::__construct('catalog');
+    public function __construct(
+        string $iblockCode,
+        Options $options,
+        CatalogService $catalogService
+    ) {
+        parent::__construct($iblockCode, $options, $catalogService);
     }
 
     /**
@@ -24,87 +25,32 @@ class ProductsRepository extends IblockRepository implements ProductRepositoryCo
             return [];
         }
 
-        $basePriceId = PriceHelper::getBasePriceId();
-        $discountPriceId = PriceHelper::getDiscountPriceId();
+        $filter = ['ID' => $productIds];
+        if ($onlyActive) {
+            $filter['ACTIVE'] = 'Y';
+        }
 
-        $query = $this->buildProductQuery($productIds, $onlyActive);
-        $result = $query->exec();
+        // Используем универсальный метод findAll
+        $items = $this->findAll(
+            $filter, 
+            ['*', 'CATALOG', 'PRICE', 'STORE_PRODUCT'], 
+            ['ID' => 'ASC']
+        );
 
         $products = [];
-        $basePrices = [];
-        $discountPrices = [];
+        foreach ($items as $item) {
+            $products[(int)$item['ID']] = $item;
+        }
 
-        while ($row = $result->fetch()) {
-            $id = (int)$row['ID'];
-
-            $products[$id] ??= [
-                'id' => $id,
-                'active' => $row['ACTIVE'] === 'Y',
-                'available' => $row['AVAILABLE'] === 'Y',
-                'name' => $row['NAME'],
-                'code' => $row['CODE'],
-                'sectionId' => (int)$row['IBLOCK_SECTION_ID'],
-                'url' => null,
-                'price' => null,
-                'imageSrc' => null,
-                'morePhoto' => [],
-            ];
-
-            if ((int)$row['PRICE_GROUP_ID'] === $basePriceId) {
-                $basePrices[$id] = (float)$row['PRICE_VALUE'];
-            }
-
-            if ((int)$row['PRICE_GROUP_ID'] === $discountPriceId) {
-                $discountPrices[$id] = (float)$row['PRICE_VALUE'];
+        // Если нужно сохранить порядок переданных ID
+        $result = [];
+        foreach ($productIds as $id) {
+            if (isset($products[$id])) {
+                $result[] = $products[$id];
             }
         }
 
-        foreach ($products as $id => &$product) {
-            $base = $basePrices[$id] ?? 0.0;
-            $discount = $discountPrices[$id] ?? 0.0;
-            $product['price'] = PriceHelper::preparePrice($base, $discount);
-        }
-
-        return $products;
-    }
-
-    /**
-     * Строит ORM-запрос для получения товаров и цен.
-     */
-    private function buildProductQuery(array $ids, bool $onlyActive)
-    {
-        $catalogService = service(CatalogService::class);
-
-        $query = $catalogService->addPriceToQuery(
-            $catalogService->addCatalogToQuery(
-                $this->query()
-            )
-        )
-            ->setSelect([
-                'ID',
-                'NAME',
-                'CODE',
-                'IBLOCK_SECTION_ID',
-                'ACTIVE',
-                'AVAILABLE' => 'CATALOG.AVAILABLE',
-                'PRICE_VALUE' => 'PRICE.PRICE',
-                'PRICE_GROUP_ID' => 'PRICE.CATALOG_GROUP_ID',
-            ])
-            ->whereIn('ID', $ids)
-            ->registerRuntimeField(
-                new ExpressionField(
-                    'SORT',
-                    'FIELD(%s, ' . implode(',', $ids) . ')',
-                    ['ID']
-                )
-            )
-            ->setOrder(['SORT' => 'asc']);
-
-        if ($onlyActive) {
-            $query->where('ACTIVE', 'Y');
-        }
-
-        return $query;
+        return $result;
     }
 
     /**
@@ -124,4 +70,102 @@ class ProductsRepository extends IblockRepository implements ProductRepositoryCo
 
         return $ids;
     }
+
+    /**
+     * Получает ID похожих товаров из той же секции.
+     */
+    public function getSameProductsIds(int $elementId, int $sectionId, int $limit = 15, int $cacheTtl = 0): array
+    {
+        if (!$elementId || !$sectionId) {
+            return [];
+        }
+
+        $dbResult = $this->catalogService->addCatalogToQuery($this->query())
+            ->setSelect(['ID'])
+            ->where('ACTIVE', 'Y')
+            ->where('CATALOG.AVAILABLE', 'Y')
+            ->where('IBLOCK_SECTION_ID', $sectionId)
+            ->whereNot('ID', $elementId)
+            ->setLimit($limit);
+
+        if ($cacheTtl) {
+            $dbResult = $dbResult->setCacheTtl($cacheTtl)->cacheJoins(true);
+        }
+
+        $dbResult = $dbResult->exec();
+
+        $productsIds = [];
+        while ($item = $dbResult->fetch()) {
+            $productsIds[] = (int)$item['ID'];
+        }
+
+        return $productsIds;
+    }
+
+    /**
+     * Получает ID новых товаров (добавленных за последний месяц).
+     */
+    public function getNewProductsIds(int $limit = 15, int $cacheTtl = 0): array
+    {
+        $date = (new \Bitrix\Main\Type\DateTime())->add("-1 months");
+
+        $dbResult = $this->catalogService->addCatalogToQuery($this->query())
+            ->setSelect(['ID'])
+            ->where('ACTIVE', 'Y')
+            ->where('CATALOG.AVAILABLE', 'Y')
+            ->where('DATE_CREATE', '>=', $date)
+            ->setLimit($limit);
+
+        if ($cacheTtl) {
+            $dbResult = $dbResult->setCacheTtl($cacheTtl)->cacheJoins(true);
+        }
+
+        $dbResult = $dbResult->exec();
+
+        $productsIds = [];
+        while ($item = $dbResult->fetch()) {
+            $productsIds[] = (int)$item['ID'];
+        }
+
+        return $productsIds;
+    }
+
+    /**
+     * Получает ID популярных товаров на основе просмотров.
+     */
+    public function getPopularProductsIds(int $limit = 15, int $cacheTtl = 0): array
+    {
+        $dbResult = $this->catalogService->addCatalogToQuery(
+            \Bitrix\Catalog\CatalogViewedProductTable::query(),
+            'PRODUCT_ID'
+        )
+            ->registerRuntimeField('PRODUCT', [
+                'data_type' => $this->entityClass,
+                'reference' => ['=this.PRODUCT_ID' => 'ref.ID'],
+                'join_type' => 'INNER',
+            ])
+            ->setSelect([
+                'PRODUCT_ID',
+                'VIEWS' => new \Bitrix\Main\ORM\Fields\ExpressionField('VIEWS', 'COUNT(*)'),
+            ])
+            ->where('PRODUCT.ACTIVE', 'Y')
+            ->where('CATALOG.AVAILABLE', 'Y')
+            ->setGroup('PRODUCT_ID')
+            ->setOrder(['VIEWS' => 'DESC'])
+            ->setLimit($limit);
+
+        if ($cacheTtl) {
+            $dbResult = $dbResult->setCacheTtl($cacheTtl)->cacheJoins(true);
+        }
+
+        $dbResult = $dbResult->exec();
+
+        $productsIds = [];
+        while ($item = $dbResult->fetch()) {
+            $productsIds[] = (int)$item['PRODUCT_ID'];
+        }
+
+        return $productsIds;
+    }
 }
+

@@ -2,6 +2,7 @@
 
 namespace Beeralex\Catalog\Discount;
 
+use Beeralex\Catalog\Service\PriceService;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 
@@ -59,14 +60,16 @@ class ProductsDiscount extends Discount
             'select' => ['PRICE', 'CURRENCY', 'PRODUCT_ID', 'CATALOG_GROUP_ID'],
             'filter' => ['@PRODUCT_ID' => $this->productsIds, '@CATALOG_GROUP_ID' => $this->catalogTypePrices]
         ]);
+        $priceService = service(PriceService::class);
+        $baseCurrency = $priceService->getBaseCurrency();
         while ($priceRow = $dbPrice->fetch()) {
-            if (Price::getBaseCurrency() != $priceRow['CURRENCY']) {
+            if ($baseCurrency != $priceRow['CURRENCY']) {
                 $priceRow['PRICE'] = \CCurrencyRates::ConvertCurrency(
                     $priceRow['PRICE'],
                     $priceRow['CURRENCY'],
-                    Price::getBaseCurrency()
+                    $baseCurrency
                 );
-                $priceRow['CURRENCY'] = Price::getBaseCurrency();
+                $priceRow['CURRENCY'] = $baseCurrency;
             }
             $rows[(int)$priceRow['PRODUCT_ID']] = $priceRow;
         }

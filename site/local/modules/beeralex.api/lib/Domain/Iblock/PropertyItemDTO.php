@@ -3,19 +3,20 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Iblock;
 
-class PropertyItemDTO
-{
-    public function __construct(
-        public string $code,
-        public string $name,
-        public mixed $value,
-        public ?string $type = null,
-    ) {}
+use Beeralex\Core\Http\Resources\Resource;
 
-    public static function fromArray(array $property): ?static
+/**
+ * @property string $code
+ * @property string $name
+ * @property mixed $value
+ * @property string|null $type
+ */
+class PropertyItemDTO extends Resource
+{
+    public static function make(array $property): static
     {
         if (empty($property['VALUE']) && empty($property['DISPLAY_VALUE'])) {
-            return null;
+            return new static([]);
         }
 
         $value = null;
@@ -29,11 +30,11 @@ class PropertyItemDTO
             $value = (string)$property['DISPLAY_VALUE'];
         }
 
-        return new static(
-            (string)$property['CODE'],
-            (string)$property['NAME'],
-            $value,
-            $type,
-        );
+        return new static([
+            'code' => (string)$property['CODE'],
+            'name' => (string)$property['NAME'],
+            'value' => $value,
+            'type' => $type,
+        ]);
     }
 }

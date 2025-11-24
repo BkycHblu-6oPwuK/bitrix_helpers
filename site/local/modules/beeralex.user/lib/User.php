@@ -3,7 +3,6 @@ declare(strict_types=1);
 namespace Beeralex\User;
 
 use Beeralex\User\Contracts\UserEntityContract;
-use Beeralex\User\Contracts\UserRepositoryContract;
 use Bitrix\Main\Type\Date;
 use Beeralex\User\Enum\Gender;
 use Beeralex\User\Phone;
