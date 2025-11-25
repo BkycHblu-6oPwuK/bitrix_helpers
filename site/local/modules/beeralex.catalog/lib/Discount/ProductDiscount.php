@@ -1,15 +1,12 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Discount;
 
-use Beeralex\Catalog\Helper\PriceHelper;
 use Beeralex\Catalog\Service\PriceService;
 use Bitrix\Catalog\Discount\DiscountManager;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
-
-Loader::includeModule('catalog');
 
 class ProductDiscount extends Discount
 {
@@ -23,6 +20,7 @@ class ProductDiscount extends Discount
      */
     public function __construct(int $productId, int $priceTypeId)
     {
+        Loader::includeModule('catalog');
         $this->productId = $productId;
         $this->priceTypeId = $priceTypeId;
         parent::__construct($this->makeBasket());

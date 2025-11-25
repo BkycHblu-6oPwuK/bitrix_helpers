@@ -4,7 +4,8 @@ namespace Beeralex\Catalog\Enum;
 
 enum DIServiceKey: string
 {
-    case CATALOG_REPOSITORY = 'catalogRepository';
-    case OFFERS_REPOSITORY = 'offersRepository';
-    case EMPTY_OFFERS_REPOSITORY = 'emptyOffersRepository';
+    case PRODUCT_REPOSITORY = 'beeralex.catalog.product.repository';
+    case OFFERS_REPOSITORY = 'beeralex.catalog.offer.repository';
+    case EMPTY_OFFERS_REPOSITORY = 'beeralex.catalog.empty.offer.repository';
+    case SORTING_REPOSITORY = 'beeralex.catalog.sorting.repository';
 }

@@ -1,23 +1,19 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
-use Beeralex\Catalog\Options;
 use Beeralex\Core\Repository\IblockRepository;
 use Beeralex\Core\Service\CatalogService;
 
 abstract class AbstractCatalogRepository extends IblockRepository
 {
-    protected Options $options;
     protected CatalogService $catalogService;
 
     public function __construct(
         string $iblockCode,
-        Options $options,
         CatalogService $catalogService
     ) {
         parent::__construct($iblockCode);
-        $this->options = $options;
         $this->catalogService = $catalogService;
     }
 
@@ -26,9 +22,10 @@ abstract class AbstractCatalogRepository extends IblockRepository
      *
      * @param array $filter Фильтр ORM
      * @param array $select Поля для выборки. Можно использовать алиасы:
-     *                      - '*' : все поля элемента инфоблока
+     *                      - '*' : все поля элемента и runtime-поля
      *                      - 'CATALOG' : все поля товара (количество, вес и т.д.)
      *                      - 'PRICE' : подгрузить цены
+     *                      - 'PRICE.CATALOG_GROUP' : подгрузить группы цен
      *                      - 'STORE_PRODUCT' : подгрузить остатки по складам
      * @param array $order Сортировка
      * @param int|null $limit Лимит
@@ -37,39 +34,38 @@ abstract class AbstractCatalogRepository extends IblockRepository
      */
     public function findAll(array $filter = [], array $select = ['*'], array $order = ['SORT' => 'ASC'], ?int $limit = null, ?int $offset = null): array
     {
+        if (empty($select)) {
+            $select = ['*'];
+        }
+        if ($select === ['*']) {
+            $select = ['*', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CATALOG'];
+        }
         $query = $this->query();
-        $realSelect = [];
+        $priceAdded = false;
+        $priceCatalogAdded = false;
+        $storeAdded = false;
+        $catalogAdded = false;
 
-        foreach ($select as $key => $field) {
-            if ($field === 'PRICE') {
+        foreach ($select as $field) {
+            if ($priceAdded === false && ($field === 'PRICE' || strstr($field, 'PRICE.'))) {
                 $query = $this->catalogService->addPriceToQuery($query);
-                $realSelect['PRICE'] = 'PRICE';
-                $realSelect['CATALOG_GROUP'] = 'PRICE.CATALOG_GROUP';
-                continue;
-            }
-            if ($field === 'STORE_PRODUCT') {
+                $priceAdded = true;
+            } elseif ($priceCatalogAdded === false && ($field === 'PRICE.CATALOG_GROUP' || strstr($field, 'PRICE.CATALOG_GROUP.'))) {
+                $query = $this->catalogService->addPriceToQuery($query);
+                $priceCatalogAdded = true;
+            } elseif ($storeAdded === false && ($field === 'STORE_PRODUCT' || strstr($field, 'STORE_PRODUCT.'))) {
                 $query = $this->catalogService->addStoreToQuery($query);
-                $realSelect['STORE_PRODUCT'] = 'STORE_PRODUCT';
-                continue;
-            }
-            if ($field === 'CATALOG') {
+                $storeAdded = true;
+            } elseif ($catalogAdded === false && ($field === 'CATALOG' || strstr($field, 'CATALOG.'))) {
                 $query = $this->catalogService->addCatalogToQuery($query);
-                $realSelect['CATALOG'] = 'CATALOG';
-                continue;
+                $catalogAdded = true;
             }
-            
-            if (is_string($key)) {
-                $realSelect[$key] = $field;
-            } else {
-                $realSelect[] = $field;
+            if($priceAdded && $priceCatalogAdded && $storeAdded && $catalogAdded) {
+                break;
             }
         }
 
-        if (empty($realSelect)) {
-            $realSelect = ['*'];
-        }
-
-        $query->setSelect($realSelect);
+        $query->setSelect($select);
         $query->setFilter($filter);
         $query->setOrder($order);
 

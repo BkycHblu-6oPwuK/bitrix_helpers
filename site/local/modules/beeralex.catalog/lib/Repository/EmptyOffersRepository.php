@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
@@ -19,6 +20,11 @@ class EmptyOffersRepository extends IblockRepository implements OfferRepositoryC
     }
 
     public function getOffersByProductIds(array $productIds, bool $onlyAvailable = true): array
+    {
+        return [];
+    }
+
+    public function getProductsIdsByOffersIds(array $offersIds): array
     {
         return [];
     }

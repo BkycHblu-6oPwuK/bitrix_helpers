@@ -7,20 +7,26 @@ use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Catalog\Discount\ProductsDiscount;
 use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Catalog\Repository\PriceTypeRepository;
+use Beeralex\Core\Service\CatalogService as CoreCatalogService;
 use Bitrix\Main\Loader;
 
-class CatalogService
+class CatalogService extends CoreCatalogService
 {
     public function __construct(
         protected readonly ProductRepositoryContract $productsRepository,
         protected readonly OfferRepositoryContract $offersRepository,
         protected readonly CatalogViewedProductRepository $viewedProductRepository,
-    ) {}
+        protected readonly PriceTypeRepository $priceTypeRepository,
+    ) 
+    {
+        Loader::includeModule('sale');
+        Loader::includeModule('catalog');
+    }
 
     /**
      * Возвращает товары с их предложениями (и опционально скидками).
      */
-    public function getProductsWithOffers(array $productIds, bool $isAvailable = true, bool $applyDiscounts = true): array
+    public function getProductsWithOffers(array $productIds, bool $isAvailable = true, bool $applyDiscounts = false): array
     {
         if (empty($productIds)) {
             return [];
@@ -48,26 +54,19 @@ class CatalogService
         return $products;
     }
 
-    /**
-     * Приводит цены товара в соответствие с рассчитанными скидками.
-     */
     protected function updateProductPrices(array &$product, float $discountedPrice): void
     {
         $basePriceValue = 0.0;
-        $currentMinPrice = PHP_FLOAT_MAX;
-        $basePriceId = service(PriceTypeRepository::class)->getBasePriceId();
+        $basePriceId = $this->priceTypeRepository->getBasePriceId();
+        $basePriceData = null;
 
-        // Ищем базовую цену и текущую минимальную в сырых данных
-        // PRICE - это массив цен из БД
         $prices = $product['PRICE'] ?? [];
         if (!is_array($prices)) {
             $prices = [];
         }
 
-        // Если пришла одна цена (ассоциативный массив), оборачиваем её в список
         if (isset($prices['PRICE']) || (isset($prices['ID']) && !isset($prices[0]))) {
             $prices = [$prices];
-            // Обновляем структуру в продукте, чтобы она была единообразной (список)
             $product['PRICE'] = $prices;
         }
 
@@ -77,42 +76,31 @@ class CatalogService
 
             if ($groupId === $basePriceId) {
                 $basePriceValue = $priceValue;
-            }
-            
-            if ($priceValue < $currentMinPrice) {
-                $currentMinPrice = $priceValue;
+                $basePriceData = $price;
             }
         }
 
-        // Если базовой цены нет, считаем скидочную цену базой (скидка 0%)
         if ($basePriceValue <= 0) {
             $basePriceValue = $discountedPrice;
         }
 
-        // Если рассчитанная цена ниже текущей минимальной, добавляем её как новую цену
-        if ($discountedPrice < $currentMinPrice) {
-            // Добавляем динамическую цену в массив PRICE
-            // Формируем структуру, похожую на ту, что приходит из БД
-            $product['PRICE'][] = [
-                'ID' => 0, // Маркер динамической цены
-                'PRODUCT_ID' => $product['ID'],
-                'EXTRA_ID' => 0,
-                'CATALOG_GROUP_ID' => 0, // ID группы для динамической цены
-                'PRICE' => $discountedPrice,
-                'CURRENCY' => 'RUB', // TODO: брать валюту из настроек или базовой цены
-                'TIMESTAMP_X' => new \Bitrix\Main\Type\DateTime(),
-                'QUANTITY_FROM' => 0,
-                'QUANTITY_TO' => 0,
-                'TMP_ID' => '',
-                'PRICE_SCALE' => $discountedPrice,
-                'CATALOG_GROUP' => [
-                    'ID' => 0,
-                    'NAME' => 'Discount Price',
-                    'BASE' => 'N',
-                    'SORT' => 100,
-                    'XML_ID' => 'discount_price',
-                ]
-            ];
+        if ($discountedPrice < $basePriceValue) {
+            $templatePrice = $basePriceData ?? ($prices[0] ?? []);
+            $newPrice = $templatePrice;
+            $newPrice['ID'] = 0;
+            $newPrice['CATALOG_GROUP_ID'] = 0;
+            $newPrice['PRICE'] = $discountedPrice;
+            $newPrice['PRICE_SCALE'] = $discountedPrice;
+            $newPrice['TIMESTAMP_X'] = new \Bitrix\Main\Type\DateTime();
+            
+            if (isset($newPrice['CATALOG_GROUP'])) {
+                $newPrice['CATALOG_GROUP']['ID'] = 0;
+                $newPrice['CATALOG_GROUP']['NAME'] = 'Discount Price';
+                $newPrice['CATALOG_GROUP']['BASE'] = 'N';
+                $newPrice['CATALOG_GROUP']['XML_ID'] = 'discount_price';
+            }
+            
+            $product['PRICE'][] = $newPrice;
         }
     }
 
@@ -133,18 +121,16 @@ class CatalogService
             return;
         }
 
-        // Передаем только базовую цену для расчета скидок, 
-        // так как DiscountPriceId больше нет, а скидки обычно считаются от базы.
         $discount = new ProductsDiscount($ids, [
-            service(PriceTypeRepository::class)->getBasePriceId(),
+            $this->priceTypeRepository->getBasePriceId(),
         ]);
 
         foreach ($products as &$product) {
             if ($price = $discount->getPriceByProductId($product['ID'])) {
                 $this->updateProductPrices($product, $price);
             }
-
-            foreach ($product['OFFERS'] ?? [] as &$offer) {
+            $product['OFFERS'] ??= [];
+            foreach ($product['OFFERS'] as &$offer) {
                 if ($price = $discount->getPriceByProductId($offer['ID'])) {
                     $this->updateProductPrices($offer, $price);
                 }
@@ -157,10 +143,6 @@ class CatalogService
      */
     public function getViewedProductsIds(int $currentElementId): array
     {
-        if (!Loader::includeModule('sale')) {
-            return [];
-        }
-
         $skipUserInit = false;
         if (!\Bitrix\Catalog\Product\Basket::isNotCrawler()) {
             $skipUserInit = true;

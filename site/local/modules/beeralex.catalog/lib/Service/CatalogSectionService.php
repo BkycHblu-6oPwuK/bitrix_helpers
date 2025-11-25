@@ -4,21 +4,17 @@ namespace Beeralex\Catalog\Helper;
 use Bitrix\Main\Context;
 use Bitrix\Main\Web\Uri;
 use Beeralex\Catalog\Helper\SortingHelper;
+use Beeralex\Catalog\Service\CatalogService;
 
-class CatalogSectionHelper
+class CatalogSectionService extends CatalogService
 {
 
     /**
      * Получает инфу для карточки товара в каталоге
-     *
-     * @param array $productIds
-     *
-     * @return array
      */
-    public static function getProductsForCard(array $productIds, $isAvailable = true): array
+    public function getProductsForCard(array $productIds, bool $isAvailable = true): array
     {
-        //$products = array_values(ProductsHelper::getProductsAndOffers($productIds, $isAvailable));
-        return [];
+        return array_values($this->getProductsWithOffers($productIds, $isAvailable));
     }
 
 
@@ -27,7 +23,7 @@ class CatalogSectionHelper
      *
      * @return array
      */
-    public static function getSorting(): array
+    public function getSorting(): array
     {
         $currentSortId = SortingHelper::getRequestedSortIdOrDefault();
         $availableSorting = SortingHelper::getAvailableSortings();
@@ -48,7 +44,7 @@ class CatalogSectionHelper
      *
      * @return string
      */
-    public static function makeUrl(string $url): string
+    public function makeUrl(string $url): string
     {
         $requestedSortId = SortingHelper::getRequestedSortIdOrDefault();
         $query = Context::getCurrent()->getRequest()->get('q');

@@ -6,6 +6,7 @@ use Beeralex\Catalog\Basket\BasketUtils;
 use Beeralex\Catalog\Discount\Coupons;
 use Beeralex\Catalog\Discount\Discount;
 use Beeralex\Catalog\Enum\DIServiceKey;
+use Beeralex\Catalog\Service\SortingService;
 use Beeralex\Catalog\Location\BitrixLocationResolver;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Beeralex\Catalog\Location\Contracts\LocationApiClientContract;
@@ -22,6 +23,8 @@ use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\Fuser;
 use Beeralex\Catalog\Options;
+use Beeralex\Catalog\Repository\SortingRepository;
+use Beeralex\Catalog\Repository\StoreRepository;
 use Beeralex\Catalog\Service\PriceService;
 
 return [
@@ -38,28 +41,26 @@ return [
                     return new BitrixLocationResolver(service(LocationApiClientContract::class), service(LoggerFactoryContract::class)->channel('location'));
                 }
             ],
-            DIServiceKey::CATALOG_REPOSITORY->value => [
+            DIServiceKey::PRODUCT_REPOSITORY->value => [
                 'constructor' => static function () {
-                    $options = service(Options::class);
                     return new ProductsRepository(
-                        'catalog',
-                        $options,
-                        service(\Beeralex\Core\Service\CatalogService::class)
+                        catalogService: service(\Beeralex\Core\Service\CatalogService::class),
+                        catalogViewedProductRepository: service(CatalogViewedProductRepository::class)
                     );
                 },
             ],
             DIServiceKey::OFFERS_REPOSITORY->value => [
                 'constructor' => static function () {
-                    $options = service(Options::class);
                     return new OffersRepository(
-                        'offers',
-                        $options,
-                        service(\Beeralex\Core\Service\CatalogService::class)
+                        catalogService: service(\Beeralex\Core\Service\CatalogService::class)
                     );
                 },
             ],
             DIServiceKey::EMPTY_OFFERS_REPOSITORY->value => [
                 'className' => EmptyOffersRepository::class,
+            ],
+            DIServiceKey::SORTING_REPOSITORY->value => [
+                'className' => SortingRepository::class,
             ],
             PriceTypeRepository::class => [
                 'className' => PriceTypeRepository::class,
@@ -67,23 +68,34 @@ return [
             CatalogViewedProductRepository::class => [
                 'className' => CatalogViewedProductRepository::class,
             ],
+            StoreRepository::class => [
+                'className' => StoreRepository::class,
+            ],
             CatalogService::class => [
                 'constructor' => static function () {
                     return new CatalogService(
-                        service(DIServiceKey::CATALOG_REPOSITORY->value),
+                        service(DIServiceKey::PRODUCT_REPOSITORY->value),
                         service(DIServiceKey::OFFERS_REPOSITORY->value),
-                        service(CatalogViewedProductRepository::class)
+                        service(CatalogViewedProductRepository::class),
+                        service(PriceTypeRepository::class)
                     );
                 }
             ],
             PriceService::class => [
                 'className' => PriceService::class,
             ],
+            SortingService::class => [
+                'contructor' => static function () {
+                    return new SortingService(
+                        service(DIServiceKey::SORTING_REPOSITORY->value)
+                    );
+                }
+            ],
             /** возможно стоит создать фабрику, а не создавать объекты для текущего пользователя из сессии */
             BasketUtils::class => [
                 'constructor' => static function () {
                     return new BasketUtils(
-                        service(DIServiceKey::CATALOG_REPOSITORY->value),
+                        service(DIServiceKey::PRODUCT_REPOSITORY->value),
                         service(DIServiceKey::OFFERS_REPOSITORY->value),
                         service(BasketBase::class)
                     );

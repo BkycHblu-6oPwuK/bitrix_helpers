@@ -1,12 +1,10 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Discount;
 
 use Bitrix\Main\Loader;
 use Bitrix\Sale\DiscountCouponsManager;
 use Bitrix\Sale\Registry;
-
-Loader::includeModule('sale');
 
 class Coupons
 {
@@ -14,6 +12,7 @@ class Coupons
     public readonly string $couponManager;
     public function __construct()
     {
+        Loader::includeModule('sale');
         $registry = Registry::getInstance(Registry::REGISTRY_TYPE_ORDER);
         $this->couponManager = $registry->getDiscountCouponClassName();
     }

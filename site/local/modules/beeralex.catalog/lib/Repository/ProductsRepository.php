@@ -1,19 +1,21 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
-use Beeralex\Catalog\Options;
 use Beeralex\Core\Service\CatalogService;
 
 class ProductsRepository extends AbstractCatalogRepository implements ProductRepositoryContract
 {
+    protected CatalogViewedProductRepository $catalogViewedProductRepository;
+
     public function __construct(
-        string $iblockCode,
-        Options $options,
-        CatalogService $catalogService
+        string $iblockCode = 'catalog',
+        CatalogService $catalogService,
+        CatalogViewedProductRepository $catalogViewedProductRepository
     ) {
-        parent::__construct($iblockCode, $options, $catalogService);
+        parent::__construct($iblockCode, $catalogService);
+        $this->catalogViewedProductRepository = $catalogViewedProductRepository;
     }
 
     /**
@@ -30,11 +32,8 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
             $filter['ACTIVE'] = 'Y';
         }
 
-        // Используем универсальный метод findAll
         $items = $this->findAll(
-            $filter, 
-            ['*', 'CATALOG', 'PRICE', 'STORE_PRODUCT'], 
-            ['ID' => 'ASC']
+            $filter,
         );
 
         $products = [];
@@ -42,7 +41,6 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
             $products[(int)$item['ID']] = $item;
         }
 
-        // Если нужно сохранить порядок переданных ID
         $result = [];
         foreach ($productIds as $id) {
             if (isset($products[$id])) {
@@ -105,9 +103,9 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
     /**
      * Получает ID новых товаров (добавленных за последний месяц).
      */
-    public function getNewProductsIds(int $limit = 15, int $cacheTtl = 0): array
+    public function getNewProductsIds(int $limit = 15, int $cacheTtl = 0, int $countMonts = 1): array
     {
-        $date = (new \Bitrix\Main\Type\DateTime())->add("-1 months");
+        $date = (new \Bitrix\Main\Type\DateTime())->add("-{$countMonts} months");
 
         $dbResult = $this->catalogService->addCatalogToQuery($this->query())
             ->setSelect(['ID'])
@@ -136,7 +134,7 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
     public function getPopularProductsIds(int $limit = 15, int $cacheTtl = 0): array
     {
         $dbResult = $this->catalogService->addCatalogToQuery(
-            \Bitrix\Catalog\CatalogViewedProductTable::query(),
+            $this->catalogViewedProductRepository->query(),
             'PRODUCT_ID'
         )
             ->registerRuntimeField('PRODUCT', [

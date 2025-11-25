@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Discount;
 
 use Bitrix\Main\Context;
@@ -8,27 +8,22 @@ use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\Discount as SaleDiscount;
 use Bitrix\Sale\Order;
 
-Loader::includeModule('sale');
-
 class Discount
 {
-    protected readonly ?Order $order;
-    protected readonly BasketBase $basket;
+    protected ?Order $order = null;
+    protected BasketBase $basket;
     protected ?array $discounts = null;
 
     public function __construct(BasketBase $basket)
     {
+        Loader::includeModule('sale');
         $this->basket = $basket;
         $this->order = $basket->getOrder();
     }
 
     protected function getSiteId()
     {
-        static $siteId = null;
-        if($siteId === null) {
-            $siteId = Context::getCurrent()->getSite() ?? $this->order?->getSiteId() ?? 's1';
-        }
-        return $siteId;
+        return $this->order?->getSiteId() ?? Context::getCurrent()->getSite() ?? 's1';
     }
 
     public function getPrice(int|string $basketCode): ?float

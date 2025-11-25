@@ -5,18 +5,26 @@ use Bitrix\Main\Loader;
 use CSearch;
 use Beeralex\Core\Model\SectionModel;
 use Beeralex\Core\Service\IblockService;
+use Beeralex\Core\Service\LanguageService;
 
-class SearchHelper
+class SearchService
 {
-    public static function getHints($query)
+    public function __construct(
+        protected readonly IblockService $iblockService,
+        protected readonly LanguageService $languageService,
+    )
+    {
+        Loader::includeModule('iblock');
+    }
+    public function getHints(string $query, int $limit = 50): array
     {
         $result = [];
-        $productsIds = self::getProductsIds($query, 50);
+        $productsIds = self::getProductsIds($query, $limit);
 
         if (empty($productsIds)) {
             if (static::issetTranslitirate($query)) {
-                $query = static::transliterate($query);
-                $productsIds = self::getProductsIds($query, 50);
+                $query  =$this->languageService->transliterate($query);
+                $productsIds = self::getProductsIds($query, $limit);
             } else {
                 return $result;
             }
@@ -30,7 +38,7 @@ class SearchHelper
         return $result;
     }
 
-    public static function getProductsIds($query, int $limit)
+    public function getProductsIds($query, int $limit)
     {
         Loader::includeModule('search');
 
@@ -42,7 +50,7 @@ class SearchHelper
                 'SITE_ID' => SITE_ID,
                 'MODULE_ID' => 'iblock',
                 'CHECK_DATES' => 'Y',
-                'PARAM2' => service(IblockService::class)->getIblockIdByCode('catalog'),
+                'PARAM2' => $this->iblockService->getIblockIdByCode('catalog'),
             ],
             [
                 'RANK' => 'DESC',
@@ -65,9 +73,9 @@ class SearchHelper
         return $productsIds;
     }
 
-    protected static function getSections($productsIds)
+    protected function getSections($productsIds)
     {
-        $catalogId = IblockHelper::getIblockIdByCode('catalog');
+        $catalogId = $this->iblockService->getIblockIdByCode('catalog');
         $section = SectionModel::compileEntityByIblock($catalogId);
         $dbResult = IblockHelper::getElementApiTable($catalogId)::query()
             ->setSelect(
@@ -109,63 +117,7 @@ class SearchHelper
         }
         return array_values($sections);
     }
-    public static function transliterate(string $str): string
-    {
-        $translit = [
-            'q' => 'й',
-            'w' => 'ц',
-            'e' => 'у',
-            'r' => 'к',
-            't' => 'е',
-            'y' => 'н',
-            'u' => 'г',
-            'i' => 'ш',
-            'o' => 'щ',
-            'p' => 'з',
-            '[' => 'х',
-            ']' => 'ъ',
-            'a' => 'ф',
-            's' => 'ы',
-            'd' => 'в',
-            'f' => 'а',
-            'g' => 'п',
-            'h' => 'р',
-            'j' => 'о',
-            'k' => 'л',
-            'l' => 'д',
-            ';' => 'ж',
-            "'" => 'э',
-            'z' => 'я',
-            'x' => 'ч',
-            'c' => 'с',
-            'v' => 'м',
-            'b' => 'и',
-            'n' => 'т',
-            'm' => 'ь',
-            ',' => 'б',
-            '.' => 'ю',
-            '/' => '.',
-            ' ' => ' '
-        ];
-
-        $transliterated = '';
-        $length = strlen($str);
-        for ($i = 0; $i < $length; $i++) {
-            $char = strtolower($str[$i]);
-            if (isset($translit[$char])) {
-                if ($str[$i] === strtoupper($str[$i])) {
-                    $transliterated .= strtoupper($translit[$char]);
-                } else {
-                    $transliterated .= $translit[$char];
-                }
-            } else {
-                $transliterated .= $char;
-            }
-        }
-
-        return $transliterated;
-    }
-    public static function issetTranslitirate(string $str): bool
+    protected function issetTranslitirate(string $str): bool
     {
         return preg_match('/[a-zA-Z\[\]\'\'\/\s\;]/', $str) === 1;
     }

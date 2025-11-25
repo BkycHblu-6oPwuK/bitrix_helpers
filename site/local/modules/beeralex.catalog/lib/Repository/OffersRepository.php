@@ -1,19 +1,18 @@
 <?php
+declare(strict_types=1);
 
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
-use Beeralex\Catalog\Options;
 use Beeralex\Core\Service\CatalogService;
 
 class OffersRepository extends AbstractCatalogRepository implements OfferRepositoryContract
 {
     public function __construct(
-        string $iblockCode,
-        Options $options,
+        string $iblockCode = 'offers',
         CatalogService $catalogService
     ) {
-        parent::__construct($iblockCode, $options, $catalogService);
+        parent::__construct($iblockCode, $catalogService);
     }
 
     public function getOfferIdsByProductIds(array $productIds, bool $onlyAvailable = true): array
@@ -46,12 +45,10 @@ class OffersRepository extends AbstractCatalogRepository implements OfferReposit
             return [];
         }
 
-        // Используем универсальный метод findAll
-        // Запрашиваем основные поля, каталог, цены, склады и привязку к товару
         $items = $this->findAll(
             ['ID' => $offerIds],
             [
-                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'STORE_PRODUCT', 'CML2_LINK.VALUE'
+                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CML2_LINK.VALUE'
             ]
         );
         $offers = [];

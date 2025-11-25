@@ -1,9 +1,7 @@
 <?php
 namespace Beeralex\Catalog\Service;
 
-use Beeralex\Catalog\Dto\PriceDTO;
 use Bitrix\Main\Loader;
-use CCurrencyLang;
 
 class PriceService
 {
@@ -21,7 +19,7 @@ class PriceService
      */
     public function format(?float $price): string
     {
-        return CCurrencyLang::CurrencyFormat($price, 'RUB', false);
+        return \CCurrencyLang::CurrencyFormat($price, 'RUB', false);
     }
 
     /**
@@ -44,28 +42,8 @@ class PriceService
         }
     }
 
-    /**
-     * Формирует структуру элемента цены
-     */
-    public function createPrice(int $typeId, string $name, float $value, bool $isBase, float $basePrice, bool $isCurrent = false): PriceDTO
-    {
-        return new PriceDTO(
-            id: $typeId,
-            name: $name,
-            value: $value,
-            formatted: $this->format($value),
-            isBase: $isBase,
-            isCurrent: $isCurrent,
-            discountPercent: $this->getSalePercent($basePrice, $value),
-        );
-    }
-
     public function getBaseCurrency()
     {
-        static $currency = null;
-        if ($currency === null) {
-            $currency = \Bitrix\Currency\CurrencyManager::getBaseCurrency();
-        }
-        return $currency;
+        return \Bitrix\Currency\CurrencyManager::getBaseCurrency();
     }
 }

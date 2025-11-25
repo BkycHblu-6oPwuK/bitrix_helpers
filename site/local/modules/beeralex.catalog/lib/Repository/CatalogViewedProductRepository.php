@@ -1,10 +1,14 @@
 <?php
+declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Core\Repository\Repository;
 use Bitrix\Catalog\CatalogViewedProductTable;
 use Bitrix\Main\Loader;
 
+/**
+ * @property CatalogViewedProductTable $entityClass
+ */
 class CatalogViewedProductRepository extends Repository
 {
     public function __construct()
@@ -18,7 +22,7 @@ class CatalogViewedProductRepository extends Repository
      */
     public function getViewedProductIds(int $iblockId, int $userId, int $currentElementId, int $limit = 15): array
     {
-        return array_values(CatalogViewedProductTable::getProductSkuMap(
+        return array_values($this->entityClass::getProductSkuMap(
             $iblockId,
             0,
             $userId,

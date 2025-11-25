@@ -1,16 +1,12 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Internals\OrderTable;
-use Beeralex\Catalog\Enum\OrderStatuses;
-
-Loader::includeModule('sale');
 
 class OrderRepository
 {
-
     /**
      * @var OrderTable|string $entity
      */
@@ -18,6 +14,7 @@ class OrderRepository
 
     public function __construct()
     {
+        Loader::includeModule('sale');
         $this->entity = OrderTable::class;
     }
     /**
