@@ -85,7 +85,7 @@ return [
                 'className' => PriceService::class,
             ],
             SortingService::class => [
-                'contructor' => static function () {
+                'constructor' => static function () {
                     return new SortingService(
                         service(DIServiceKey::SORTING_REPOSITORY->value)
                     );
