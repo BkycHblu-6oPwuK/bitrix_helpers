@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Iblock;
 
-use Beeralex\Api\UrlService;
+use Beeralex\Core\Service\UrlService;
 use Beeralex\Core\Http\Resources\Resource;
 
 /**

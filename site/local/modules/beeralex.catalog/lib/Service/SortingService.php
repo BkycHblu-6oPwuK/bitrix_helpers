@@ -11,35 +11,36 @@ class SortingService
         public readonly SortingRepository $sortingRepository
     ) {}
 
+    public function getSorting(): array
+    {
+        $currentSortId = $this->getRequestedSortIdOrDefault();
+        $availableSorting = $this->getAvailableSortings();
+        $sortTitle = $availableSorting[$currentSortId]['NAME'];
+        return [
+            'CURRENT_SORT_ID'    => $currentSortId,
+            'DEFAULT_SORT_ID'    => $this->getDefaultSortId(),
+            'TITLE'            => $sortTitle,
+            'AVAILABLE_SORTING' => array_values($availableSorting)
+        ];
+    }
+
     /**
      * @return array список всех доступных сортировок
      */
     public function getAvailableSortings(): array
     {
-        $rows = $this->sortingRepository->all(['ACTIVE' => 'Y']);
+        $sortings = $this->sortingRepository->all(
+            filter: ['ACTIVE' => 'Y'],
+            cacheTtl: 3600,
+            cacheJoins: true
+        );
+
         $result = [];
-        foreach ($rows as $row) {
-            $code = (string)($row['CODE'] ?? $row['ID'] ?? '');
-            if ($code === '') {
-                continue;
-            }
-
-            $sortBy = $row['SORT_BY']['VALUE'] ?? $row['SORT_BY.VALUE'] ?? ($row['SORT'] ?? 'ID');
-            $order = strtoupper((string)($row['DIRECTION']['VALUE'] ?? $row['DIRECTION.VALUE'] ?? 'ASC'));
-
-            $result[$code] = [
-                'fieldId' => $code,
-                'id' => $code,
-                'name' => $row['NAME'] ?? $code,
-                'sortBy' => $sortBy,
-                'order' => $order,
-            ];
+        foreach ($sortings as $sorting) {
+            $result[$sorting['CODE']] = $sorting;
         }
 
-        if (!empty($result)) {
-            return $result;
-        }
-        return [];
+        return $result;
     }
 
     /**
@@ -66,8 +67,8 @@ class SortingService
         $sorts = $this->getAvailableSortings();
         $sort = $sorts[$this->getRequestedSortIdOrDefault()];
         return [
-            'sortField1' => $sort['sortBy'],
-            'sortOrder1' => $sort['order'],
+            'sortField1' => $sort['SORT_BY']['VALUE'],
+            'sortOrder1' => $sort['DIRECTION']['VALUE'],
             'sortField2' => 'SORT',
             'sortOrder2' => 'ASC',
         ];
@@ -75,6 +76,10 @@ class SortingService
 
     public function getDefaultSortId(): string
     {
-        return $this->sortingRepository->getDefaultSorting(['CODE'])['CODE'] ?? '';
+        return $this->sortingRepository->getDefaultSorting(
+            select: ['CODE'],
+            cacheTtl: 3600,
+            cacheJoins: true
+        )['CODE'] ?? '';
     }
 }

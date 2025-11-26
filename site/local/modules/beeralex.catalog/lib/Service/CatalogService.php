@@ -8,7 +8,9 @@ use Beeralex\Catalog\Discount\ProductsDiscount;
 use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Catalog\Repository\PriceTypeRepository;
 use Beeralex\Core\Service\CatalogService as CoreCatalogService;
+use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
+use Bitrix\Main\Web\Uri;
 
 class CatalogService extends CoreCatalogService
 {
@@ -17,8 +19,8 @@ class CatalogService extends CoreCatalogService
         protected readonly OfferRepositoryContract $offersRepository,
         protected readonly CatalogViewedProductRepository $viewedProductRepository,
         protected readonly PriceTypeRepository $priceTypeRepository,
-    ) 
-    {
+        protected readonly SortingService $sortingService,
+    ) {
         Loader::includeModule('sale');
         Loader::includeModule('catalog');
     }
@@ -92,14 +94,14 @@ class CatalogService extends CoreCatalogService
             $newPrice['PRICE'] = $discountedPrice;
             $newPrice['PRICE_SCALE'] = $discountedPrice;
             $newPrice['TIMESTAMP_X'] = new \Bitrix\Main\Type\DateTime();
-            
+
             if (isset($newPrice['CATALOG_GROUP'])) {
                 $newPrice['CATALOG_GROUP']['ID'] = 0;
                 $newPrice['CATALOG_GROUP']['NAME'] = 'Discount Price';
                 $newPrice['CATALOG_GROUP']['BASE'] = 'N';
                 $newPrice['CATALOG_GROUP']['XML_ID'] = 'discount_price';
             }
-            
+
             $product['PRICE'][] = $newPrice;
         }
     }
@@ -158,5 +160,22 @@ class CatalogService extends CoreCatalogService
             $basketUserId,
             $currentElementId
         );
+    }
+
+    public function makeUrl(string $url): string
+    {
+        $requestedSortId = $this->sortingService->getRequestedSortIdOrDefault();
+        $query = Context::getCurrent()->getRequest()->get('q');
+
+        $uri = new Uri($url);
+
+        if ($requestedSortId != $this->sortingService->getDefaultSortId()) {
+            $uri->addParams(['sort' => $requestedSortId]);
+        }
+        if ($query) {
+            $uri->addParams(['q' => $query]);
+        }
+
+        return $uri->getUri();
     }
 }

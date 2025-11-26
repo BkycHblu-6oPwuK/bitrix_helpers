@@ -1,17 +1,22 @@
 <?php
 namespace Beeralex\Catalog\Helper;
 
+use Beeralex\Catalog\Repository\PersonTypeRepository;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Sale\BasketItem;
+use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderStatus;
 use Bitrix\Sale\PropertyValue;
 use Bitrix\Sale\PropertyValueCollectionBase;
 use Bitrix\Sale\Shipment;
-use Illuminate\Support\Collection;
 
-class OrderHelper
+class OrderService
 {
-    public static function getPropertyValues(PropertyValueCollectionBase $collection): array
+    public function __construct(
+        protected readonly PersonTypeRepository $personTypeRepository
+    ) {}
+
+    public function getPropertyValues(PropertyValueCollectionBase $collection): array
     {
         $values = [];
         /** @var PropertyValue $item */
@@ -27,7 +32,7 @@ class OrderHelper
      *
      * @return PropertyValue[]
      */
-    public static function getProperties(PropertyValueCollectionBase $collection): array
+    public function getProperties(PropertyValueCollectionBase $collection): array
     {
         $props = [];
 
@@ -39,71 +44,76 @@ class OrderHelper
     }
 
     /**
-     * @return Collection code => prop
+     * @return array code => prop
      *
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function getPropertyList(?int $persontTypeId = null): Collection
+    public function getPropertyList(?int $persontTypeId = null): array
     {
-        static $allProps = null;
-
-        if ($allProps === null) {
-            $allProps = collect(\Bitrix\Sale\Property::getList([
-                'filter' => [
-                    'PERSON_TYPE_ID' => $persontTypeId ?: PersonTypeHelper::getIndividualPersonId()
-                ]
-            ])->fetchAll())
-                ->mapWithKeys(function ($prop) {
-                    return [$prop['CODE'] => $prop];
-                });
+        $result = [];
+        $props = \Bitrix\Sale\Property::getList([
+            'filter' => [
+                'PERSON_TYPE_ID' => $persontTypeId ?: $this->personTypeRepository->getIndividualPersonId(SITE_ID)
+            ],
+            'cache' => [
+                'ttl' => 3600,
+            ],
+        ])->fetchAll();
+        
+        foreach ($props as $prop) {
+            $result[$prop['CODE']] = $prop;
         }
-
-        return $allProps;
+        
+        return $result;
     }
 
     /**
-     * @param \Bitrix\Sale\Order $order
+     * @param Order $order
      * @return BasketItem
-     * @throws \Exception
      */
-    public static function getBasketItemWithMaxPrice(\Bitrix\Sale\Order $order): BasketItem
+    public function getBasketItemWithMaxPrice(Order $order): ?BasketItem
     {
         $basketItems = $order->getBasket()->getBasketItems();
 
         if (empty($basketItems)) {
-            throw new \Exception();
+            return null;
         }
 
-        return collect($basketItems)
-            ->reduce(function (BasketItem $res, BasketItem $item) {
-                return $item->getPrice() > $res->getPrice() ? $item : $res;
-            }, $basketItems[0]);
+        $maxItem = $basketItems[0];
+        foreach ($basketItems as $item) {
+            if ($item->getPrice() > $maxItem->getPrice()) {
+                $maxItem = $item;
+            }
+        }
+
+        return $maxItem;
     }
 
-    public static function getQuantity(\Bitrix\Sale\Order $order): int
+    public function getQuantity(Order $order): int
     {
-        return collect($order->getBasket()->getBasketItems())
-            ->map(function (BasketItem $basketItem) {
-                return $basketItem->getQuantity();
-            })
-            ->sum();
+        $totalQuantity = 0;
+        foreach ($order->getBasket()->getBasketItems() as $basketItem) {
+            $totalQuantity += $basketItem->getQuantity();
+        }
+
+        return $totalQuantity;
     }
 
-    public static function getPayerName(\Bitrix\Sale\Order $order): string
+    public function getPayerName(Order $order): string
     {
-        $propertyValues = self::getPropertyValues($order->getPropertyCollection());
+        $propertyValues = $this->getPropertyValues($order->getPropertyCollection());
         return $propertyValues['NAME'] ?? '';
     }
 
-    public static function getPayerLastName(\Bitrix\Sale\Order $order): string
+    public function getPayerLastName(Order $order): string
     {
-        $propertyValues = self::getPropertyValues($order->getPropertyCollection());
+        $propertyValues = $this->getPropertyValues($order->getPropertyCollection());
         return $propertyValues['LAST_NAME'] ?? '';
     }
 
-    public static function getPropId($code): string
+    public function getPropId(string $code): string
     {
         $res = \CSaleOrderProps::GetList(
             [],
@@ -121,7 +131,7 @@ class OrderHelper
         return 0;
     }
 
-    public static function getPayerPhone(\Bitrix\Sale\Order $order): string
+    public function getPayerPhone(Order $order): string
     {
         $payerPhoneProp = $order->getPropertyCollection()->getPhone();
         if ($payerPhoneProp) {
@@ -130,12 +140,12 @@ class OrderHelper
         return '';
     }
 
-    public static function getDelivery(\Bitrix\Sale\Order $order): string
+    public function getDelivery(Order $order): string
     {
-        return self::getDeliveryName($order) . '. ' . self::getDeliveryAddress($order);
+        return $this->getDeliveryName($order) . '. ' . $this->getDeliveryAddress($order);
     }
 
-    public static function getDeliveryName(\Bitrix\Sale\Order $order): string
+    public function getDeliveryName(Order $order): string
     {
         /** @var Shipment $shipment */
         $shipment = $order->getShipmentCollection()[0];
@@ -143,27 +153,27 @@ class OrderHelper
         return $shipment->getDeliveryName();
     }
 
-    public static function getDeliveryAddress(\Bitrix\Sale\Order $order): string
+    public function getDeliveryAddress(Order $order): string
     {
-        $propertyValues = self::getPropertyValues($order->getPropertyCollection());
+        $propertyValues = $this->getPropertyValues($order->getPropertyCollection());
 
         return $propertyValues['ADDRESS'] ?? '';
     }
 
-    public static function getTrackNumber(\Bitrix\Sale\Order $order): string
+    public function getTrackNumber(Order $order): string
     {
-        $propertyValues = self::getPropertyValues($order->getPropertyCollection());
+        $propertyValues = $this->getPropertyValues($order->getPropertyCollection());
         return $propertyValues['TRACK_NUMBER'] ?? '';
     }
 
-    public static function getDateFormatted(\Bitrix\Sale\Order $order): string
+    public function getDateFormatted(Order $order): string
     {
         /** @var DateTime $date */
         $date = $order->getDateInsert();
         return FormatDate('d F', $date->getTimestamp());
     }
 
-    public static function getStatusName(\Bitrix\Sale\Order $order): string
+    public function getStatusName(Order $order): string
     {
         if ($order->isCanceled()) {
             return 'Отменён';
@@ -171,7 +181,7 @@ class OrderHelper
         return OrderStatus::getAllStatusesNames()[$order->getField('STATUS_ID')] ?? '';
     }
 
-    public static function addShipment(\Bitrix\Sale\Order $order, ?int $deliveryId = null)
+    public function addShipment(Order $order, ?int $deliveryId = null)
     {
         $shipmentCollection = $order->getShipmentCollection();
         $shipment = $shipmentCollection->createItem();
@@ -182,7 +192,7 @@ class OrderHelper
         ]);
     }
 
-    public static function addPayment(\Bitrix\Sale\Order $order, int $payId)
+    public function addPayment(Order $order, int $payId)
     {
         $paymentCollection = $order->getPaymentCollection();
         $payment = $paymentCollection->createItem();
@@ -196,16 +206,16 @@ class OrderHelper
         ]);
     }
 
-    public static function setProperty(PropertyValueCollectionBase $propertyCollection, $code, $value)
+    public function setProperty(PropertyValueCollectionBase $propertyCollection, $code, $value)
     {
         if ($property = $propertyCollection->getItemByOrderPropertyCode($code)) {
             $property->setValue($value);
         }
     }
 
-    public static function copyOrder(int $orderId)
+    public function copyOrder(int $orderId)
     {
-        $order = \Bitrix\Sale\Order::load($orderId);
+        $order = Order::load($orderId);
         if ($order) {
             $curBasket = \Beeralex\Catalog\Basket\BasketFacade::getForCurrentUser();
             $curBasket->removeAll();
@@ -216,7 +226,7 @@ class OrderHelper
         }
     }
 
-    public static function initPay(\Bitrix\Sale\Order $order, ?callable $filterPayment = null): \Bitrix\Sale\PaySystem\ServiceResult
+    public function initPay(Order $order, ?callable $filterPayment = null): \Bitrix\Sale\PaySystem\ServiceResult
     {
         $paymentCollection = $order->getPaymentCollection();
         $payment = null;

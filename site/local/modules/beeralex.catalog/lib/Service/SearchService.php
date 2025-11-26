@@ -1,21 +1,22 @@
 <?php
-namespace Beeralex\Catalog\Helper;
+namespace Beeralex\Catalog\Service;
 
-use Bitrix\Main\Loader;
-use CSearch;
-use Beeralex\Core\Model\SectionModel;
-use Beeralex\Core\Service\IblockService;
+use Beeralex\Catalog\Contracts\ProductRepositoryContract;
+use Beeralex\Core\Model\SectionTableFactory;
 use Beeralex\Core\Service\LanguageService;
+use Beeralex\Core\Service\UrlService;
 
 class SearchService
 {
     public function __construct(
-        protected readonly IblockService $iblockService,
+        protected readonly \CAllSearch $search,
+        protected readonly ProductRepositoryContract $productRepository,
+        protected readonly CatalogService $catalogService,
         protected readonly LanguageService $languageService,
-    )
-    {
-        Loader::includeModule('iblock');
-    }
+        protected readonly UrlService $urlService,
+        protected readonly SectionTableFactory $sectionTableFactory,
+    ) {}
+
     public function getHints(string $query, int $limit = 50): array
     {
         $result = [];
@@ -33,24 +34,21 @@ class SearchService
         $sections = self::getSections($productsIds);
         $query = strtolower($query);
         $productsIds = collect($productsIds)->splice(0, 7)->toArray();
-        $result['products'] = array_values(CatalogSectionHelper::getProductsForCard($productsIds, true));
+        $result['products'] = $this->catalogService->getProductsWithOffers($productsIds);
         $result['hints'] = $sections;
         return $result;
     }
 
-    public function getProductsIds($query, int $limit)
+    public function getProductsIds(string $query, int $limit)
     {
-        Loader::includeModule('search');
-
-        $search = new CSearch;
-        $search->SetLimit($limit);
-        $search->Search(
+        $this->search->SetLimit($limit);
+        $this->search->Search(
             [
                 'QUERY' => $query,
                 'SITE_ID' => SITE_ID,
                 'MODULE_ID' => 'iblock',
                 'CHECK_DATES' => 'Y',
-                'PARAM2' => $this->iblockService->getIblockIdByCode('catalog'),
+                'PARAM2' => $this->productRepository->entityId,
             ],
             [
                 'RANK' => 'DESC',
@@ -61,7 +59,7 @@ class SearchService
             ]
         );
         $productsIds = [];
-        while ($element = $search->Fetch()) {
+        while ($element = $this->search->Fetch()) {
             if (mb_substr($element['ITEM_ID'], 0, 1) === 's') {
                 // Это раздел, а не элемент
                 continue;
@@ -75,9 +73,8 @@ class SearchService
 
     protected function getSections($productsIds)
     {
-        $catalogId = $this->iblockService->getIblockIdByCode('catalog');
-        $section = SectionModel::compileEntityByIblock($catalogId);
-        $dbResult = IblockHelper::getElementApiTable($catalogId)::query()
+        $section = $this->sectionTableFactory->compileEntityByIblock($this->productRepository->entityId);
+        $dbResult = $this->productRepository->query()
             ->setSelect(
                 [
                     'IBLOCK_SECTION_ID',
@@ -105,7 +102,7 @@ class SearchService
         while ($count < 5 && $item = $dbResult->Fetch()) {
             $id = (int)$item['IBLOCK_SECTION_ID'];
             if(!$sections[$id]){
-                $url = \CIBlock::ReplaceSectionUrl($item['SECTION_PAGE_URL'], $item, false, 'E');
+                $url = $this->urlService->getSectionUrl($item, $item['SECTION_PAGE_URL'], false, 'E');
                 $item['URL'] = $url;
                 $sections[$id] = [
                     'id' => $id,

@@ -6,6 +6,7 @@ use Beeralex\Catalog\Basket\BasketUtils;
 use Beeralex\Catalog\Discount\Coupons;
 use Beeralex\Catalog\Discount\Discount;
 use Beeralex\Catalog\Enum\DIServiceKey;
+use Beeralex\Catalog\Helper\OrderService;
 use Beeralex\Catalog\Service\SortingService;
 use Beeralex\Catalog\Location\BitrixLocationResolver;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
@@ -23,9 +24,14 @@ use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\Fuser;
 use Beeralex\Catalog\Options;
+use Beeralex\Catalog\Repository\PersonTypeRepository;
 use Beeralex\Catalog\Repository\SortingRepository;
 use Beeralex\Catalog\Repository\StoreRepository;
 use Beeralex\Catalog\Service\PriceService;
+use Beeralex\Catalog\Service\SearchService;
+use Beeralex\Core\Model\SectionTableFactory;
+use Beeralex\Core\Service\LanguageService;
+use Beeralex\Core\Service\UrlService;
 
 return [
     'services' => [
@@ -71,13 +77,36 @@ return [
             StoreRepository::class => [
                 'className' => StoreRepository::class,
             ],
+            PersonTypeRepository::class => [
+                'className' => PersonTypeRepository::class,
+            ],
             CatalogService::class => [
                 'constructor' => static function () {
                     return new CatalogService(
-                        service(DIServiceKey::PRODUCT_REPOSITORY->value),
-                        service(DIServiceKey::OFFERS_REPOSITORY->value),
-                        service(CatalogViewedProductRepository::class),
-                        service(PriceTypeRepository::class)
+                        productsRepository: service(DIServiceKey::PRODUCT_REPOSITORY->value),
+                        offersRepository: service(DIServiceKey::OFFERS_REPOSITORY->value),
+                        viewedProductRepository: service(CatalogViewedProductRepository::class),
+                        priceTypeRepository: service(PriceTypeRepository::class),
+                        sortingService: service(SortingService::class),
+                    );
+                }
+            ],
+            OrderService::class => [
+                'constructor' => static function () {
+                    return new OrderService(
+                        personTypeRepository: service(PersonTypeRepository::class),
+                    );
+                }
+            ],
+            SearchService::class => [
+                'constructor' => static function () {
+                    return new SearchService(
+                        search: new \CSearch(),
+                        productRepository: service(DIServiceKey::PRODUCT_REPOSITORY->value),
+                        catalogService: service(CatalogService::class),
+                        languageService: service(LanguageService::class),
+                        urlService: service(UrlService::class),
+                        sectionTableFactory: service(SectionTableFactory::class),
                     );
                 }
             ],
@@ -87,7 +116,7 @@ return [
             SortingService::class => [
                 'constructor' => static function () {
                     return new SortingService(
-                        service(DIServiceKey::SORTING_REPOSITORY->value)
+                        sortingRepository: service(DIServiceKey::SORTING_REPOSITORY->value)
                     );
                 }
             ],
@@ -95,9 +124,9 @@ return [
             BasketUtils::class => [
                 'constructor' => static function () {
                     return new BasketUtils(
-                        service(DIServiceKey::PRODUCT_REPOSITORY->value),
-                        service(DIServiceKey::OFFERS_REPOSITORY->value),
-                        service(BasketBase::class)
+                        productsRepository: service(DIServiceKey::PRODUCT_REPOSITORY->value),
+                        offersRepository: service(DIServiceKey::OFFERS_REPOSITORY->value),
+                        basket: service(BasketBase::class)
                     );
                 }
             ],

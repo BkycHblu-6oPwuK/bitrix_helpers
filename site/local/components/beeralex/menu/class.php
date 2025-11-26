@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Api\UrlService;
+use Beeralex\Core\Service\UrlService;
 use Beeralex\Core\Service\IblockService;
 use Bitrix\Main\Loader;
 use Bitrix\Iblock\SectionTable;

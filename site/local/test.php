@@ -44,6 +44,7 @@ use Beeralex\Content\Repository\MenuRepository;
 use Beeralex\Core\Config\Config as CoreConfig;
 use Beeralex\Core\Service\IblockService;
 use Beeralex\Core\Service\LanguageService;
+use Beeralex\Core\Service\UrlService;
 use Beeralex\Core\Service\UserService;
 use Beeralex\Core\UserType\IblockLinkType;
 use Beeralex\Core\UserType\WebFormLinkType;
@@ -362,7 +363,7 @@ global $APPLICATION;
 //dd(service('catalogRepository'));
 //dd(service(IblockService::class)->getTableEntityByPropertyId(5));
 //
-dd(service(SortingService::class)->getAvailableSortings());
+dd(service(SortingService::class)->getSorting());
 dd(service(CatalogService::class)->getProductsWithOffers([16]));
 
 // dd(service(BasketFacade::class)->getItems());
