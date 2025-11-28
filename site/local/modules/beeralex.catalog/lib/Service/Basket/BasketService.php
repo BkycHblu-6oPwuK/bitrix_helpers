@@ -40,11 +40,18 @@ class BasketService
         if (!empty($basketItems)) {
             foreach ($basketItems as $basketItem) {
                 $resultChangeQuantity = $this->changeExistedItemQuantity($basketItem, $quantity);
-                $result->addErrors($resultChangeQuantity->getErrors());
+                if (!$resultChangeQuantity->isSuccess()) {
+                    $result->addErrors($resultChangeQuantity->getErrors());
+                }
             }
         } else {
-            return $this->addNewItem($offerId, $quantity);
+            $result = $this->addNewItem($offerId, $quantity);
         }
+
+        if ($result->isSuccess()) {
+            return $this->basket->save();
+        }
+
         return $result;
     }
 
@@ -56,12 +63,17 @@ class BasketService
             foreach ($basketItems as $basketItem) {
                 $newQuantity = $basketItem->getQuantity() - $quantity;
                 if ($newQuantity > 0) {
-                    return $basketItem->setField('QUANTITY', $newQuantity);
+                    $result = $basketItem->setField('QUANTITY', $newQuantity);
                 } else {
-                    return $basketItem->delete();
+                    $result = $basketItem->delete();
                 }
             }
         }
+
+        if ($result->isSuccess()) {
+            return $this->basket->save();
+        }
+
         return $result;
     }
 
@@ -72,12 +84,12 @@ class BasketService
         if (!empty($basketItems)) {
             foreach ($basketItems as $basketItem) {
                 $deleteResult = $basketItem->delete();
-                if(!$deleteResult->isSuccess()) {
+                if (!$deleteResult->isSuccess()) {
                     return $deleteResult;
                 }
             }
             $saveResult = $this->basket->save();
-            if(!$saveResult->isSuccess()) {
+            if (!$saveResult->isSuccess()) {
                 return $saveResult;
             }
         } else {
@@ -91,11 +103,11 @@ class BasketService
         /** @var BasketItem */
         foreach ($this->basket->getBasketItems() as $item) {
             $deleteResult = $item->delete();
-            if(!$deleteResult->isSuccess()) {
+            if (!$deleteResult->isSuccess()) {
                 return $deleteResult;
             }
         }
-        return new Result();
+        return $this->basket->save();
     }
 
     public function getItems(): array
@@ -151,21 +163,6 @@ class BasketService
         ];
     }
 
-    public function getOffersQuantity()
-    {
-        return count($this->basket->getBasketItems());
-    }
-
-    public function getBasket(): BasketBase
-    {
-        return $this->basket;
-    }
-
-    public function save(): Result
-    {
-        return $this->basket->save();
-    }
-
     public function changeProductQuantityInBasket(int $productId, int $quantity): Result
     {
         $checkQuantityResult = $this->checkQuantity($productId, $quantity);
@@ -198,7 +195,17 @@ class BasketService
         return $this->basket->getExistsItems($this->basketModuleId, $offerId, null);
     }
 
-    private function changeExistedItemQuantity(BasketItem $basketItem, int $quantity): Result
+    public function getOffersQuantity(): int
+    {
+        return count($this->basket->getBasketItems());
+    }
+
+    public function getBasket(): BasketBase
+    {
+        return $this->basket;
+    }
+
+    protected function changeExistedItemQuantity(BasketItem $basketItem, int $quantity): Result
     {
         $checkQuantityResult = $this->checkQuantity($basketItem->getProductId(), $basketItem->getQuantity() + $quantity);
         if (!$checkQuantityResult->isSuccess()) {
@@ -214,7 +221,7 @@ class BasketService
         return $result;
     }
 
-    private function addNewItem(int $offerId, int $quantity): Result
+    protected function addNewItem(int $offerId, int $quantity): Result
     {
         $checkQuantityResult = $this->checkQuantity($offerId, $quantity);
         if (!$checkQuantityResult->isSuccess()) {
@@ -229,17 +236,10 @@ class BasketService
             }
             return $result;
         }
-        $saveResult = $basketItem->save();
-        if (!$saveResult->isSuccess()) {
-            $result = new Result();
-            foreach ($saveResult->getErrors() as $error) {
-                $result->addError(new Error($error->getMessage(), 'basket'));
-            }
-        }
-        return new Result();
+        return $this->basket->save();
     }
 
-    private function getFields(int $quantity): array
+    protected function getFields(int $quantity): array
     {
         return [
             'QUANTITY' => $quantity,
@@ -249,7 +249,7 @@ class BasketService
         ];
     }
 
-    private function checkQuantity(int $offerId, int $quantity): Result
+    protected function checkQuantity(int $offerId, int $quantity): Result
     {
         $result = new Result();
         if ($quantity <= 0) {

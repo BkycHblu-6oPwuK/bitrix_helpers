@@ -4,6 +4,7 @@ namespace Beeralex\Catalog\Service\Basket;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
+use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Repository\FuserRepository;
 use Beeralex\Catalog\Service\Discount\CouponsService;
 use Beeralex\Catalog\Service\Discount\DiscountFactory;
@@ -34,13 +35,17 @@ class BasketFactory
         return null;
     }
 
-    public function createBasketService(BasketBase $basket): BasketService
+    public function createBasketService(
+        BasketBase $basket,
+        ?ProductRepositoryContract $productsRepository = null,
+        ?OfferRepositoryContract $offersRepository = null
+    ): BasketService
     {
         return new BasketService(
             $basket,
             $this->createBasketUtils(
-                service(ProductRepositoryContract::class),
-                service(OfferRepositoryContract::class),
+                $productsRepository,
+                $offersRepository,
                 $basket,
                 service(PriceService::class)
             ),
@@ -50,20 +55,23 @@ class BasketFactory
         );
     }
 
-    public function createBasketServiceForCurrentUser(): BasketService
+    public function createBasketServiceForCurrentUser(
+        ?ProductRepositoryContract $productsRepository = null,
+        ?OfferRepositoryContract $offersRepository = null
+    ): BasketService
     {
-        return $this->createBasketService($this->createBasketForCurrentUser());
+        return $this->createBasketService($this->createBasketForCurrentUser(), $productsRepository, $offersRepository);
     }
 
     public function createBasketUtils(
-        ProductRepositoryContract $productsRepository,
-        OfferRepositoryContract $offersRepository,
+        ?ProductRepositoryContract $productsRepository = null,
+        ?OfferRepositoryContract $offersRepository = null,
         BasketBase $basket,
         PriceService $priceService
     ): BasketUtils {
         return new BasketUtils(
-            $productsRepository,
-            $offersRepository,
+            $productsRepository ?? service(DIServiceKey::PRODUCT_REPOSITORY->value),
+            $offersRepository ?? service(DIServiceKey::OFFERS_REPOSITORY->value),
             $basket,
             $priceService
         );

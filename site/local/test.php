@@ -42,6 +42,9 @@ use Beeralex\Catalog\Service\SortingService;
 use Beeralex\Content\Repository\HeaderRepository;
 use Beeralex\Content\Repository\MenuRepository;
 use Beeralex\Core\Config\Config as CoreConfig;
+use Beeralex\Core\Model\ElementTableFactory;
+use Beeralex\Core\Repository\IblockPropertyRepository;
+use Beeralex\Core\Repository\IblockRepository;
 use Beeralex\Core\Service\IblockService;
 use Beeralex\Core\Service\LanguageService;
 use Beeralex\Core\Service\UrlService;
@@ -364,6 +367,7 @@ global $APPLICATION;
 //dd(service(IblockService::class)->getTableEntityByPropertyId(5));
 //
 // dd(service(SortingService::class)->getSorting());
+dd((new IblockRepository('catalog'))->getById(16, ['BRAND_REF']));
 dd(service(CatalogService::class)->getProductsWithOffers([16]));
 
 // dd(service(BasketFacade::class)->getItems());
