@@ -7,7 +7,7 @@ use Beeralex\Core\Repository\IblockRepository;
 class SortingRepository extends IblockRepository
 {
     public function __construct(
-        string $iblockCode = 'sorting',
+        string $iblockCode,
     ) {
         parent::__construct($iblockCode);
     }

@@ -1,61 +1,41 @@
 <?php
-
+declare(strict_types=1);
 namespace Beeralex\Catalog\Cashbox;
 
-use Bitrix\Main\Loader;
 use Bitrix\Sale\Cashbox\Check;
 use Bitrix\Sale\PriceMaths;
-
-Loader::requireModule('sale');
 
 /**
  * Исправленное округление в частичной предоплате
  */
 class PrepaymentCheck extends Check
 {
-    /**
-     * @return string
-     */
-    public static function getType()
+    public static function getType(): string
     {
         return 'prepayment';
     }
 
-    /**
-     * @throws Main\NotImplementedException
-     * @return string
-     */
-    public static function getCalculatedSign()
+    public static function getCalculatedSign(): string
     {
         return static::CALCULATED_SIGN_INCOME;
     }
 
-    /**
-     * @return string
-     */
-    public static function getName()
+    public static function getName(): string
     {
         return 'Частичная предоплата custom';
     }
 
-    /**
-     * @return string
-     */
-    public static function getSupportedEntityType()
+    public static function getSupportedEntityType(): string
     {
         return static::SUPPORTED_ENTITY_TYPE_PAYMENT;
     }
 
-    /**
-     * @return string
-     */
-    public static function getSupportedRelatedEntityType()
+    public static function getSupportedRelatedEntityType(): string
     {
         return static::SUPPORTED_ENTITY_TYPE_SHIPMENT;
     }
 
     /**
-     * @return array
      * @throws Main\ArgumentException
      * @throws Main\ArgumentNullException
      * @throws Main\ArgumentOutOfRangeException
@@ -65,7 +45,7 @@ class PrepaymentCheck extends Check
      * @throws Main\ObjectPropertyException
      * @throws Main\SystemException
      */
-    protected function extractDataInternal()
+    protected function extractDataInternal(): array
     {
         $result = parent::extractDataInternal();
         $result = $this->correlatePrices($result);
@@ -87,12 +67,7 @@ class PrepaymentCheck extends Check
         return false;
     }
 
-    /**
-     * @param $result
-     * @return mixed
-     * @throws Main\ArgumentNullException
-     */
-    private function correlatePrices($result)
+    private function correlatePrices(array $result): array
     {
         $paymentSum = 0;
         foreach ($result['PAYMENTS'] as $payment) {

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace Beeralex\Catalog\Discount;
+namespace Beeralex\Catalog\Service\Discount;
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
@@ -8,15 +8,15 @@ use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\Discount as SaleDiscount;
 use Bitrix\Sale\Order;
 
-class Discount
+class DiscountService
 {
     protected ?Order $order = null;
-    protected BasketBase $basket;
     protected ?array $discounts = null;
 
-    public function __construct(BasketBase $basket)
+    public function __construct(
+        protected readonly BasketBase $basket
+    )
     {
-        Loader::includeModule('sale');
         $this->basket = $basket;
         $this->order = $basket->getOrder();
     }

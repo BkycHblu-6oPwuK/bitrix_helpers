@@ -10,7 +10,6 @@ class PersonTypeRepository extends Repository
 {
     public function __construct()
     {
-        Loader::includeModule('sale');
         parent::__construct(PersonTypeTable::class);
     }
 

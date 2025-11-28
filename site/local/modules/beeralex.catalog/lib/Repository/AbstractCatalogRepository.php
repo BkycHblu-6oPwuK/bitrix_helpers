@@ -7,14 +7,11 @@ use Beeralex\Core\Service\CatalogService;
 
 abstract class AbstractCatalogRepository extends IblockRepository
 {
-    protected CatalogService $catalogService;
-
     public function __construct(
         string $iblockCode,
-        CatalogService $catalogService
+        protected readonly CatalogService $catalogService
     ) {
         parent::__construct($iblockCode);
-        $this->catalogService = $catalogService;
     }
 
     /**

@@ -363,7 +363,7 @@ global $APPLICATION;
 //dd(service('catalogRepository'));
 //dd(service(IblockService::class)->getTableEntityByPropertyId(5));
 //
-dd(service(SortingService::class)->getSorting());
+// dd(service(SortingService::class)->getSorting());
 dd(service(CatalogService::class)->getProductsWithOffers([16]));
 
 // dd(service(BasketFacade::class)->getItems());

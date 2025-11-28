@@ -9,7 +9,7 @@ use Beeralex\Core\Service\CatalogService;
 class OffersRepository extends AbstractCatalogRepository implements OfferRepositoryContract
 {
     public function __construct(
-        string $iblockCode = 'offers',
+        string $iblockCode,
         CatalogService $catalogService
     ) {
         parent::__construct($iblockCode, $catalogService);

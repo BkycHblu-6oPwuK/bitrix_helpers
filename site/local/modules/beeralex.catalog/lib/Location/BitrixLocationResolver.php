@@ -2,28 +2,29 @@
 
 namespace Beeralex\Catalog\Location;
 
+use Beeralex\Catalog\Dto\LocationDTO;
 use Beeralex\Catalog\Location\Contracts\LocationApiClientContract;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Beeralex\Core\Traits\Cacheable;
-use Psr\Log\LoggerInterface;
 use Bitrix\Main\Web\Json;
 use Beeralex\Core\Dto\CacheSettingsDto;
 use Beeralex\Core\Service\LocationService;
+
+use function Beeralex\Catalog\log;
 
 class BitrixLocationResolver implements BitrixLocationResolverContract
 {
     use Cacheable;
 
-    private LocationApiClientContract $client;
-    private LoggerInterface $logger;
+    public function __construct(
+        protected readonly LocationApiClientContract $client,
+        protected readonly LocationService $locationService,
+    ) {}
 
-    public function __construct(LocationApiClientContract $client, LoggerInterface $logger)
-    {
-        $this->client = $client;
-        $this->logger = $logger;
-    }
-    
-    public function getBitrixLocationByAddress(string|array $location): ?array
+    /**
+     * Возвращает данные местоположения из Битрикс по адресу или координатам
+     */
+    public function getBitrixLocationByAddress(string|LocationDTO $location): ?array
     {
         $cacheKey = is_string($location) ? $location : Json::encode($location);
         $cacheSettings = new CacheSettingsDto(BitrixLocationResolverContract::CACHE_TIME, md5($cacheKey), 'dadata/location');
@@ -43,55 +44,25 @@ class BitrixLocationResolver implements BitrixLocationResolverContract
                 return ['city' => $final['DISPLAY'] ?? $cityVariants[0] ?? null, 'code' => $final['CODE'] ?? null, 'area' => $areaVariants[0] ?? null, 'region' => $regionVariants[0] ?? null,];
             });
         } catch (\Throwable $e) {
-            $this->logger->error("BitrixLocationResolver error: " . $e->getMessage());
+            log("BitrixLocationResolver error: " . $e->getMessage());
             return null;
         }
     }
 
-    private function getVariantsFromLocation(string|array $location): ?array
+    private function getVariantsFromLocation(string|LocationDTO $location): ?array
     {
+        $parser = $this->client->getParser();
+        if ($parser === null) {
+            return null;
+        }
         if (is_string($location)) {
             $suggestions = $this->client->suggestAddress($location, 5);
-        } elseif (is_array($location)) {
-            $lat = $location['lat'] ?? $location['latitude'] ?? $location[0] ?? null;
-            $lon = $location['lon'] ?? $location['longitude'] ?? $location[1] ?? null;
-            if (!$lat || !$lon) {
-                throw new \InvalidArgumentException('Invalid array $location');
-            }
-            $suggestions = $this->client->geolocate($lat, $lon, 100, 3);
+        } elseif ($location->latitude && $location->longitude) {
+            $suggestions = $this->client->geolocate($location->latitude, $location->longitude, 100, 3);
         } else {
             return null;
         }
-        foreach ($suggestions as $s) {
-            if (!isset($s['data'])) {
-                continue;
-            }
-            $variants = $this->parseSuggestion($s['data']);
-            if (!empty($variants[0]) || !empty($variants[1])) {
-                return $variants;
-            }
-        }
-        return null;
-    }
-
-    private function parseSuggestion(array $data): array
-    {
-        return [
-            $this->makeName($data['settlement'] ?? null, $data['settlement_type'] ?? '', $data['settlement_type_full'] ?? ''),
-            $this->makeName($data['city'] ?? null, $data['city_type'] ?? '', $data['city_type_full'] ?? ''),
-            $this->makeName($data['area'] ?? null, $data['area_type'] ?? '', $data['area_type_full'] ?? ''),
-            ($data['region'] ?? null) !== ($data['city'] ?? null) ? $this->makeName($data['region'] ?? null, $data['region_type'] ?? '', $data['region_type_full'] ?? '') : [],
-        ];
-    }
-
-    private function makeName(?string $base, string $type, string $typeFull): array
-    {
-        if (!$base) return [];
-        $variants = [trim("$base $typeFull"), trim("$typeFull $base"), trim("$base $type"), trim("$type $base"), $base,];
-        if ($typeFull === 'город') {
-            array_unshift($variants, $base);
-        }
-        return array_unique(array_filter($variants));
+        return $parser->parse($suggestions);
     }
 
     private function searchPriority(array $groups): array
@@ -110,7 +81,7 @@ class BitrixLocationResolver implements BitrixLocationResolverContract
         foreach ($variants as $variant) {
             $variant = trim(mb_strtolower($variant));
             if ($variant === '') continue;
-            $items = service(LocationService::class)->find($variant, 20, 0);
+            $items = $this->locationService->find($variant, 20, 0);
             if (!empty($items)) {
                 return $items;
             }
@@ -136,7 +107,7 @@ class BitrixLocationResolver implements BitrixLocationResolverContract
         }
         return null;
     }
-    
+
     private function matchArea(array $item, array $areaVariants): bool
     {
         foreach ($areaVariants as $areaVariant) {

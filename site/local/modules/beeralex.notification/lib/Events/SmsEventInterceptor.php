@@ -8,6 +8,8 @@ use Beeralex\Notification\Dto\NotificationMessage;
 use Beeralex\Notification\Enum\Channel;
 use Beeralex\User\User;
 
+use function Beeralex\Notification\log;
+
 class SmsEventInterceptor
 {
     public function __construct(
@@ -40,7 +42,7 @@ class SmsEventInterceptor
 
             return $result->addError(new \Bitrix\Main\Error('Перехвачено отправление SMS через стандартный обработчик'));;
         } catch (\Exception $e) {
-            \AddMessage2Log('Ошибка в SmsEventInterceptor: ' . $e->getMessage(), 'beeralex.notification');
+            log('Ошибка в SmsEventInterceptor: ' . $e->getMessage(), 6, true);
         }
         return $result;
     }

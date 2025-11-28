@@ -164,7 +164,7 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
 
         if ($this->locationResolver) {
             $variants = [];
-            $oldLocation = $this->request->get(BitrixLocationResolverContract::OLD_LOCATION_REQUEST_KEY);
+            $oldLocation = $this->request->get('OLD_LOCATION');
             $requestAddress = $requestProperties[$props->get('ADDRESS')['ID']];
             if (empty($requestAddress) && !empty($oldLocation)) {
                 $location = service(LocationService::class)->getNearestCityByLocationCode($oldLocation, BitrixLocationResolverContract::CACHE_TIME);

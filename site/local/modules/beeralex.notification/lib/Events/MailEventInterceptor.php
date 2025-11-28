@@ -8,6 +8,8 @@ use Beeralex\Notification\NotificationLock;
 use Beeralex\Notification\Enum\Channel;
 use Beeralex\User\User;
 
+use function Beeralex\Notification\log;
+
 class MailEventInterceptor
 {
     public function __construct(
@@ -43,7 +45,7 @@ class MailEventInterceptor
 
             return false;
         } catch (\Exception $e) {
-            \AddMessage2Log('Ошибка в MailEventInterceptor: ' . $e->getMessage(), 'beeralex.notification');
+            log('Ошибка перехвата почтового события ' . $eventName . ': ' . $e->getMessage(), 6, true);
         }
         return true;
     }

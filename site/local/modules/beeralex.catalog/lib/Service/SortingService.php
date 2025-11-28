@@ -7,6 +7,8 @@ use Bitrix\Main\Context;
 
 class SortingService
 {
+    public const REQUEST_PARAM = 'sort';
+
     public function __construct(
         public readonly SortingRepository $sortingRepository
     ) {}
@@ -51,7 +53,7 @@ class SortingService
         $availableSortings = $this->getAvailableSortings();
 
         $request = Context::getCurrent()->getRequest();
-        $requestedSorting = $request->get('sort');
+        $requestedSorting = $request->get(static::REQUEST_PARAM);
         if (is_string($requestedSorting) && isset($availableSortings[$requestedSorting])) {
             return $requestedSorting;
         }

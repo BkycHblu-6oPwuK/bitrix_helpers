@@ -2,34 +2,24 @@
 declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
-use Bitrix\Main\Loader;
+use Beeralex\Core\Repository\Repository;
 use Bitrix\Sale\Internals\OrderTable;
 
-class OrderRepository
+class OrderRepository extends Repository
 {
-    /**
-     * @var OrderTable|string $entity
-     */
-    protected readonly string $entity;
-
     public function __construct()
     {
-        Loader::includeModule('sale');
-        $this->entity = OrderTable::class;
+        parent::__construct(OrderTable::class);
     }
     /**
      * По умолчанию без заказов примерочной
      */
-    public function getOrdersIdsByUser(int $userId, ?callable $queryFilter = null): array
+    public function getOrdersIdsByUser(int $userId): array
     {
-        $query = $this->entity::query()
+        $query = $this->query()
             ->setSelect(['ID'])
             ->where('USER_ID', $userId)
             ->setOrder(['ID' => 'DESC']);
-
-        if ($queryFilter) {
-            $queryFilter($query);
-        }
 
         return $this->fetchOrderIds($query);
     }

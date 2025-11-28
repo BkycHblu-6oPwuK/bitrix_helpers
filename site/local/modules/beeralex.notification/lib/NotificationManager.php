@@ -92,10 +92,10 @@ class NotificationManager
                 $result = $channel->send($message);
             }
             if (!$result?->isSuccess()) {
-                \AddMessage2Log('Ошибка при отправке уведомления в канал ' . $code . ': ' . implode('; ', $result->getErrorMessages()), 'beeralex.notification');
+                log('Ошибка при отправке уведомления в канал ' . $code . ': ' . implode('; ', $result->getErrorMessages()), 6, true);
             }
         } catch (\Throwable $e) {
-            \AddMessage2Log('Ошибка при отправке уведомления в канал ' . $code . ': ' . $e->getMessage(), 'beeralex.notification');
+            log('Ошибка при отправке уведомления в канал ' . $code . ': ' . $e->getMessage(), 6, true);
         }
     }
 }

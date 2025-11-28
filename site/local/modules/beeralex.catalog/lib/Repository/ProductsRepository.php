@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
@@ -7,15 +9,12 @@ use Beeralex\Core\Service\CatalogService;
 
 class ProductsRepository extends AbstractCatalogRepository implements ProductRepositoryContract
 {
-    protected CatalogViewedProductRepository $catalogViewedProductRepository;
-
     public function __construct(
-        string $iblockCode = 'catalog',
+        string $iblockCode,
         CatalogService $catalogService,
-        CatalogViewedProductRepository $catalogViewedProductRepository
+        protected readonly CatalogViewedProductRepository $catalogViewedProductRepository
     ) {
         parent::__construct($iblockCode, $catalogService);
-        $this->catalogViewedProductRepository = $catalogViewedProductRepository;
     }
 
     /**
@@ -165,5 +164,36 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
 
         return $productsIds;
     }
-}
 
+    public function getViewedProductsIds(int $currentElementId): array
+    {
+        $skipUserInit = false;
+        if (!\Bitrix\Catalog\Product\Basket::isNotCrawler()) {
+            $skipUserInit = true;
+        }
+
+        $basketUserId = (int)\Bitrix\Sale\Fuser::getId($skipUserInit);
+        if ($basketUserId <= 0) {
+            return [];
+        }
+
+        return $this->catalogViewedProductRepository->getViewedProductIds(
+            $this->entityId,
+            $basketUserId,
+            $currentElementId
+        );
+    }
+
+    public function getProductWithOffers(int $productId): ?array
+    {
+        $product = $this->one(['ID' => $productId]);
+        if (!$product) {
+            return null;
+        }
+
+        $offers = service(\Beeralex\Catalog\Contracts\OfferRepositoryContract::class)->getOffersByProductIds([$productId]);
+        $product['OFFERS'] = $offers[$productId] ?? [];
+
+        return $product;
+    }
+}

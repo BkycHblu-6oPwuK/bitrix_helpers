@@ -1,6 +1,6 @@
 <?php
 
-namespace Beeralex\Catalog\ExtraServices;
+namespace Beeralex\Catalog\ExtraService;
 
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Delivery\ExtraServices\Base;

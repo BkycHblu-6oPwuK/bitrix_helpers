@@ -16,10 +16,21 @@ use App\Reviews\Services\ReviewsService;
 use Beeralex\Core\Service\CatalogService;
 use Beeralex\Core\Service\IblockService;
 use Beeralex\User\User;
+use Beeralex\Catalog\Service\ElementService;
+use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 
 class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
 {
     private \Options $options;
+    private ElementService $elementService;
+
+    public function __construct($component = null)
+    {
+        parent::__construct($component);
+        $this->elementService = new ElementService(
+            service(ProductRepositoryContract::class)
+        );
+    }
 
     public function onPrepareComponentParams($params)
     {
@@ -119,15 +130,25 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
 
     protected function getResult(): array
     {
-        $arResult = $this->getDefaultData();
-        $arResult['colors'] = $this->getColors($arResult['product']['id'], $arResult['product']['article'], $arResult['propertiesDefault']['TSVET_NA_SAYTE']['TABLE_NAME']);
+        $arResult = $this->elementService->getElementData(
+            $this->options->element_id,
+            (int)$this->request->get('offerId')
+        );
+
         // url аякс действий
         $arResult['actions'] = $this->getActions();
 
         if (!$this->options->is_quick_view) {
-            // seo
-            $arResult['seo'] = $this->getSeoData();
             $arResult['seo']['sectionPath'] = $this->options->section_path;
+        }
+
+        if (Loader::includeModule('beeralex.reviews')) {
+            $options = new ComponentParams([
+                'PRODUCT_ID' => $arResult['product']['ID'],
+                'PAGINATION_LIMIT' => 5,
+            ]);
+            $service = new ReviewsService($options);
+            $arResult['reviews'] = $service->getReviews();
         }
 
         $arResult['js_data'] = $this->getJsData($arResult);
@@ -135,167 +156,11 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
         return $arResult;
     }
 
-    protected function getDefaultData(): array
-    {
-        // Получение информации о товаре и его предложениях
-        $arResult['product'] = $this->getProductData($this->options->element_id);
-        // Обработка выбранного торгового предложения
-        $arResult = $this->handleSelectedOffer((int)$this->request->get('offerId'), $arResult);
-
-        // Формирование свойств товара
-        $arResult['propertiesDefault'] = $this->getProperties();
-        $arResult['properties'] = $this->getFormattedProperties($arResult['propertiesDefault']);
-        $arResult['reviews'] = null;
-        if (Loader::includeModule('beeralex.reviews')) {
-            $options = new ComponentParams([
-                'PRODUCT_ID' => $arResult['product']['id'],
-                'PAGINATION_LIMIT' => 5,
-            ]);
-            $service = new ReviewsService($options);
-            $arResult['reviews'] = $service->getReviews();
-        }
-        return $arResult;
-    }
-
-    protected function getProductData(int $elementId): array
-    {
-        $productData = ProductsHelper::getProductsAndOffers([$elementId])[$elementId];
-        // if (empty($productData['offers'])) {
-        //     $productData = ProductsHelper::getProductsAndOffers([$elementId], false)[$elementId];
-        //     $productData['availableMode'] = false;
-        // } else {
-        //     $productData['availableMode'] = true;
-        // }
-        return $productData ?? [];
-    }
-
-    protected function handleSelectedOffer(?int $offerId, array $arResult): array
-    {
-        $offers = collect($arResult['product']['offers']);
-        $offer = $offers->first(fn($value) => $value['id'] == $offerId);
-        if ($offer) {
-            $arResult['product']['preselectedOffer'] = $offer;
-            $arResult['product']['selectedOfferId'] = $offer['id'];
-        }
-        return $arResult;
-    }
-
-    protected function getProperties(): array
-    {
-        $properties = [];
-        $res = \CIBlockElement::GetProperty($this->options->iblock_id, $this->options->element_id, '', '', ['=ACTIVE' => 'Y']);
-        while ($property = $res->GetNext()) {
-            $property = \CIBlockFormatProperties::GetDisplayValue([], $property);
-            if (!empty($property['VALUE_ENUM'])) {
-                $property['VALUE'] = $property['VALUE_ENUM'];
-            } else {
-                $property['VALUE'] = $property['DISPLAY_VALUE'];
-            }
-            if (!empty($property['VALUE'])) {
-                $value = [
-                    'NAME' => $property['NAME'],
-                    'CODE' => $property['CODE'],
-                    'VALUE' => mb_ucfirst($property['VALUE']),
-                ];
-                if (is_array($property['USER_TYPE_SETTINGS'])) {
-                    $value['XML_ID'] = $property['~VALUE'];
-                    $value['TABLE_NAME'] = $property['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                }
-                if ($property['CODE'] == 'TSVET_NA_SAYTE') {
-                    $entity = $this->getHighload($value['TABLE_NAME']);
-                    $result = $entity::query()->setSelect(['UF_FILE'])->where('UF_XML_ID', $property['~VALUE'])->fetch();
-                    $value['FILE'] = $result ? CFile::GetPath($result['UF_FILE']) : null;
-                }
-                if ($property['MULTIPLE'] == 'Y') {
-                    $properties[$property['CODE']][] = $value;
-                } else {
-                    $properties[$property['CODE']] = $value;
-                }
-            }
-        }
-        return $properties;
-    }
-
-    /**
-     * @return null|\Bitrix\Main\ORM\Data\DataManager|string
-     */
-    protected function getHighload(?string $tableName): ?string
-    {
-        if (Loader::IncludeModule('highloadblock') && $tableName) {
-            static $entity = [];
-            if (!$entity[$tableName]) {
-                $hlblock = HighloadBlockTable::getList([
-                    'filter' => [
-                        '=TABLE_NAME' => $tableName
-                    ],
-                ])->fetch();
-                if ($hlblock) {
-                    $entity[$tableName] = HighloadBlockTable::compileEntity($hlblock)->getDataClass();
-                }
-            }
-            return $entity[$tableName];
-        }
-        return null;
-    }
-
-    protected function getFormattedProperties(array $properties): array
-    {
-        $propertyKeys = [
-            'KARMANY',
-            'SILUET',
-            'TSVET_NA_SAYTE',
-            'OTDELKA',
-            'DLINA_IZDELIYA',
-            'SOSTAV'
-        ];
-        return array_values(array_filter(array_map(function ($key) use ($properties) {
-            if (!empty($properties[$key]['VALUE'])) {
-                return [
-                    'name' => $properties[$key]['NAME'],
-                    'value' => $properties[$key]['VALUE'],
-                    'code' => $key
-                ];
-            }
-        }, $propertyKeys)));
-    }
-
-    protected function getColors(int $productId, ?string $acticle, ?string $hlTableName): array
-    {
-        if (!$acticle || !$hlTableName) return [];
-        $highload = $this->getHighload($hlTableName);
-        if (!$highload) return [];
-        $colors = [];
-        $elements = service(CatalogService::class)->addCatalogToQuery(service(IblockService::class)->getElementApiTableByCode('catalog')::query())->setSelect(['ID', 'TSVET_ID' => 'TSVET_NA_SAYTE.VALUE'])
-            //->where('CML2_ARTICLE.VALUE', $acticle)
-            ->where('ACTIVE', 'Y')
-            ->where('CATALOG.AVAILABLE', 'Y')
-            ->exec();
-        while ($element = $elements->fetch()) {
-            $hlelement = $highload::query()->setSelect(['UF_FILE'])->where('UF_XML_ID', $element['TSVET_ID'])->fetch();
-            $element['FILE'] = $hlelement ? CFile::GetPath($hlelement['UF_FILE']) : null;
-            if ($element['FILE']) {
-                $colors[] = [
-                    'id' => (int)$element['ID'],
-                    'file' => $element['FILE']
-                ];
-            }
-        }
-        usort($colors, static function ($a, $b) use ($productId) {
-            return $a['id'] === $productId ? -1 : ($b['id'] === $productId ? 1 : 0);
-        });
-        return $colors;
-    }
-
-    protected function getSeoData(): array
-    {
-        return (new ElementValues($this->options->iblock_id, $this->options->element_id))->getValues();
-    }
-
     protected function initSeoData(): void
     {
         /** @var Cmain */
         global $APPLICATION;
-        $seoData = $this->arResult['seo'] ?? $this->getSeoData();
+        $seoData = $this->arResult['seo'];
         $APPLICATION->SetTitle($seoData['ELEMENT_META_TITLE']);
         $APPLICATION->SetPageProperty('description', $seoData['ELEMENT_META_DESCRIPTION']);
         $APPLICATION->SetPageProperty('keywords', $seoData['ELEMENT_META_KEYWORDS']);
@@ -311,7 +176,7 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
             'properties' => $arResult['properties'],
             'colors' => $arResult['colors'],
             'actions' => $arResult['actions'],
-            'delivery' => $arResult['delivery'],
+            'delivery' => $arResult['delivery'] ?? null,
             'reviews' => $arResult['reviews'],
             'signedParameters' => $this->getSignedParameters(),
         ];
@@ -328,7 +193,7 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
     protected function handleResult(): void
     {
         try {
-            if (!$this->arResult['product']['active']) {
+            if (empty($this->arResult['product']) || !$this->arResult['product']['ACTIVE']) {
                 throw new \Exception();
             }
         } catch (\Exception $e) {
@@ -349,7 +214,10 @@ class BeeralexCatalogElement extends \CBitrixComponent implements Controllerable
 
     public function changeColorAction(): array
     {
-        $arResult = $this->getDefaultData();
+        $arResult = $this->elementService->getElementData(
+            $this->options->element_id,
+            (int)$this->request->get('offerId')
+        );
         return [
             'product' => $arResult['product'],
             'propertiesDefault' => $arResult['propertiesDefault'],

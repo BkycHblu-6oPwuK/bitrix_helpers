@@ -10,7 +10,6 @@ class PriceTypeRepository extends Repository
 {
     public function __construct()
     {
-        Loader::includeModule('catalog');
         parent::__construct(GroupTable::class);
     }
 

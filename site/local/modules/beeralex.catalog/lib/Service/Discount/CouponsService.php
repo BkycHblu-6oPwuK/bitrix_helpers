@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
-namespace Beeralex\Catalog\Discount;
+namespace Beeralex\Catalog\Service\Discount;
 
-use Bitrix\Main\Loader;
+use Bitrix\Main\Result;
 use Bitrix\Sale\DiscountCouponsManager;
 use Bitrix\Sale\Registry;
 
-class Coupons
+class CouponsService
 {
     /** @var DiscountCouponsManager|string $couponManager */
-    public readonly string $couponManager;
+    protected readonly string $couponManager;
+
     public function __construct()
     {
-        Loader::includeModule('sale');
         $registry = Registry::getInstance(Registry::REGISTRY_TYPE_ORDER);
         $this->couponManager = $registry->getDiscountCouponClassName();
     }
@@ -24,25 +24,27 @@ class Coupons
 
     public function clearCoupons(): void
     {
-        $this->couponManager::init();
-        $this->couponManager::clear(true);
+        $this->couponManager->init();
+        $this->couponManager->clear(true);
     }
 
     /**
      * @throws \Exception
      */
-    public function applyCoupon(string $couponCode)
+    public function applyCoupon(string $couponCode): Result
     {
+        $result = new Result();
         $this->clearCoupons();
-        $coupon = $this->couponManager::getData($couponCode, true);
-        $result = false;
+        $coupon = $this->couponManager->getData($couponCode, true);
+        $resultApply = false;
 
         if ($coupon['ACTIVE'] == "Y") {
-            $result = $this->couponManager::add($couponCode);
+            $resultApply = $this->couponManager->add($couponCode);
         }
 
-        if (!$result) {
-            throw new \Exception("Ошибка при применении купона");
+        if (!$resultApply) {
+            $result->addError(new \Bitrix\Main\Error("Ошибка при применении купона", 'coupon'));
+            return $result;
         }
 
         return $result;

@@ -11,7 +11,6 @@ class StoreRepository extends Repository implements StoreRepositoryContract
 {
     public function __construct()
     {
-        Loader::includeModule('catalog');
         parent::__construct(StoreTable::class);
     }
 

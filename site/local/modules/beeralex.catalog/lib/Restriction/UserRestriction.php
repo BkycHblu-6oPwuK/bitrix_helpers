@@ -89,9 +89,4 @@ class UserRestriction extends Restriction
     {
         return 'Ограничивает доступность сервиса для конкретных и/или тестовых пользователей.';
     }
-
-    public static function getCurDir(): string
-    {
-        return __DIR__;
-    }
 }

@@ -22,4 +22,9 @@ interface LocationApiClientContract
      * @return array 
      **/ 
     public function geolocate(float $lat, float $lon, int $radius = 100, int $count = 3): array;
+
+    /**
+     * Returns the data parser for the location API.
+     */
+    public function getParser(): ?LocationDataParserContract;
 }

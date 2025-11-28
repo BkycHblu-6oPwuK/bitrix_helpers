@@ -2,9 +2,9 @@
 
 namespace Beeralex\Catalog\Contracts;
 
-use Beeralex\Core\Repository\CompiledEntityRepositoryContract;
+use Beeralex\Core\Repository\IblockRepositoryContract;
 
-interface OfferRepositoryContract extends CompiledEntityRepositoryContract
+interface OfferRepositoryContract extends IblockRepositoryContract
 {
     /**
      * Получает ID торговых предложений, сгруппированные по ID товаров.

@@ -25,7 +25,7 @@ trait ApiProcessResultTrait
             return $result instanceof Result ? $result->getData() : $result;
         } catch (\Throwable $e) {
             dd($e);
-            \AddMessage2Log($e->getMessage(), 'beeralex.api');
+            log($e->getMessage());
             $this->addError(new Error('Internal Server Error', Errors::INTERNAL_ERROR->value));
             return [];
         }

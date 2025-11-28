@@ -4,12 +4,11 @@ namespace Beeralex\Catalog\Service;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
-use Beeralex\Catalog\Discount\ProductsDiscount;
 use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Catalog\Repository\PriceTypeRepository;
+use Beeralex\Catalog\Service\Discount\DiscountFactory;
 use Beeralex\Core\Service\CatalogService as CoreCatalogService;
 use Bitrix\Main\Context;
-use Bitrix\Main\Loader;
 use Bitrix\Main\Web\Uri;
 
 class CatalogService extends CoreCatalogService
@@ -20,10 +19,10 @@ class CatalogService extends CoreCatalogService
         protected readonly CatalogViewedProductRepository $viewedProductRepository,
         protected readonly PriceTypeRepository $priceTypeRepository,
         protected readonly SortingService $sortingService,
-    ) {
-        Loader::includeModule('sale');
-        Loader::includeModule('catalog');
-    }
+        protected readonly DiscountFactory $discountFactory,
+        protected readonly CatalogSectionService $catalogSectionService,
+        protected readonly SearchService $searchService
+    ) {}
 
     /**
      * Возвращает товары с их предложениями (и опционально скидками).
@@ -54,6 +53,34 @@ class CatalogService extends CoreCatalogService
         }
 
         return $products;
+    }
+
+    public function makeUrl(string $url): string
+    {
+        $requestedSortId = $this->sortingService->getRequestedSortIdOrDefault();
+        $query = Context::getCurrent()->getRequest()->get(SearchService::REQUEST_PARAM);
+
+        $uri = new Uri($url);
+
+        if ($requestedSortId != $this->sortingService->getDefaultSortId()) {
+            $uri->addParams([SortingService::REQUEST_PARAM => $requestedSortId]);
+        }
+        if ($query) {
+            $uri->addParams([SearchService::REQUEST_PARAM => $query]);
+        }
+
+        return $uri->getUri();
+    }
+
+    public function search(string $query, int $searchLimit = 50, int $realLimit = 7): array
+    {
+        $result = [];
+        $productsIds = $this->searchService->getProductsIds($query, $searchLimit);
+        $sections = $this->catalogSectionService->getSections($productsIds);
+        $productsIds = array_splice($productsIds, 0, $realLimit);
+        $result['PRODUCTS'] = $this->getProductsWithOffers($productsIds);
+        $result['SECTIONS'] = $sections;
+        return $result;
     }
 
     protected function updateProductPrices(array &$product, float $discountedPrice): void
@@ -123,7 +150,7 @@ class CatalogService extends CoreCatalogService
             return;
         }
 
-        $discount = new ProductsDiscount($ids, [
+        $discount = $this->discountFactory->createProductsDiscount($ids, [
             $this->priceTypeRepository->getBasePriceId(),
         ]);
 
@@ -138,44 +165,5 @@ class CatalogService extends CoreCatalogService
                 }
             }
         }
-    }
-
-    /**
-     * Получает ID просмотренных пользователем товаров.
-     */
-    public function getViewedProductsIds(int $currentElementId): array
-    {
-        $skipUserInit = false;
-        if (!\Bitrix\Catalog\Product\Basket::isNotCrawler()) {
-            $skipUserInit = true;
-        }
-
-        $basketUserId = (int)\Bitrix\Sale\Fuser::getId($skipUserInit);
-        if ($basketUserId <= 0) {
-            return [];
-        }
-
-        return $this->viewedProductRepository->getViewedProductIds(
-            $this->productsRepository->entityId,
-            $basketUserId,
-            $currentElementId
-        );
-    }
-
-    public function makeUrl(string $url): string
-    {
-        $requestedSortId = $this->sortingService->getRequestedSortIdOrDefault();
-        $query = Context::getCurrent()->getRequest()->get('q');
-
-        $uri = new Uri($url);
-
-        if ($requestedSortId != $this->sortingService->getDefaultSortId()) {
-            $uri->addParams(['sort' => $requestedSortId]);
-        }
-        if ($query) {
-            $uri->addParams(['q' => $query]);
-        }
-
-        return $uri->getUri();
     }
 }

@@ -246,7 +246,7 @@ class CheckoutDTOBuilder
             'postCodeChanged' => 'ZIP_PROPERTY_CHANGED', // Y|N
             'distance' => $props['DISTANCE'] ? 'ORDER_PROP_' . $props['DISTANCE']->getPropertyId() : '',
             'duration' => $props['DURATION'] ? 'ORDER_PROP_' . $props['DURATION']->getPropertyId() : '',
-            'oldLocation' => BitrixLocationResolverContract::OLD_LOCATION_REQUEST_KEY,
+            'oldLocation' => 'OLD_LOCATION',
         ];
         return $map;
     }
