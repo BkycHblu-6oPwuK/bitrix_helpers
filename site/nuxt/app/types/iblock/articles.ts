@@ -1,6 +1,6 @@
-import type { ElementDTO } from "./iblock/element"
-import type { PaginationDTO } from "./pagination"
-import type { SeoData } from "./seo"
+import type { ElementDTO } from "./element"
+import type { PaginationDTO } from "../pagination"
+import type { SeoData } from "../seo"
 
 export interface ArticlesListData {
   articles: ElementDTO[]

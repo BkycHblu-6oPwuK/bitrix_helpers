@@ -15,7 +15,14 @@ const loading = ref(false)
 
 props.form.fields.forEach(f => {
   const key = props.form.formIdsMap[f.name] || f.name
-  formValues[key] = ''
+
+  // Если поле множественного выбора (checkbox group, multiselect)
+  if (f.type === 'checkbox' || (f.isMultiple && ['select', 'dropdown', 'multiselect'].includes(f.type))) {
+    formValues[key] = []
+  } else {
+    formValues[key] = ''
+  }
+
   fieldErrors[key] = ''
 })
 

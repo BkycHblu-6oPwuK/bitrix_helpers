@@ -19,24 +19,27 @@ return function (RoutingConfigurator $routes): void {
                 $routes->get('methods', [AuthController::class, 'methods']);
             });
 
-            $routes->any('get-content', [MainController::class, 'getContent']);
-            $routes->any('get-menu', [MainController::class, 'getMenu']);
-            $routes->any(
+            $routes->get('get-content', [MainController::class, 'getContent']);
+            $routes->get('get-menu', [MainController::class, 'getMenu']);
+
+            $routes->get(
                 'catalog/{search}',
                 [CatalogController::class, 'index']
             )->where('search', '.*');
-            $routes->any(
+            $routes->get(
                 'catalog',
                 [CatalogController::class, 'index']
             );
-            $routes->any(
+
+            $routes->get(
                 'articles',
                 [ArticlesController::class, 'index']
             );
-            $routes->any(
+            $routes->get(
                 'articles/{search}',
                 [ArticlesController::class, 'index']
             )->where('search', '.*');
+
             $routes->get(
                 'web-form/{formId}',
                 [FormController::class, 'index']
@@ -45,6 +48,7 @@ return function (RoutingConfigurator $routes): void {
                 'web-form/{formId}',
                 [FormController::class, 'store']
             );
+            
         });
     });
 };

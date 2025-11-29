@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FormView from '~/components/webForm/FormView.vue';
-import type { FormContent } from '~/types/content'
+import type { FormContent } from '~/types/iblock/content'
 
 const props = defineProps<{
   data: FormContent['result']

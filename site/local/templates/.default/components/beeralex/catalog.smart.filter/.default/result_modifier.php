@@ -1,8 +1,9 @@
 <?php
 
 use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Iblock\Catalog\CatalogFilterDTO;
 use Bitrix\Iblock\SectionPropertyTable;
-use Beeralex\Catalog\Helper\CatalogSectionHelper;
+use Beeralex\Catalog\Service\SortingService;
 
 $items = [];
 foreach($arResult['ITEMS'] as $key => &$item){
@@ -18,15 +19,22 @@ foreach($arResult['ITEMS'] as $key => &$item){
     }
     $items[$key] = $item;
 }
-$arResult['VUE_DATA'] = [
-    'filter_url' => $arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'],
-    'clear_url' => $arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL'],
+
+$urlService = service(\Beeralex\Core\Service\UrlService::class);
+
+$arResult['DTO'] = CatalogFilterDTO::make([
+    'filterUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL']),
+    'clearUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL']),
     'items' => $items,
-    'sorting' => CatalogSectionHelper::getSorting(),
+    'sorting' => service(SortingService::class)->getSorting(),
     'types' => [
         'checkbox' => SectionPropertyTable::CHECKBOXES,
-        'range' => SectionPropertyTable::NUMBERS_WITH_SLIDER
+        'range' => SectionPropertyTable::NUMBERS_WITH_SLIDER,
+        'numbers' => SectionPropertyTable::NUMBERS,
+        'dropdown' => SectionPropertyTable::DROPDOWN,
+        'calendar' => SectionPropertyTable::CALENDAR,
+        'radio' => SectionPropertyTable::RADIO_BUTTONS,
     ]
-];
-service(ApiResult::class)->addPageData($arResult['VUE_DATA'], 'catalogFilter');
-$this->getComponent()->setResultCacheKeys(['VUE_DATA']);
+]);
+service(ApiResult::class)->addPageData($arResult['DTO'], 'catalogFilter');
+$this->getComponent()->setResultCacheKeys(['DTO']);

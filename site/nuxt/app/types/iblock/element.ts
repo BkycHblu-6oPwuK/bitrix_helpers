@@ -5,14 +5,14 @@ export interface ElementDTO {
   code: string
   name: string
 
-  previewText?: string | null
-  previewPicture?: string | null
-  detailText?: string | null
-  detailPicture?: string | null
+  previewText: string
+  previewPicture: string
+  detailText: string
+  detailPicture: string
 
-  detailPageUrl?: string | null
-  listPageUrl?: string | null
-  dateCreate?: string | null
+  detailPageUrl: string
+  listPageUrl: string
+  dateCreate: string
 
   properties: PropertyItemDTO[]
 }

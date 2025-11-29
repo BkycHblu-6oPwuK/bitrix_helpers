@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useColorMode } from '#imports'
 import Menu from '~/components/menu/Menu.vue'
+import CatalogMenu from '~/components/menu/CatalogMenu.vue'
 import AuthModal from '~/components/auth/AuthModal.vue'
 
 const colorMode = useColorMode()
@@ -57,7 +58,7 @@ const openAuthModal = () => {
           </div>
         </NuxtLink>
 
-        <Menu menu-type="catalog_menu" />
+        <CatalogMenu />
 
         <div class="flex-1 max-w-xl">
           <UInput v-model="query" placeholder="Поиск по сайту" icon="i-heroicons-magnifying-glass" size="lg"
@@ -74,6 +75,6 @@ const openAuthModal = () => {
     </div>
 
     <!-- Модальное окно авторизации -->
-    <AuthModal v-model="isAuthModalOpen" />
+    <AuthModal v-if="false" v-model="isAuthModalOpen" />
   </header>
 </template>

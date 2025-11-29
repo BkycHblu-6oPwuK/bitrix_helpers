@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
@@ -11,7 +12,7 @@ use Bitrix\Main\Engine\Controller;
 class FormController extends Controller
 {
     use ApiProcessResultTrait;
-    
+
     public function configureActions()
     {
         return [
@@ -26,19 +27,23 @@ class FormController extends Controller
 
     public function indexAction(int $formId)
     {
-        service(FileService::class)->includeFile('v1.form.index', [
-            'formId' => $formId
-        ]);
-        return service(ApiResult::class)->getData();
+        return $this->process(function () use ($formId) {
+            service(FileService::class)->includeFile('v1.form.index', [
+                'formId' => $formId
+            ]);
+            return service(ApiResult::class);
+        });
     }
 
     public function storeAction(int $formId)
     {
-        $_POST['WEB_FORM_ID'] = $formId;
-        $_REQUEST['web_form_apply'] = 'Y';
-        service(FileService::class)->includeFile('v1.form.index', [
-            'formId' => $formId
-        ]);
-        return service(ApiResult::class)->getData();
+        return $this->process(function () use ($formId) {
+            $_POST['WEB_FORM_ID'] = $formId;
+            $_REQUEST['web_form_apply'] = 'Y';
+            service(FileService::class)->includeFile('v1.form.index', [
+                'formId' => $formId
+            ]);
+            return service(ApiResult::class);
+        });
     }
 }

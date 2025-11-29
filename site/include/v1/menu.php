@@ -7,6 +7,6 @@ $APPLICATION->IncludeComponent(
     [
         "CACHE_TYPE" => "A",
         "CACHE_TIME" => "86400",
-        "MENU_TYPE" => $menuType
+        "IBLOCK_ID" => $iblockId
     ]
 );

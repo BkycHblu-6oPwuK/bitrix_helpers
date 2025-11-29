@@ -1,7 +1,10 @@
 <?php
 
 use Beeralex\Core\Service\UrlService;
-use Beeralex\Core\Model\SectionModel;
+use Beeralex\Core\Repository\IblockRepository;
+use Beeralex\Core\Repository\IblockRepositoryContract;
+use Beeralex\Core\Repository\IblockSectionRepository;
+use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Service\IblockService;
 
 class BeeralexCatalogSectionList extends \CBitrixComponent
@@ -11,10 +14,32 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
      */
     protected $sectionEntity;
 
+    protected IblockSectionRepository $iblockSectionRepository;
+    protected FileService $fileService;
+
+    protected array $defaultSelect = [
+        'ID',
+        'NAME',
+        'CODE',
+        'PICTURE',
+        'SECTION_TEMPLATE' => 'IBLOCK.SECTION_PAGE_URL',
+        'LEFT_MARGIN',
+        'RIGHT_MARGIN',
+        'DEPTH_LEVEL',
+    ];
+
     public function onPrepareComponentParams($params)
     {
-        $catalogId = service(IblockService::class)->getIblockIdByCode('catalog');
-        $this->sectionEntity = SectionModel::compileEntityByIblock($catalogId);
+        if (!$params['IBLOCK_ID']) {
+            $params['IBLOCK_ID'] = service(IblockService::class)->getIblockIdByCode('catalog');
+        }
+
+        if ($params['SELECT'] && is_array($params['SELECT'])) {
+            $this->defaultSelect = array_unique(array_merge($this->defaultSelect, $params['SELECT']));
+        }
+        $iblockRepository = new IblockRepository((int)$params['IBLOCK_ID']);
+        $this->iblockSectionRepository = $iblockRepository->getIblockSectionRepository();
+        $this->fileService = service(FileService::class);
 
         $params['SMART_FILTER_NAME'] = $params['SMART_FILTER_NAME'] ?: 'arrFilter';
         $params['SECTION_ID'] = (int)($params['SECTION_ID'] ?? 0);
@@ -32,8 +57,8 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                 $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
                 $taggedCache->startTagCache('beeralex/catalog.section.list');
                 try {
-                    $taggedCache->registerTag('iblock_id_' . service(IblockService::class)->getIblockIdByCode('catalog'));
-                    $this->arResult['sections'] = $this->getRootSections();
+                    $taggedCache->registerTag('iblock_id_' . $this->arParams['IBLOCK_ID']);
+                    $this->arResult['SECTIONS'] = $this->getRootSections();
                     $this->includeComponentTemplate();
                 } catch (\Throwable $e) {
                     $this->abortResultCache();
@@ -70,32 +95,16 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
 
     protected function getRootSections(): array
     {
-        $res = $this->sectionEntity::query()
-            ->setSelect(['ID', 'CODE', 'NAME', 'PICTURE', 'UF_CUSTOM_NAME', 'SECTION_TEMPLATE' => 'iblock.SECTION_PAGE_URL'])
+        $sections = $this->fileService->addPictireSrcInQuery($this->iblockSectionRepository->query(), 'PICTURE')
+            ->setSelect(array_merge($this->defaultSelect, ['PICTURE_SRC']))
             ->where('ACTIVE', 'Y')
             ->where('GLOBAL_ACTIVE', 'Y')
             ->whereNull('IBLOCK_SECTION_ID')
             ->setOrder(['SORT' => 'ASC'])
-            ->exec();
-
-        $sections = [];
-        while ($item = $res->fetch()) {
+            ->exec()->fetchAll();
+        foreach ($sections as &$item) {
             $this->replaceUrl($item);
-            if ($item['PICTURE']) {
-                $item['PICTURE'] = \CFile::GetPath($item['PICTURE']);
-            }
-            if ($item['UF_CUSTOM_NAME']) {
-                $item['NAME'] = $item['UF_CUSTOM_NAME'];
-            }
-            $sections[] = [
-                'id' => (int)$item['ID'],
-                'name' => $item['NAME'],
-                'code' => $item['CODE'],
-                'url' => $item['URL'],
-                'picture' => $item['PICTURE'],
-            ];
         }
-
         return $sections;
     }
 
@@ -105,38 +114,15 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         $sectionIds = $this->getSectionIds();
 
         if (!empty($sectionIds)) {
-            $sectionsRes = $this->sectionEntity::query()
-                ->setSelect([
-                    'ID',
-                    'CODE',
-                    'NAME',
-                    'UF_CUSTOM_NAME',
-                    'IBLOCK_SECTION_ID',
-                    'SECTION_TEMPLATE' => 'iblock.SECTION_PAGE_URL',
-                    'PICTURE'
-                ])
-                ->whereNotNull('PICTURE')
+            $sections = $this->fileService->addPictireSrcInQuery($this->iblockSectionRepository->query(), 'PICTURE')
+                ->setSelect(array_merge($this->defaultSelect, ['PICTURE_SRC']))
                 ->where('GLOBAL_ACTIVE', 'Y')
                 ->where('ACTIVE', 'Y')
                 ->whereIn('ID', $sectionIds)
                 ->setOrder(['LEFT_MARGIN' => 'ASC'])
-                ->exec();
-            while ($item = $sectionsRes->fetch()) {
+                ->exec()->fetchAll();
+            foreach ($sections as &$item) {
                 $this->replaceUrl($item);
-                if ($item['PICTURE']) {
-                    $item['PICTURE'] = \CFile::GetPath($item['PICTURE']);
-                }
-                if ($item['UF_CUSTOM_NAME']) {
-                    $item['NAME'] = $item['UF_CUSTOM_NAME'];
-                }
-                $sections[] = [
-                    'id' => (int)$item['ID'],
-                    'parent_section_id' => (int)$item['IBLOCK_SECTION_ID'],
-                    'name' => $item['NAME'],
-                    'code' => $item['CODE'],
-                    'url' => $item['URL'],
-                    'picture' => $item['PICTURE'],
-                ];
             }
         }
 
@@ -196,7 +182,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     {
         $sectionMap = [];
 
-        $base = $this->sectionEntity::query()
+        $base = $this->iblockSectionRepository->query()
             ->setSelect(['LEFT_MARGIN', 'RIGHT_MARGIN'])
             ->where('ID', $sectionId)
             ->setCacheTtl(86400)
@@ -210,7 +196,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         $left = (int)$base['LEFT_MARGIN'];
         $right = (int)$base['RIGHT_MARGIN'];
 
-        $result = $this->sectionEntity::query()
+        $result = $this->iblockSectionRepository->query()
             ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN', 'DEPTH_LEVEL'])
             ->where('LEFT_MARGIN', '>=', $left)
             ->where('RIGHT_MARGIN', '<=', $right)
@@ -233,7 +219,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     {
         $filter = array_merge(
             [
-                'IBLOCK_ID' => service(IblockService::class)->getIblockIdByCode('catalog'),
+                'IBLOCK_ID' => $this->arParams['IBLOCK_ID'],
                 'ACTIVE' => 'Y',
                 '=AVAILABLE' => 'Y',
                 'SECTION_ID' => $sectionId,
@@ -253,9 +239,9 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     protected function replaceUrl(&$item): void
     {
         $url = service(UrlService::class)->getSectionUrl([
-            'SECTION_CODE' => $item['CODE'],
-            'IBLOCK_SECTION_ID' => $item['ID']
-        ], $item['SECTION_TEMPLATE']);
-        $item['URL'] = $url;
+            'CODE' => $item['CODE'],
+            'ID' => $item['ID']
+        ], $item['SECTION_TEMPLATE'],);
+        $item['URL'] = $url['clean_url'];
     }
 }

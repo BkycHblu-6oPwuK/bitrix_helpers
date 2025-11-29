@@ -37,15 +37,26 @@ class CatalogService extends CoreCatalogService
         $offersByProduct = $this->offersRepository->getOffersByProductIds($productIds, $isAvailable);
         foreach ($products as &$product) {
             $offers = $offersByProduct[$product['ID']] ?? [];
+            $productUrl = $product['DETAIL_PAGE_URL'] ?? '';
             if (empty($offers)) {
                 continue;
             }
 
-            $product['OFFERS'] = array_map(function ($offer) {
+            $product['OFFERS'] = array_map(function ($offer) use ($productUrl) {
+                $offerUrlTemplate = $offer['IBLOCK']['DETAIL_PAGE_URL'] ?? '';
+                $offerUrl = null;
+                if($offerUrlTemplate) {
+                    $offerUrl = str_replace(
+                        ['#PRODUCT_URL#', '#CODE#', '#ID#'],
+                        [$productUrl, $offer['CODE'], $offer['ID']],
+                        $offerUrlTemplate
+                    );
+                }
+                $offer['DETAIL_PAGE_URL'] = $offerUrl;
                 return $offer;
             }, $offers);
 
-            $product['PRESELECTED_OFFER'] = $offers[0];
+            $product['PRESELECTED_OFFER'] = $product['OFFERS'][0];
         }
 
         if ($applyDiscounts) {

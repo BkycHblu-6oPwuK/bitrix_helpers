@@ -1,8 +1,10 @@
 <?
 
+use Beeralex\Catalog\Service\CatalogService;
 use Bitrix\Main\Context;
-use Beeralex\Catalog\Helper\SearchHelper;
-use Beeralex\Catalog\Helper\SortingHelper;
+use Beeralex\Catalog\Service\SearchService;
+use Beeralex\Catalog\Service\SortingService;
+use Bitrix\Main\Loader;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
@@ -13,13 +15,16 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
  * @var array $arResult
  * @var array $arCurSection
  */
+Loader::requireModule('beeralex.catalog');
 $PREFILTER_NAME = (string)$arParams["PREFILTER_NAME"];
 global ${$PREFILTER_NAME};
 $request = Context::getCurrent()->getRequest();
 $query = $request->get('q');
+$sortService = service(SortingService::class);
+$catalogService = service(CatalogService::class);
 if ($query) {
 	$APPLICATION->SetTitle("Вы искали «{$query}»");
-	$foundIds = SearchHelper::getProductsIds($query, 100000);
+	$foundIds = service(SearchService::class)->getProductsIds($query, 100000);
 	${$PREFILTER_NAME}['ID'] = !empty($foundIds) ? $foundIds : false;
 }
 if ($isFilter) {
@@ -50,7 +55,8 @@ if ($isFilter) {
 			"SMART_FILTER_PATH" => $arResult["VARIABLES"]["SMART_FILTER_PATH"],
 			"PAGER_PARAMS_NAME" => $arParams["PAGER_PARAMS_NAME"],
 			"INSTANT_RELOAD" => $arParams["INSTANT_RELOAD"],
-			'IS_SEARCH_PAGE'      => !empty($query)
+			'IS_SEARCH_PAGE'      => !empty($query),
+			'CATALOG_SERVICE' => $catalogService,
 		),
 		$component,
 		array('HIDE_ICONS' => 'Y')
@@ -61,6 +67,7 @@ $APPLICATION->IncludeComponent(
 	"beeralex:catalog.section.list",
 	".default",
 	array(
+		"IBLOCK_ID" => $arParams["IBLOCK_ID"],
 		"CACHE_FILTER" => $arParams["CACHE_FILTER"],
 		"CACHE_GROUPS" => $arParams["CACHE_GROUPS"],
 		"CACHE_TIME" => $arParams["CACHE_TIME"],
@@ -71,18 +78,18 @@ $APPLICATION->IncludeComponent(
 	$component
 );
 
-$sort = SortingHelper::getRequestedSort();
+$sort = $sortService->getRequestedSort();
 
 $intSectionID = $APPLICATION->IncludeComponent(
-	"bitrix:catalog.section",
+	"beeralex:catalog.section",
 	".default",
 	array(
 		"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 		"IBLOCK_ID" => $arParams["IBLOCK_ID"],
-		'ELEMENT_SORT_FIELD' => $sort['sortField1'],
-		'ELEMENT_SORT_ORDER' => $sort['sortOrder1'],
-		'ELEMENT_SORT_FIELD2' => $sort['sortField2'],
-		'ELEMENT_SORT_ORDER2' => $sort['sortOrder2'],
+		'ELEMENT_SORT_FIELD' => $sort['SORT_FIELD_1'],
+		'ELEMENT_SORT_ORDER' => $sort['SORT_ORDER_1'],
+		'ELEMENT_SORT_FIELD2' => $sort['SORT_FIELD_2'],
+		'ELEMENT_SORT_ORDER2' => $sort['SORT_ORDER_2'],
 		"PROPERTY_CODE" => (isset($arParams["LIST_PROPERTY_CODE"]) ? $arParams["LIST_PROPERTY_CODE"] : []),
 		"PROPERTY_CODE_MOBILE" => $arParams["LIST_PROPERTY_CODE_MOBILE"],
 		"META_KEYWORDS" => $arParams["LIST_META_KEYWORDS"],
@@ -198,7 +205,8 @@ $intSectionID = $APPLICATION->IncludeComponent(
 		'USE_COMPARE_LIST' => 'Y',
 		'BACKGROUND_IMAGE' => (isset($arParams['SECTION_BACKGROUND_IMAGE']) ? $arParams['SECTION_BACKGROUND_IMAGE'] : ''),
 		'COMPATIBLE_MODE' => (isset($arParams['COMPATIBLE_MODE']) ? $arParams['COMPATIBLE_MODE'] : ''),
-		'DISABLE_INIT_JS_IN_COMPONENT' => (isset($arParams['DISABLE_INIT_JS_IN_COMPONENT']) ? $arParams['DISABLE_INIT_JS_IN_COMPONENT'] : '')
+		'DISABLE_INIT_JS_IN_COMPONENT' => (isset($arParams['DISABLE_INIT_JS_IN_COMPONENT']) ? $arParams['DISABLE_INIT_JS_IN_COMPONENT'] : ''),
+		'CATALOG_SERVICE' => $catalogService,
 	),
 	$component
 );

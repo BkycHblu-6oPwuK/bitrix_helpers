@@ -1,32 +1,30 @@
 <script setup lang="ts">
-import type { MenuBlock } from '~/types/menu'
+import type { MenuItem } from '~/types/menu'
 
-const props = defineProps<{
-  data: MenuBlock
-}>()
-console.log(props.data)
+defineProps<{ data: MenuItem[] }>()
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <h3
-      v-if="data.NAME"
-      class="text-base font-semibold text-gray-900 dark:text-gray-100"
-    >
-      {{ data.NAME }}
-    </h3>
-    <ul v-if="data.CHILDREN?.length" class="flex flex-col gap-1">
-      <li
-        v-for="(item, i) in data.CHILDREN"
-        :key="i"
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <div v-for="column in data" :key="column.id" class="flex flex-col gap-2">
+      <h3
+        class="text-base font-semibold text-gray-900 dark:text-gray-100"
       >
-        <a
-          :href="item.LINK || '#'"
-          class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition"
+        {{ column.name }}
+      </h3>
+      <ul v-if="column.children?.length" class="flex flex-col gap-1">
+        <li
+          v-for="item in column.children"
+          :key="item.id"
         >
-          {{ item.NAME }}
-        </a>
-      </li>
-    </ul>
+          <a
+            :href="item.link || '#'"
+            class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition"
+          >
+            {{ item.name }}
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>

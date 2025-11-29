@@ -1,6 +1,7 @@
 <?php
 
 use Beeralex\Catalog\Service\CatalogService;
+use Bitrix\Main\Loader;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -12,14 +13,24 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 class BeeralexProductSlider extends CBitrixComponent
 {
 
+    public function onPrepareComponentParams($params)
+    {
+        if ($params['CATALOG_SERVICE'] === null || !($params['CATALOG_SERVICE'] instanceof CatalogService)) {
+            Loader::requireModule('beeralex.catalog');
+            $params['CATALOG_SERVICE'] = service(CatalogService::class);
+        }
+
+        return $params;
+    }
+
     /** @inheritDoc */
     public function executeComponent()
     {
-        if(!$this->arParams['IDS']) return;
+        if (!$this->arParams['IDS']) return;
         if ($this->startResultCache()) {
-            $this->arResult['items'] = $this->getProducts($this->arParams['IDS']);
-            $this->arResult['title'] = $this->arParams['TITLE'];
-            $this->arResult['link'] = $this->arParams['LINK_TO_ALL'];
+            $this->arResult['ITEMS'] = $this->getProducts($this->arParams['IDS']);
+            $this->arResult['TITLE'] = $this->arParams['TITLE'];
+            $this->arResult['LINK_TO_ALL'] = $this->arParams['LINK_TO_ALL'];
             $this->includeComponentTemplate();
         }
     }
@@ -27,7 +38,7 @@ class BeeralexProductSlider extends CBitrixComponent
     private function getProducts(array $productsIds)
     {
         if (!empty($productsIds)) {
-            return service(CatalogService::class)->getProductsWithOffers($productsIds, true);
+            return $this->arParams['CATALOG_SERVICE']->getProductsWithOffers($productsIds, true);
         } else {
             return [];
         }

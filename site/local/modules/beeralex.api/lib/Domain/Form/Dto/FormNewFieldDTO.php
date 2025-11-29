@@ -3,16 +3,33 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Form\Dto;
 
-class FormNewFieldDTO
+use Beeralex\Core\Http\Resources\Resource;
+
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $label
+ * @property string $type
+ * @property bool $required
+ * @property bool $isMultiple
+ * @property array $attributes
+ * @property string $error
+ * @property array $options
+ */
+class FormNewFieldDTO extends Resource
 {
-    public int $id = 0;
-    public string $name = '';
-    public string $label = '';
-    public string $type = '';
-    public bool $required = false;
-    public bool $isMultiple = false;
-    public array $attributes = [];
-    /** у формы параметр USE_EXTENDED_ERRORS должен быть = Y */
-    public string $error = '';
-    public array $options = []; // добавь это
+    public static function make(array $data): static
+    {
+        return new static([
+            'id' => (int)($data['id'] ?? 0),
+            'name' => $data['name'] ?? '',
+            'label' => $data['label'] ?? '',
+            'type' => $data['type'] ?? '',
+            'required' => (bool)($data['required'] ?? false),
+            'isMultiple' => (bool)($data['isMultiple'] ?? false),
+            'attributes' => $data['attributes'] ?? [],
+            'error' => $data['error'] ?? '',
+            'options' => $data['options'] ?? [],
+        ]);
+    }
 }

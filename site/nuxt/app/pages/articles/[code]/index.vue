@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Dump from '~/components/dev/Dump.vue';
-import type { ArticleData } from '~/types/articles';
+import type { ArticleData } from '~/types/iblock/articles';
 const route = useRoute();
 const { data } = await useApi<ArticleData>(`articles/${route.params.code}`)
 useSeoPage(data.value?.data?.seo);

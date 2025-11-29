@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\User\Auth;
 
-use Beeralex\Core\Dto\CacheSettingsDto;
+use Beeralex\Core\Dto\CacheSettingsDTO;
 use Beeralex\Core\Traits\Cacheable;
 use Beeralex\User\Options;
 use Bitrix\Main\Result;
@@ -26,9 +26,9 @@ class JwtTokenManager
     ) 
     {}
 
-    protected function makeCacheSettingsDto(string $key): CacheSettingsDto
+    protected function makeCacheSettingsDTO(string $key): CacheSettingsDTO
     {
-        return new CacheSettingsDto(
+        return new CacheSettingsDTO(
             time: 3600,
             key: $key,
             dir: 'beeralex/user/jwt',
@@ -245,7 +245,7 @@ class JwtTokenManager
         }
         $key = $this->makeRevocationKey($decoded->getData(), $refreshToken);
         try {
-            $revokedArr = $this->getCached($this->makeCacheSettingsDto($key), function() {
+            $revokedArr = $this->getCached($this->makeCacheSettingsDTO($key), function() {
                 return [
                     'revoked' => false,
                 ];
@@ -303,7 +303,7 @@ class JwtTokenManager
         }
         $decoded = $decoded->getData();
         $key = $this->makeRevocationKey($decoded, $refreshToken);
-        $this->getCached($this->makeCacheSettingsDto($key), function() {
+        $this->getCached($this->makeCacheSettingsDTO($key), function() {
             return [
                 'revoked' => true,
             ];

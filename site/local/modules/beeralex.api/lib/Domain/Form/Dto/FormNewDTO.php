@@ -3,15 +3,31 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Form\Dto;
 
-class FormNewDTO
+use Beeralex\Core\Http\Resources\Resource;
+
+/**
+ * @property int $id
+ * @property string $url
+ * @property string $title
+ * @property string $description
+ * @property FormNewFieldDTO[] $fields
+ * @property array $formIdsMap
+ * @property string $error
+ * @property bool $successAdded
+ */
+class FormNewDTO extends Resource
 {
-    public int $id = 0;
-    public string $url;
-    public string $title = '';
-    public string $description = '';
-    /** @var FormNewFieldDTO[] */
-    public array $fields = [];
-    public array $formIdsMap;
-    public string $error = '';
-    public bool $successAdded = false;
+    public static function make(array $data): static
+    {
+        return new static([
+            'id' => (int)($data['id'] ?? 0),
+            'url' => $data['url'] ?? '',
+            'title' => $data['title'] ?? '',
+            'description' => $data['description'] ?? '',
+            'error' => $data['error'] ?? '',
+            'successAdded' => (bool)($data['successAdded'] ?? false),
+            'fields' => $data['fields'] ?? [],
+            'formIdsMap' => $data['formIdsMap'] ?? [],
+        ]);
+    }
 }

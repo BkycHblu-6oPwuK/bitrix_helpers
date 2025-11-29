@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import Dump from '~/components/dev/Dump.vue';
-import type { MainBannerContent } from '~/types/content'
+import type { MainBannerContent } from '~/types/iblock/content'
 
 const props = defineProps<{
   data: MainBannerContent['result']
 }>()
-console.log(props.data)
 </script>
 
 <template>

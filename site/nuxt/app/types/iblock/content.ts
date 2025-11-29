@@ -1,26 +1,26 @@
-import type { ProductItem } from './catalog/product'
-import type { FormDTO } from './webForm/form'
-import type { ElementDTO } from './iblock/element'
-import type { SeoData } from './seo'
+import type { CatalogItemDTO } from './catalog'
+import type { FormDTO } from '../webForm/form'
+import type { ElementDTO } from './element'
+import type { SeoData } from '../seo'
 
-export type PageContentType = 'main_banner' | 'slider' | 'form' | 'products' | 'slider_articles' | 'video' | string
+export type PageContentType = 'main_banner' | 'slider' | 'form' | 'products' | 'slider_articles' | 'video' | 'new' | 'popular' | string
 
 export interface PageContentItem {
   type: PageContentType
-  result: any
+  result: Record<string, any>
 }
 
 export interface MainBannerContent {
   type: 'main_banner'
-  result: ElementDTO[]
+  result: { items: ElementDTO[] }
 }
 
 export interface SliderContent {
   type: 'slider'
   result: {
     title: string
-    link: string | null
-    items: Record<string, ProductItem>
+    linkToAll: string
+    items: CatalogItemDTO[]
   }
 }
 
@@ -32,7 +32,7 @@ export interface FormContent {
 export interface SliderArticlesContent {
   type: 'slider_articles'
   result: {
-    title: string
+    link: string
     items: ElementDTO[]
   }
 }

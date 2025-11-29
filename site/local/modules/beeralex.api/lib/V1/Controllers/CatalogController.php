@@ -25,8 +25,9 @@ class CatalogController extends Controller
     {
         return $this->process(function () {
             service(FileService::class)->includeFile('v1.catalog.index');
-            service(ApiResult::class)->setSeo();
-            return service(ApiResult::class);
+            $result = service(ApiResult::class);
+            $result->setSeo();
+            return $result;
         });
     }
 }

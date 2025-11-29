@@ -2,4 +2,4 @@
 
 use Beeralex\Api\ApiResult;
 
-service(ApiResult::class)->addPageData((array)$arResult['dto']);
+service(ApiResult::class)->addPageData($arResult['DTO']);

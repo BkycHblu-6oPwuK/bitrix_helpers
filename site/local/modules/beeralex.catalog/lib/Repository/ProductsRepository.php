@@ -6,15 +6,17 @@ namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Core\Service\CatalogService;
+use Beeralex\Core\Service\UrlService;
 
 class ProductsRepository extends AbstractCatalogRepository implements ProductRepositoryContract
 {
     public function __construct(
         string $iblockCode,
         CatalogService $catalogService,
-        protected readonly CatalogViewedProductRepository $catalogViewedProductRepository
+        protected readonly CatalogViewedProductRepository $catalogViewedProductRepository,
+        UrlService $urlService
     ) {
-        parent::__construct($iblockCode, $catalogService);
+        parent::__construct($iblockCode, $catalogService, $urlService);
     }
 
     /**

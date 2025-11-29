@@ -1,16 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 use Beeralex\Api\Domain\Iblock\Content\ContentItemDTO;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
-use Beeralex\Api\Domain\Iblock\ElementDTO;
+use Beeralex\Api\Domain\Iblock\Content\ListArticlesDTO;
 
-$arResult['dto'] = new ContentItemDTO(
+$arResult['DTO'] = ContentItemDTO::makeFrom(
     ContentTypes::ARTICLES,
-    [
-        'link' => $arParams['LINK_TO_ALL'] ?? '',
-        'items' => array_map([ElementDTO::class, 'fromNewsListElement'], $arResult['ITEMS'])
-    ]
+    ListArticlesDTO::make([
+        'LINK' => $arParams['LINK_TO_ALL'] ?? '',
+        'ITEMS' => $arResult['ITEMS'],
+    ])
 );
 
-$this->getComponent()->setResultCacheKeys(['dto']);
+$this->getComponent()->setResultCacheKeys(['DTO']);

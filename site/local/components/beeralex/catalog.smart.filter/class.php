@@ -1,15 +1,17 @@
 <?php
-if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
 use Bitrix\Main\Loader;
 use Bitrix\Iblock\PropertyTable;
 use Bitrix\Iblock\SectionPropertyTable;
-use Beeralex\Catalog\Helper\CatalogSectionHelper;
+use Beeralex\Catalog\Service\CatalogService;
+use Beeralex\Core\Service\IblockService;
 
 /*DEMO CODE for component inheritance
 CBitrixComponent::includeComponentClass("bitrix::news.base");
 class CBitrixCatalogSmartFilter extends CBitrixNewsBase
 */
+
 class CBitrixCatalogSmartFilter extends CBitrixComponent
 {
 	public $IBLOCK_ID = 0;
@@ -30,11 +32,19 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function onPrepareComponentParams($arParams)
 	{
+		if (!$arParams['IBLOCK_ID']) {
+			$arParams['IBLOCK_ID'] = service(IblockService::class)->getIblockIdByCode('catalog');
+		}
+
+		if ($arParams['CATALOG_SERVICE'] === null || !($arParams['CATALOG_SERVICE'] instanceof CatalogService)) {
+			Loader::requireModule('beeralex.catalog');
+			$arParams['CATALOG_SERVICE'] = service(CatalogService::class);
+		}
+
 		$arParams["CACHE_TIME"] = (int)($arParams["CACHE_TIME"] ?? 36000000);
 		$arParams["IBLOCK_ID"] = (int)($arParams["IBLOCK_ID"] ?? 0);
 		$arParams["SECTION_ID"] = (int)($arParams["SECTION_ID"] ?? 0);
-		if ($arParams["SECTION_ID"] <= 0 && Loader::includeModule('iblock'))
-		{
+		if ($arParams["SECTION_ID"] <= 0 && Loader::includeModule('iblock')) {
 			$arParams["SECTION_ID"] = CIBlockFindTools::GetSectionID(
 				$arParams["SECTION_ID"],
 				$arParams["SECTION_CODE"],
@@ -43,8 +53,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					"IBLOCK_ID" => $arParams["IBLOCK_ID"],
 				)
 			);
-			if (!$arParams["SECTION_ID"] && $arParams["SECTION_CODE_PATH"] <> '')
-			{
+			if (!$arParams["SECTION_ID"] && $arParams["SECTION_CODE_PATH"] <> '') {
 				$arParams["SECTION_ID"] = CIBlockFindTools::GetSectionIDByCodePath(
 					$arParams["IBLOCK_ID"],
 					$arParams["SECTION_CODE_PATH"]
@@ -52,10 +61,9 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			}
 		}
 
-		$arParams["PRICE_CODE"] = is_array($arParams["PRICE_CODE"])? $arParams["PRICE_CODE"]: array();
-		foreach ($arParams["PRICE_CODE"] as $k=>$v)
-		{
-			if ($v===null || $v==='' || $v===false)
+		$arParams["PRICE_CODE"] = is_array($arParams["PRICE_CODE"]) ? $arParams["PRICE_CODE"] : array();
+		foreach ($arParams["PRICE_CODE"] as $k => $v) {
+			if ($v === null || $v === '' || $v === false)
 				unset($arParams["PRICE_CODE"][$k]);
 		}
 
@@ -71,33 +79,27 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		if (
 			$arParams["FILTER_NAME"] === ''
 			|| !preg_match("/^[A-Za-z_][A-Za-z01-9_]*$/", $arParams["FILTER_NAME"])
-		)
-		{
+		) {
 			$arParams["FILTER_NAME"] = "arrFilter";
 		}
 		$arParams["PREFILTER_NAME"] = (string)($arParams["PREFILTER_NAME"] ?? '');
 		if (
 			$arParams["PREFILTER_NAME"] === ''
 			|| !preg_match("/^[A-Za-z_][A-Za-z01-9_]*$/", $arParams["PREFILTER_NAME"])
-		)
-		{
+		) {
 			$arParams["PREFILTER_NAME"] = "smartPreFilter";
 		}
 
 		$arParams["CONVERT_CURRENCY"] = $arParams["CONVERT_CURRENCY"] === "Y";
 		$arParams["CURRENCY_ID"] = trim($arParams["CURRENCY_ID"]);
-		if ($arParams["CURRENCY_ID"] == "")
-		{
+		if ($arParams["CURRENCY_ID"] == "") {
 			$arParams["CONVERT_CURRENCY"] = false;
-		}
-		elseif (!$arParams["CONVERT_CURRENCY"])
-		{
+		} elseif (!$arParams["CONVERT_CURRENCY"]) {
 			$arParams["CURRENCY_ID"] = "";
 		}
 
 		$arParams['DISPLAY_ELEMENT_COUNT'] = (string)($arParams['DISPLAY_ELEMENT_COUNT'] ?? 'Y');
-		if ($arParams['DISPLAY_ELEMENT_COUNT'] !== 'N')
-		{
+		if ($arParams['DISPLAY_ELEMENT_COUNT'] !== 'N') {
 			$arParams['DISPLAY_ELEMENT_COUNT'] = 'Y';
 		}
 
@@ -116,8 +118,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			$this->arParams["CONVERT_CURRENCY"]
 			&& $this->arParams["CURRENCY_ID"] != ""
 			&& Loader::includeModule('currency')
-		)
-		{
+		) {
 			$currencyList = \Bitrix\Currency\CurrencyTable::getList(array(
 				'select' => array('CURRENCY'),
 				'filter' => array('=CURRENCY' => $this->arParams['CURRENCY_ID'])
@@ -135,11 +136,9 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 		if (self::$catalogIncluded === null)
 			self::$catalogIncluded = Loader::includeModule('catalog');
-		if (self::$catalogIncluded)
-		{
+		if (self::$catalogIncluded) {
 			$arCatalog = CCatalogSKU::GetInfoByProductIBlock($this->IBLOCK_ID);
-			if (!empty($arCatalog))
-			{
+			if (!empty($arCatalog)) {
 				$this->SKU_IBLOCK_ID = $arCatalog["IBLOCK_ID"];
 				$this->SKU_PROPERTY_ID = $arCatalog["SKU_PROPERTY_ID"];
 			}
@@ -154,23 +153,20 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	{
 		$items = array();
 
-		foreach(CIBlockSectionPropertyLink::GetArray($IBLOCK_ID, $this->SECTION_ID) as $PID => $arLink)
-		{
+		foreach (CIBlockSectionPropertyLink::GetArray($IBLOCK_ID, $this->SECTION_ID) as $PID => $arLink) {
 			if ($arLink["SMART_FILTER"] !== "Y")
 				continue;
 
 			if ($arLink["ACTIVE"] === "N")
 				continue;
 
-			if ($arLink['FILTER_HINT'] !== null && $arLink['FILTER_HINT'] !== '')
-			{
+			if ($arLink['FILTER_HINT'] !== null && $arLink['FILTER_HINT'] !== '') {
 				$arLink['FILTER_HINT'] = CTextParser::closeTags($arLink['FILTER_HINT']);
 			}
 
 			$rsProperty = CIBlockProperty::GetByID($PID);
 			$arProperty = $rsProperty->Fetch();
-			if ($arProperty)
-			{
+			if ($arProperty) {
 				$items[$arProperty["ID"]] = array(
 					"ID" => $arProperty["ID"],
 					"IBLOCK_ID" => $arProperty["IBLOCK_ID"],
@@ -192,10 +188,9 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 				if (
 					$arProperty["PROPERTY_TYPE"] === PropertyTable::TYPE_NUMBER
 					|| $arLink["DISPLAY_TYPE"] === SectionPropertyTable::CALENDAR
-				)
-				{
-					$minID = $this->SAFE_FILTER_NAME.'_'.$arProperty['ID'].'_MIN';
-					$maxID = $this->SAFE_FILTER_NAME.'_'.$arProperty['ID'].'_MAX';
+				) {
+					$minID = $this->SAFE_FILTER_NAME . '_' . $arProperty['ID'] . '_MIN';
+					$maxID = $this->SAFE_FILTER_NAME . '_' . $arProperty['ID'] . '_MAX';
 					$items[$arProperty["ID"]]["VALUES"] = array(
 						"MIN" => array(
 							"CONTROL_ID" => $minID,
@@ -216,12 +211,10 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	public function getPriceItems()
 	{
 		$items = array();
-		if (!empty($this->arParams["PRICE_CODE"]))
-		{
+		if (!empty($this->arParams["PRICE_CODE"])) {
 			if (self::$catalogIncluded === null)
 				self::$catalogIncluded = Loader::includeModule('catalog');
-			if (self::$catalogIncluded)
-			{
+			if (self::$catalogIncluded) {
 				//TODO: replace to prefilter by GroupAccessTable and main filter by GroupTable
 				$rsPrice = CCatalogGroup::GetList(
 					array('SORT' => 'ASC', 'ID' => 'ASC'),
@@ -230,15 +223,13 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					false,
 					array('ID', 'NAME', 'NAME_LANG', 'CAN_ACCESS', 'CAN_BUY')
 				);
-				while($arPrice = $rsPrice->Fetch())
-				{
-					if($arPrice["CAN_ACCESS"] == "Y" || $arPrice["CAN_BUY"] == "Y")
-					{
+				while ($arPrice = $rsPrice->Fetch()) {
+					if ($arPrice["CAN_ACCESS"] == "Y" || $arPrice["CAN_BUY"] == "Y") {
 						$arPrice["NAME_LANG"] = (string)$arPrice["NAME_LANG"];
 						if ($arPrice["NAME_LANG"] === '')
 							$arPrice["NAME_LANG"] = $arPrice["NAME"];
-						$minID = $this->SAFE_FILTER_NAME.'_P'.$arPrice['ID'].'_MIN';
-						$maxID = $this->SAFE_FILTER_NAME.'_P'.$arPrice['ID'].'_MAX';
+						$minID = $this->SAFE_FILTER_NAME . '_P' . $arPrice['ID'] . '_MIN';
+						$maxID = $this->SAFE_FILTER_NAME . '_P' . $arPrice['ID'] . '_MAX';
 						$utf_id = mb_strtolower($arPrice["NAME"]);
 						$items[$arPrice["NAME"]] = array(
 							"ID" => $arPrice["ID"],
@@ -280,22 +271,18 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		$this->arResult["PROPERTY_COUNT"] = count($items);
 		$this->arResult["PROPERTY_ID_LIST"] = array_keys($items);
 
-		if($this->SKU_IBLOCK_ID)
-		{
+		if ($this->SKU_IBLOCK_ID) {
 			$this->arResult['SKU_PROPERTY_COUNT'] = 0;
 			$this->arResult["SKU_PROPERTY_ID_LIST"] = array($this->SKU_PROPERTY_ID);
-			foreach($this->getIBlockItems($this->SKU_IBLOCK_ID) as $PID => $arItem)
-			{
+			foreach ($this->getIBlockItems($this->SKU_IBLOCK_ID) as $PID => $arItem) {
 				$items[$PID] = $arItem;
 				$this->arResult["SKU_PROPERTY_COUNT"]++;
 				$this->arResult["SKU_PROPERTY_ID_LIST"][] = $PID;
 			}
 		}
 
-		if (!empty($this->arParams["PRICE_CODE"]))
-		{
-			foreach($this->getPriceItems() as $PID => $arItem)
-			{
+		if (!empty($this->arParams["PRICE_CODE"])) {
+			foreach ($this->getPriceItems() as $PID => $arItem) {
 				$items[$PID] = $arItem;
 			}
 		}
@@ -306,20 +293,16 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	public function processProperties(array &$resultItem, array $elements, array $dictionaryID, array $directoryPredict = [])
 	{
 		$lookupDictionary = [];
-		if (!empty($dictionaryID))
-		{
+		if (!empty($dictionaryID)) {
 			$lookupDictionary = $this->facet->getDictionary()->getStringByIds($dictionaryID);
 		}
 
-		if (!empty($directoryPredict))
-		{
-			foreach ($directoryPredict as $directory)
-			{
+		if (!empty($directoryPredict)) {
+			foreach ($directoryPredict as $directory) {
 				if (empty($directory['VALUE']) || !is_array($directory['VALUE']))
 					continue;
 				$values = [];
-				foreach ($directory['VALUE'] as $item)
-				{
+				foreach ($directory['VALUE'] as $item) {
 					if (isset($lookupDictionary[$item]))
 						$values[] = $lookupDictionary[$item];
 				}
@@ -330,35 +313,25 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			unset($directory);
 		}
 
-		foreach ($elements as $row)
-		{
+		foreach ($elements as $row) {
 			$PID = $row['PID'];
-			if ($resultItem["ITEMS"][$PID]["PROPERTY_TYPE"] === PropertyTable::TYPE_NUMBER)
-			{
+			if ($resultItem["ITEMS"][$PID]["PROPERTY_TYPE"] === PropertyTable::TYPE_NUMBER) {
 				$this->fillItemValues($resultItem["ITEMS"][$PID], $row["MIN_VALUE_NUM"]);
 				$this->fillItemValues($resultItem["ITEMS"][$PID], $row["MAX_VALUE_NUM"]);
 				if ($row["VALUE_FRAC_LEN"] > 0)
 					$resultItem["ITEMS"][$PID]["DECIMALS"] = $row["VALUE_FRAC_LEN"];
-			}
-			elseif ($resultItem["ITEMS"][$PID]["DISPLAY_TYPE"] === SectionPropertyTable::CALENDAR)
-			{
+			} elseif ($resultItem["ITEMS"][$PID]["DISPLAY_TYPE"] === SectionPropertyTable::CALENDAR) {
 				$this->fillItemValues($resultItem["ITEMS"][$PID], FormatDate("Y-m-d", $row["MIN_VALUE_NUM"]));
 				$this->fillItemValues($resultItem["ITEMS"][$PID], FormatDate("Y-m-d", $row["MAX_VALUE_NUM"]));
-			}
-			elseif ($resultItem["ITEMS"][$PID]["PROPERTY_TYPE"] === PropertyTable::TYPE_STRING)
-			{
+			} elseif ($resultItem["ITEMS"][$PID]["PROPERTY_TYPE"] === PropertyTable::TYPE_STRING) {
 				$addedKey = $this->fillItemValues($resultItem["ITEMS"][$PID], $lookupDictionary[$row["VALUE"]], true);
-				if ($addedKey <> '')
-				{
+				if ($addedKey <> '') {
 					$resultItem["ITEMS"][$PID]["VALUES"][$addedKey]["FACET_VALUE"] = $row["VALUE"];
 					$resultItem["ITEMS"][$PID]["VALUES"][$addedKey]["ELEMENT_COUNT"] = $row["ELEMENT_COUNT"];
 				}
-			}
-			else
-			{
+			} else {
 				$addedKey = $this->fillItemValues($resultItem["ITEMS"][$PID], $row["VALUE"], true);
-				if ($addedKey <> '')
-				{
+				if ($addedKey <> '') {
 					$resultItem["ITEMS"][$PID]["VALUES"][$addedKey]["FACET_VALUE"] = $row["VALUE"];
 					$resultItem["ITEMS"][$PID]["VALUES"][$addedKey]["ELEMENT_COUNT"] = $row["ELEMENT_COUNT"];
 				}
@@ -368,22 +341,20 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function predictIBSectionFetch($id = array())
 	{
-		if (!is_array($id) || empty($id))
-		{
+		if (!is_array($id) || empty($id)) {
 			return;
 		}
 
-		$arLinkFilter = array (
+		$arLinkFilter = array(
 			"ID" => $id,
 			"GLOBAL_ACTIVE" => "Y",
 			"CHECK_PERMISSIONS" => "Y",
 		);
 
-		$link = CIBlockSection::GetList(array(), $arLinkFilter, false, array("ID","IBLOCK_ID","NAME","LEFT_MARGIN","DEPTH_LEVEL","CODE"));
-		while ($sec = $link->Fetch())
-		{
+		$link = CIBlockSection::GetList(array(), $arLinkFilter, false, array("ID", "IBLOCK_ID", "NAME", "LEFT_MARGIN", "DEPTH_LEVEL", "CODE"));
+		while ($sec = $link->Fetch()) {
 			$this->cache['G'][$sec['ID']] = $sec;
-			$this->cache['G'][$sec['ID']]['DEPTH_NAME'] = str_repeat(".", $sec["DEPTH_LEVEL"]).$sec["NAME"];
+			$this->cache['G'][$sec['ID']]['DEPTH_NAME'] = str_repeat(".", $sec["DEPTH_LEVEL"]) . $sec["NAME"];
 		}
 		unset($sec);
 		unset($link);
@@ -391,21 +362,19 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function predictIBElementFetch($id = array())
 	{
-		if (!is_array($id) || empty($id))
-		{
+		if (!is_array($id) || empty($id)) {
 			return;
 		}
 
-		$linkFilter = array (
+		$linkFilter = array(
 			"ID" => $id,
 			"ACTIVE" => "Y",
 			"ACTIVE_DATE" => "Y",
 			"CHECK_PERMISSIONS" => "Y",
 		);
 
-		$link = CIBlockElement::GetList(array(), $linkFilter, false, false, array("ID","IBLOCK_ID","NAME","SORT","CODE"));
-		while ($el = $link->Fetch())
-		{
+		$link = CIBlockElement::GetList(array(), $linkFilter, false, false, array("ID", "IBLOCK_ID", "NAME", "SORT", "CODE"));
+		while ($el = $link->Fetch()) {
 			$this->cache['E'][$el['ID']] = $el;
 		}
 		unset($el);
@@ -422,16 +391,14 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			)
 		);
 
-		foreach ($values as $key => $value)
-		{
+		foreach ($values as $key => $value) {
 			$this->cache[$userType['PID']][$key] = $value;
 		}
 	}
 
 	public function fillItemPrices(&$resultItem, $arElement)
 	{
-		if (isset($arElement["MIN_VALUE_NUM"]) && isset($arElement["MAX_VALUE_NUM"]))
-		{
+		if (isset($arElement["MIN_VALUE_NUM"]) && isset($arElement["MAX_VALUE_NUM"])) {
 			$currency = (string)$arElement["VALUE"];
 			$existCurrency = $currency !== '';
 			if ($existCurrency)
@@ -441,11 +408,9 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			if (
 				!isset($resultItem["VALUES"]["MIN"]["VALUE"])
 				|| $resultItem["VALUES"]["MIN"]["VALUE"] > $priceValue
-			)
-			{
+			) {
 				$resultItem["VALUES"]["MIN"]["VALUE"] = $priceValue;
-				if ($existCurrency)
-				{
+				if ($existCurrency) {
 					if ($this->convertCurrencyId)
 						$resultItem["VALUES"]["MIN"]["CURRENCY"] = $this->convertCurrencyId;
 					else
@@ -457,53 +422,40 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			if (
 				!isset($resultItem["VALUES"]["MAX"]["VALUE"])
 				|| $resultItem["VALUES"]["MAX"]["VALUE"] < $priceValue
-			)
-			{
+			) {
 				$resultItem["VALUES"]["MAX"]["VALUE"] = $priceValue;
-				if ($existCurrency)
-				{
+				if ($existCurrency) {
 					if ($this->convertCurrencyId)
 						$resultItem["VALUES"]["MAX"]["CURRENCY"] = $this->convertCurrencyId;
 					else
 						$resultItem["VALUES"]["MAX"]["CURRENCY"] = $currency;
 				}
 			}
-		}
-		else
-		{
-			$newFormat = array_key_exists("PRICE_".$resultItem["ID"], $arElement);
-			if ($newFormat)
-			{
-				$currency = (string)$arElement["CURRENCY_".$resultItem["ID"]];
-				$price = (string)$arElement["PRICE_".$resultItem["ID"]];
-			}
-			else
-			{
-				$currency = (string)$arElement["CATALOG_CURRENCY_".$resultItem["ID"]];
-				$price = (string)$arElement["CATALOG_PRICE_".$resultItem["ID"]];
+		} else {
+			$newFormat = array_key_exists("PRICE_" . $resultItem["ID"], $arElement);
+			if ($newFormat) {
+				$currency = (string)$arElement["CURRENCY_" . $resultItem["ID"]];
+				$price = (string)$arElement["PRICE_" . $resultItem["ID"]];
+			} else {
+				$currency = (string)$arElement["CATALOG_CURRENCY_" . $resultItem["ID"]];
+				$price = (string)$arElement["CATALOG_PRICE_" . $resultItem["ID"]];
 			}
 			$existCurrency = $currency !== '';
-			if($price !== '')
-			{
-				if ($this->convertCurrencyId && $existCurrency)
-				{
+			if ($price !== '') {
+				if ($this->convertCurrencyId && $existCurrency) {
 					$convertPrice = CCurrencyRates::ConvertCurrency($price, $currency, $this->convertCurrencyId);
 					$this->currencyTagList[$currency] = $currency;
-				}
-				else
-				{
+				} else {
 					$convertPrice = (float)$price;
 				}
 
-				if(
+				if (
 					!isset($resultItem["VALUES"]["MIN"])
 					|| !array_key_exists("VALUE", $resultItem["VALUES"]["MIN"])
 					|| (float)$resultItem["VALUES"]["MIN"]["VALUE"] > $convertPrice
-				)
-				{
+				) {
 					$resultItem["VALUES"]["MIN"]["VALUE"] = $convertPrice;
-					if ($existCurrency)
-					{
+					if ($existCurrency) {
 						if ($this->convertCurrencyId)
 							$resultItem["VALUES"]["MIN"]["CURRENCY"] = $this->convertCurrencyId;
 						else
@@ -511,15 +463,13 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					}
 				}
 
-				if(
+				if (
 					!isset($resultItem["VALUES"]["MAX"])
 					|| !array_key_exists("VALUE", $resultItem["VALUES"]["MAX"])
 					|| (float)$resultItem["VALUES"]["MAX"]["VALUE"] < $convertPrice
-				)
-				{
+				) {
 					$resultItem["VALUES"]["MAX"]["VALUE"] = $convertPrice;
-					if ($existCurrency)
-					{
+					if ($existCurrency) {
 						if ($this->convertCurrencyId)
 							$resultItem["VALUES"]["MAX"]["CURRENCY"] = $this->convertCurrencyId;
 						else
@@ -529,20 +479,16 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			}
 		}
 
-		if ($existCurrency)
-		{
-			if ($this->convertCurrencyId)
-			{
+		if ($existCurrency) {
+			if ($this->convertCurrencyId) {
 				$resultItem["CURRENCIES"][$this->convertCurrencyId] = (
 					$this->currencyCache[$this->convertCurrencyId]
-						?? $this->getCurrencyFullName($this->convertCurrencyId)
+					?? $this->getCurrencyFullName($this->convertCurrencyId)
 				);
 				$resultItem["~CURRENCIES"][$currency] = (
 					$this->currencyCache[$currency] ?? $this->getCurrencyFullName($currency)
 				);
-			}
-			else
-			{
+			} else {
 				$resultItem["CURRENCIES"][$currency] = (
 					$this->currencyCache[$currency] ?? $this->getCurrencyFullName($currency)
 				);
@@ -552,13 +498,10 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function convertPrice($price, $currency)
 	{
-		if ($this->convertCurrencyId && $currency)
-		{
+		if ($this->convertCurrencyId && $currency) {
 			$priceValue = CCurrencyRates::ConvertCurrency($price, $currency, $this->convertCurrencyId);
 			$this->currencyTagList[$currency] = $currency;
-		}
-		else
-		{
+		} else {
 			$priceValue = $price;
 		}
 		return $priceValue;
@@ -566,19 +509,15 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function fillItemValues(&$resultItem, $arProperty, $flag = null)
 	{
-		if(is_array($arProperty))
-		{
-			if(isset($arProperty["PRICE"]))
-			{
+		if (is_array($arProperty)) {
+			if (isset($arProperty["PRICE"])) {
 				return null;
 			}
 			$key = $arProperty["VALUE"];
 			$PROPERTY_TYPE = $arProperty["PROPERTY_TYPE"];
 			$PROPERTY_USER_TYPE = $arProperty["USER_TYPE"];
 			$PROPERTY_ID = $arProperty["ID"];
-		}
-		else
-		{
+		} else {
 			$key = $arProperty;
 			$PROPERTY_TYPE = $resultItem["PROPERTY_TYPE"];
 			$PROPERTY_USER_TYPE = $resultItem["USER_TYPE"];
@@ -586,15 +525,11 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			$arProperty = $resultItem;
 		}
 
-		if($PROPERTY_TYPE === PropertyTable::TYPE_FILE)
-		{
+		if ($PROPERTY_TYPE === PropertyTable::TYPE_FILE) {
 			return null;
-		}
-		elseif($PROPERTY_TYPE === PropertyTable::TYPE_NUMBER)
-		{
+		} elseif ($PROPERTY_TYPE === PropertyTable::TYPE_NUMBER) {
 			$convertKey = (float)$key;
-			if ($key == '')
-			{
+			if ($key == '') {
 				return null;
 			}
 
@@ -613,17 +548,13 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 				$resultItem["VALUES"]["MAX"]["VALUE"] = preg_replace("/\\.0+\$/", "", $key);
 
 			return null;
-		}
-		elseif($arProperty["DISPLAY_TYPE"] === SectionPropertyTable::CALENDAR)
-		{
+		} elseif ($arProperty["DISPLAY_TYPE"] === SectionPropertyTable::CALENDAR) {
 			$date = mb_substr($key, 0, 10);
-			if (!$date)
-			{
+			if (!$date) {
 				return null;
 			}
 			$timestamp = MakeTimeStamp($date, "YYYY-MM-DD");
-			if (!$timestamp)
-			{
+			if (!$timestamp) {
 				return null;
 			}
 
@@ -642,32 +573,24 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 				$resultItem["VALUES"]["MAX"]["VALUE"] = $timestamp;
 
 			return null;
-		}
-		elseif($PROPERTY_TYPE === PropertyTable::TYPE_ELEMENT && $key <= 0)
-		{
+		} elseif ($PROPERTY_TYPE === PropertyTable::TYPE_ELEMENT && $key <= 0) {
 			return null;
-		}
-		elseif($PROPERTY_TYPE === PropertyTable::TYPE_SECTION && $key <= 0)
-		{
+		} elseif ($PROPERTY_TYPE === PropertyTable::TYPE_SECTION && $key <= 0) {
 			return null;
-		}
-		elseif($key == '')
-		{
+		} elseif ($key == '') {
 			return null;
 		}
 
 		$arUserType = array();
-		if ($PROPERTY_USER_TYPE != "")
-		{
+		if ($PROPERTY_USER_TYPE != "") {
 			$arUserType = CIBlockProperty::GetUserType($PROPERTY_USER_TYPE);
-			if(isset($arUserType["GetExtendedValue"]))
+			if (isset($arUserType["GetExtendedValue"]))
 				$PROPERTY_TYPE = "Ux";
-			elseif(isset($arUserType["GetPublicViewHTML"]))
+			elseif (isset($arUserType["GetPublicViewHTML"]))
 				$PROPERTY_TYPE = "U";
 		}
 
-		if ($PROPERTY_USER_TYPE === \CIBlockPropertyDateTime::USER_TYPE)
-		{
+		if ($PROPERTY_USER_TYPE === \CIBlockPropertyDateTime::USER_TYPE) {
 			$key = call_user_func_array(
 				$arUserType["GetPublicViewHTML"],
 				array(
@@ -680,32 +603,26 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		}
 
 		$htmlKey = htmlspecialcharsbx($key);
-		if (isset($resultItem["VALUES"][$htmlKey]))
-		{
+		if (isset($resultItem["VALUES"][$htmlKey])) {
 			return $htmlKey;
 		}
 
 		$file_id = null;
 		$url_id = null;
 
-		switch($PROPERTY_TYPE)
-		{
+		switch ($PROPERTY_TYPE) {
 			case PropertyTable::TYPE_LIST:
 				$enum = CIBlockPropertyEnum::GetByID($key);
-				if ($enum)
-				{
+				if ($enum) {
 					$value = $enum["VALUE"];
 					$sort  = $enum["SORT"];
 					$url_id = mb_strtolower($enum["XML_ID"]);
-				}
-				else
-				{
+				} else {
 					return null;
 				}
 				break;
 			case PropertyTable::TYPE_ELEMENT:
-				if(!isset($this->cache[$PROPERTY_TYPE][$key]))
-				{
+				if (!isset($this->cache[$PROPERTY_TYPE][$key])) {
 					$this->predictIBElementFetch(array($key));
 				}
 
@@ -720,8 +637,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					$url_id = mb_strtolower($value);
 				break;
 			case PropertyTable::TYPE_SECTION:
-				if(!isset($this->cache[$PROPERTY_TYPE][$key]))
-				{
+				if (!isset($this->cache[$PROPERTY_TYPE][$key])) {
 					$this->predictIBSectionFetch(array($key));
 				}
 
@@ -736,11 +652,10 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					$url_id = mb_strtolower($value);
 				break;
 			case "U":
-				if(!isset($this->cache[$PROPERTY_ID]))
+				if (!isset($this->cache[$PROPERTY_ID]))
 					$this->cache[$PROPERTY_ID] = array();
 
-				if(!isset($this->cache[$PROPERTY_ID][$key]))
-				{
+				if (!isset($this->cache[$PROPERTY_ID][$key])) {
 					$this->cache[$PROPERTY_ID][$key] = call_user_func_array(
 						$arUserType["GetPublicViewHTML"],
 						array(
@@ -756,11 +671,10 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 				$url_id = mb_strtolower($value);
 				break;
 			case "Ux":
-				if(!isset($this->cache[$PROPERTY_ID]))
+				if (!isset($this->cache[$PROPERTY_ID]))
 					$this->cache[$PROPERTY_ID] = array();
 
-				if(!isset($this->cache[$PROPERTY_ID][$key]))
-				{
+				if (!isset($this->cache[$PROPERTY_ID][$key])) {
 					$this->cache[$PROPERTY_ID][$key] = call_user_func_array(
 						$arUserType["GetExtendedValue"],
 						array(
@@ -770,15 +684,12 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					);
 				}
 
-				if ($this->cache[$PROPERTY_ID][$key])
-				{
+				if ($this->cache[$PROPERTY_ID][$key]) {
 					$value = $this->cache[$PROPERTY_ID][$key]['VALUE'];
 					$file_id = $this->cache[$PROPERTY_ID][$key]['FILE_ID'];
 					$sort = ($this->cache[$PROPERTY_ID][$key]['SORT'] ?? 0);
 					$url_id = mb_strtolower($this->cache[$PROPERTY_ID][$key]['UF_XML_ID']);
-				}
-				else
-				{
+				} else {
 					return null;
 				}
 				break;
@@ -793,8 +704,8 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		$safeValue = htmlspecialcharsex($value);
 		$sort = (int)$sort;
 
-		$filterPropertyID = $this->SAFE_FILTER_NAME.'_'.$PROPERTY_ID;
-		$filterPropertyIDKey = $filterPropertyID.'_'.$keyCrc;
+		$filterPropertyID = $this->SAFE_FILTER_NAME . '_' . $PROPERTY_ID;
+		$filterPropertyIDKey = $filterPropertyID . '_' . $keyCrc;
 		$resultItem["VALUES"][$htmlKey] = array(
 			"CONTROL_ID" => $filterPropertyIDKey,
 			"CONTROL_NAME" => $filterPropertyIDKey,
@@ -807,13 +718,11 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			"FLAG" => $flag,
 		);
 
-		if ($file_id)
-		{
+		if ($file_id) {
 			$resultItem["VALUES"][$htmlKey]['FILE'] = CFile::GetFileArray($file_id);
 		}
 
-		if($url_id <> '')
-		{
+		if ($url_id <> '') {
 			$resultItem["VALUES"][$htmlKey]['URL_ID'] = rawurlencode(str_replace("/", "-", $url_id));
 		}
 
@@ -823,14 +732,11 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	function combineCombinations(&$arCombinations)
 	{
 		$result = array();
-		foreach($arCombinations as $arCombination)
-		{
-			foreach($arCombination as $PID => $value)
-			{
-				if(!isset($result[$PID]))
+		foreach ($arCombinations as $arCombination) {
+			foreach ($arCombination as $PID => $value) {
+				if (!isset($result[$PID]))
 					$result[$PID] = array();
-				if($value <> '')
-				{
+				if ($value <> '') {
 					$result[$PID][] = $value;
 				}
 			}
@@ -840,26 +746,20 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	function filterCombinations(&$arCombinations, $arItems, $currentPID)
 	{
-		foreach($arCombinations as $key => $arCombination)
-		{
-			if(!$this->combinationMatch($arCombination, $arItems, $currentPID))
+		foreach ($arCombinations as $key => $arCombination) {
+			if (!$this->combinationMatch($arCombination, $arItems, $currentPID))
 				unset($arCombinations[$key]);
 		}
 	}
 
 	function combinationMatch($combination, $arItems, $currentPID)
 	{
-		foreach($arItems as $PID => $arItem)
-		{
-			if ($PID != $currentPID)
-			{
-				if($arItem["PROPERTY_TYPE"] === PropertyTable::TYPE_NUMBER || isset($arItem["PRICE"]))
-				{
+		foreach ($arItems as $PID => $arItem) {
+			if ($PID != $currentPID) {
+				if ($arItem["PROPERTY_TYPE"] === PropertyTable::TYPE_NUMBER || isset($arItem["PRICE"])) {
 					//TODO
-				}
-				else
-				{
-					if(!$this->matchProperty($combination[$PID], $arItem["VALUES"]))
+				} else {
+					if (!$this->matchProperty($combination[$PID], $arItem["VALUES"]))
 						return false;
 				}
 			}
@@ -870,11 +770,9 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	function matchProperty($value, $arValues)
 	{
 		$match = true;
-		foreach($arValues as $formControl)
-		{
-			if($formControl["CHECKED"])
-			{
-				if($formControl["VALUE"] == $value)
+		foreach ($arValues as $formControl) {
+			if ($formControl["CHECKED"]) {
+				if ($formControl["VALUE"] == $value)
 					return true;
 				else
 					$match = false;
@@ -885,8 +783,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function _sort($v1, $v2)
 	{
-		if (!isset($v1["SORT"]) && !isset($v2["SORT"]) && !isset($v1["UPPER"]) && !isset($v2["UPPER"]))
-		{
+		if (!isset($v1["SORT"]) && !isset($v2["SORT"]) && !isset($v1["UPPER"]) && !isset($v2["UPPER"])) {
 			return 0;
 		}
 		if ($v1["SORT"] < $v2["SORT"])
@@ -912,45 +809,35 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	*/
 	function ArrayMultiply(&$arResult, $arTuple, $arTemp = array())
 	{
-		if($arTuple)
-		{
+		if ($arTuple) {
 			reset($arTuple);
 			$key = key($arTuple);
 			$head = $arTuple[$key];
 			unset($arTuple[$key]);
 			$arTemp[$key] = false;
-			if(is_array($head))
-			{
-				if(empty($head))
-				{
-					if(empty($arTuple))
+			if (is_array($head)) {
+				if (empty($head)) {
+					if (empty($arTuple))
 						$arResult[] = $arTemp;
 					else
 						$this->ArrayMultiply($arResult, $arTuple, $arTemp);
-				}
-				else
-				{
-					foreach($head as $value)
-					{
+				} else {
+					foreach ($head as $value) {
 						$arTemp[$key] = $value;
-						if(empty($arTuple))
+						if (empty($arTuple))
 							$arResult[] = $arTemp;
 						else
 							$this->ArrayMultiply($arResult, $arTuple, $arTemp);
 					}
 				}
-			}
-			else
-			{
+			} else {
 				$arTemp[$key] = $head;
-				if(empty($arTuple))
+				if (empty($arTuple))
 					$arResult[] = $arTemp;
 				else
 					$this->ArrayMultiply($arResult, $arTuple, $arTemp);
 			}
-		}
-		else
-		{
+		} else {
 			$arResult[] = $arTemp;
 		}
 	}
@@ -960,11 +847,9 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		$bOffersIBlockExist = false;
 		if (self::$catalogIncluded === null)
 			self::$catalogIncluded = Loader::includeModule('catalog');
-		if (self::$catalogIncluded)
-		{
+		if (self::$catalogIncluded) {
 			$arCatalog = CCatalogSKU::GetInfoByProductIBlock($this->IBLOCK_ID);
-			if (!empty($arCatalog))
-			{
+			if (!empty($arCatalog)) {
 				$bOffersIBlockExist = true;
 			}
 		}
@@ -979,30 +864,25 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			"ACTIVE" => "Y",
 			"CHECK_PERMISSIONS" => "Y",
 			"MIN_PERMISSION" => "R",
-			"INCLUDE_SUBSECTIONS" => (($this->arParams["INCLUDE_SUBSECTIONS"] ??'') !== 'N' ? 'Y' : 'N'),
+			"INCLUDE_SUBSECTIONS" => (($this->arParams["INCLUDE_SUBSECTIONS"] ?? '') !== 'N' ? 'Y' : 'N'),
 		);
-		if (($this->SECTION_ID > 0) || ($this->arParams["SHOW_ALL_WO_SECTION"] !== "Y"))
-		{
+		if (($this->SECTION_ID > 0) || ($this->arParams["SHOW_ALL_WO_SECTION"] !== "Y")) {
 			$arFilter["SECTION_ID"] = $this->SECTION_ID;
 		}
 
 		if ($this->arParams['HIDE_NOT_AVAILABLE'] == 'Y')
 			$arFilter['AVAILABLE'] = 'Y';
 
-		if(self::$catalogIncluded && $bOffersIBlockExist)
-		{
+		if (self::$catalogIncluded && $bOffersIBlockExist) {
 			$arPriceFilter = array();
-			foreach($gFilter as $key => $value)
-			{
-				if (\CProductQueryBuilder::isPriceFilterField($key))
-				{
+			foreach ($gFilter as $key => $value) {
+				if (\CProductQueryBuilder::isPriceFilterField($key)) {
 					$arPriceFilter[$key] = $value;
 					unset($gFilter[$key]);
 				}
 			}
 
-			if(!empty($gFilter["OFFERS"]))
-			{
+			if (!empty($gFilter["OFFERS"])) {
 				if (empty($arPriceFilter))
 					$arSubFilter = $gFilter["OFFERS"];
 				else
@@ -1017,9 +897,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 					'FIELD' => 'PROPERTY_' . $this->SKU_PROPERTY_ID,
 					'FILTER' => $arSubFilter,
 				];
-			}
-			elseif(!empty($arPriceFilter))
-			{
+			} elseif (!empty($arPriceFilter)) {
 				$arSubFilter = $arPriceFilter;
 
 				$arSubFilter["IBLOCK_ID"] = $this->SKU_IBLOCK_ID;
@@ -1043,8 +921,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function getCurrencyFullName($currencyId)
 	{
-		if (!isset($this->currencyCache[$currencyId]))
-		{
+		if (!isset($this->currencyCache[$currencyId])) {
 			$currencyInfo = CCurrencyLang::GetById($currencyId, LANGUAGE_ID);
 			if ($currencyInfo["FULL_NAME"] != "")
 				$this->currencyCache[$currencyId] = $currencyInfo["FULL_NAME"];
@@ -1057,13 +934,10 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	public function searchPrice($items, $lookupValue)
 	{
 		$encodedValue = rawurlencode($lookupValue);
-		foreach ($items as $itemId => $arItem)
-		{
-			if (isset($arItem['PRICE']) && $arItem['PRICE'])
-			{
+		foreach ($items as $itemId => $arItem) {
+			if (isset($arItem['PRICE']) && $arItem['PRICE']) {
 				$code = mb_strtolower($arItem['CODE']);
-				if ($lookupValue === $code || $encodedValue === $arItem['URL_ID'])
-				{
+				if ($lookupValue === $code || $encodedValue === $arItem['URL_ID']) {
 					return $itemId;
 				}
 			}
@@ -1074,10 +948,8 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function searchProperty($items, $lookupValue)
 	{
-		foreach($items as $itemId => $arItem)
-		{
-			if (!(isset($arItem["PRICE"]) && $arItem["PRICE"]))
-			{
+		foreach ($items as $itemId => $arItem) {
+			if (!(isset($arItem["PRICE"]) && $arItem["PRICE"])) {
 				$code = mb_strtolower($arItem["CODE"]);
 				if ($lookupValue === $code)
 					return $itemId;
@@ -1091,10 +963,8 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	public function searchValue($item, $lookupValue)
 	{
 		$encodedValue = rawurlencode($lookupValue);
-		foreach ($item as $itemId => $arValue)
-		{
-			if ($encodedValue === $arValue['URL_ID'])
-			{
+		foreach ($item as $itemId => $arValue) {
+			if ($encodedValue === $arValue['URL_ID']) {
 				return $itemId;
 			}
 		}
@@ -1106,14 +976,11 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	{
 		$result = array();
 		$smartParts = explode("/", $url);
-		foreach ($smartParts as $smartPart)
-		{
+		foreach ($smartParts as $smartPart) {
 			$item = false;
 			$smartPart = preg_split("/-(from|to|is|or)-/", $smartPart, -1, PREG_SPLIT_DELIM_CAPTURE);
-			foreach ($smartPart as $i => $smartElement)
-			{
-				if ($i == 0)
-				{
+			foreach ($smartPart as $i => $smartElement) {
+				if ($i == 0) {
 					if (preg_match("/^price-(.+)$/", $smartElement, $match))
 						$itemId = $this->searchPrice($this->arResult["ITEMS"], $match[1]);
 					else
@@ -1123,20 +990,13 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 						$item = &$this->arResult["ITEMS"][$itemId];
 					else
 						break;
-				}
-				elseif ($smartElement === "from")
-				{
-					$result[$item["VALUES"]["MIN"]["CONTROL_NAME"]] = $smartPart[$i+1];
-				}
-				elseif ($smartElement === "to")
-				{
-					$result[$item["VALUES"]["MAX"]["CONTROL_NAME"]] = $smartPart[$i+1];
-				}
-				elseif ($smartElement === "is" || $smartElement === "or")
-				{
-					$valueId = $this->searchValue($item["VALUES"], $smartPart[$i+1]);
-					if($valueId !== false)
-					{
+				} elseif ($smartElement === "from") {
+					$result[$item["VALUES"]["MIN"]["CONTROL_NAME"]] = $smartPart[$i + 1];
+				} elseif ($smartElement === "to") {
+					$result[$item["VALUES"]["MAX"]["CONTROL_NAME"]] = $smartPart[$i + 1];
+				} elseif ($smartElement === "is" || $smartElement === "or") {
+					$valueId = $this->searchValue($item["VALUES"], $smartPart[$i + 1]);
+					if ($valueId !== false) {
 						$result[$item["VALUES"][$valueId]["CONTROL_NAME"]] = $item["VALUES"][$valueId]["HTML_VALUE"];
 					}
 				}
@@ -1150,30 +1010,25 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	{
 		$smartParts = array();
 
-		if ($apply)
-		{
-			foreach($this->arResult["ITEMS"] as $PID => $arItem)
-			{
+		if ($apply) {
+			foreach ($this->arResult["ITEMS"] as $PID => $arItem) {
 				$smartPart = array();
 				//Prices
-				if (isset($arItem["PRICE"]) && $arItem["PRICE"])
-				{
+				if (isset($arItem["PRICE"]) && $arItem["PRICE"]) {
 					if ($arItem["VALUES"]["MIN"]["HTML_VALUE"] <> '')
 						$smartPart["from"] = $arItem["VALUES"]["MIN"]["HTML_VALUE"];
 					if ($arItem["VALUES"]["MAX"]["HTML_VALUE"] <> '')
 						$smartPart["to"] = $arItem["VALUES"]["MAX"]["HTML_VALUE"];
 				}
 
-				if ($smartPart)
-				{
-					array_unshift($smartPart, "price-".$arItem["URL_ID"]);
+				if ($smartPart) {
+					array_unshift($smartPart, "price-" . $arItem["URL_ID"]);
 
 					$smartParts[] = $smartPart;
 				}
 			}
 
-			foreach($this->arResult["ITEMS"] as $PID => $arItem)
-			{
+			foreach ($this->arResult["ITEMS"] as $PID => $arItem) {
 				$smartPart = array();
 				if (isset($arItem["PRICE"]) && $arItem["PRICE"])
 					continue;
@@ -1182,32 +1037,26 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 				if (
 					$arItem["PROPERTY_TYPE"] === PropertyTable::TYPE_NUMBER
 					|| $arItem["DISPLAY_TYPE"] === SectionPropertyTable::CALENDAR
-				)
-				{
+				) {
 					if ($arItem["VALUES"]["MIN"]["HTML_VALUE"] <> '')
 						$smartPart["from"] = $arItem["VALUES"]["MIN"]["HTML_VALUE"];
 					if ($arItem["VALUES"]["MAX"]["HTML_VALUE"] <> '')
 						$smartPart["to"] = $arItem["VALUES"]["MAX"]["HTML_VALUE"];
-				}
-				else
-				{
-					foreach($arItem["VALUES"] as $key => $ar)
-					{
+				} else {
+					foreach ($arItem["VALUES"] as $key => $ar) {
 						if (
 							(
 								$ar["CHECKED"]
 								|| $ar["CONTROL_ID"] === $checkedControlId
 							)
 							&& mb_strlen($ar["URL_ID"])
-						)
-						{
+						) {
 							$smartPart[] = $ar["URL_ID"];
 						}
 					}
 				}
 
-				if ($smartPart)
-				{
+				if ($smartPart) {
 					if ($arItem["CODE"])
 						array_unshift($smartPart, mb_strtolower($arItem["CODE"]));
 					else
@@ -1221,24 +1070,22 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		if (!$smartParts)
 			$smartParts[] = array("clear");
 		$res = str_replace("#SMART_FILTER_PATH#", implode("/", $this->encodeSmartParts($smartParts)), $url);
-		return CatalogSectionHelper::makeUrl($res);
+		return $this->arParams['CATALOG_SERVICE']->makeUrl($res);
 	}
 
 	public function encodeSmartParts($smartParts)
 	{
-		foreach ($smartParts as &$smartPart)
-		{
+		foreach ($smartParts as &$smartPart) {
 			$urlPart = "";
-			foreach ($smartPart as $i => $smartElement)
-			{
+			foreach ($smartPart as $i => $smartElement) {
 				if (!$urlPart)
 					$urlPart .= $smartElement;
 				elseif ($i == 'from' || $i == 'to')
-					$urlPart .= '-'.$i.'-'.$smartElement;
+					$urlPart .= '-' . $i . '-' . $smartElement;
 				elseif ($i == 1)
-					$urlPart .= '-is-'.$smartElement;
+					$urlPart .= '-is-' . $smartElement;
 				else
-					$urlPart .= '-or-'.$smartElement;
+					$urlPart .= '-or-' . $smartElement;
 			}
 			$smartPart = $urlPart;
 		}
@@ -1252,12 +1099,11 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 			$this->convertCurrencyId != ''
 			&& !empty($this->currencyTagList)
 			&& defined('BX_COMP_MANAGED_CACHE')
-		)
-		{
+		) {
 			$this->currencyTagList[$this->convertCurrencyId] = $this->convertCurrencyId;
 			$taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
 			foreach ($this->currencyTagList as &$oneCurrency)
-				$taggedCache->registerTag('currency_id_'.$oneCurrency);
+				$taggedCache->registerTag('currency_id_' . $oneCurrency);
 			unset($oneCurrency);
 		}
 	}
@@ -1266,8 +1112,7 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 	{
 		if (
 			defined('BX_COMP_MANAGED_CACHE')
-		)
-		{
+		) {
 			\CIBlock::registerWithTagCache($this->IBLOCK_ID);
 			if ($this->SKU_IBLOCK_ID > 0)
 				\CIBlock::registerWithTagCache($this->SKU_IBLOCK_ID);

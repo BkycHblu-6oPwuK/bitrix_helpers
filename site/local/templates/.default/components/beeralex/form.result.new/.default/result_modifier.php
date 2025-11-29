@@ -3,6 +3,6 @@ declare(strict_types=1);
 
 use Beeralex\Api\Domain\Form\FormNewBuilder;
 
-$arResult['dto'] = (new FormNewBuilder($arResult, "/api/v1/web-form"))->build();
+$arResult['DTO'] = (new FormNewBuilder($arResult))->build();
 
-$this->getComponent()->setResultCacheKeys(['dto']);
+$this->getComponent()->setResultCacheKeys(['DTO']);

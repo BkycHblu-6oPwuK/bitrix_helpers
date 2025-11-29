@@ -24,8 +24,9 @@ class ArticlesController extends Controller
     {
         return $this->process(function () {
             service(FileService::class)->includeFile('v1.articles.index');
-            service(ApiResult::class)->setSeo();
-            return service(ApiResult::class);
+            $result = service(ApiResult::class);
+            $result->setSeo();
+            return $result;
         });
     }
 }

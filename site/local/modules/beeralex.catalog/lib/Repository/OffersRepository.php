@@ -5,14 +5,16 @@ namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Catalog\Contracts\OfferRepositoryContract;
 use Beeralex\Core\Service\CatalogService;
+use Beeralex\Core\Service\UrlService;
 
 class OffersRepository extends AbstractCatalogRepository implements OfferRepositoryContract
 {
     public function __construct(
         string $iblockCode,
-        CatalogService $catalogService
+        CatalogService $catalogService,
+        UrlService $urlService
     ) {
-        parent::__construct($iblockCode, $catalogService);
+        parent::__construct($iblockCode, $catalogService, $urlService);
     }
 
     public function getOfferIdsByProductIds(array $productIds, bool $onlyAvailable = true): array

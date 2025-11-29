@@ -43,7 +43,8 @@ return [
                     return new ProductsRepository(
                         iblockCode: 'catalog',
                         catalogService: service(\Beeralex\Core\Service\CatalogService::class),
-                        catalogViewedProductRepository: service(CatalogViewedProductRepository::class)
+                        catalogViewedProductRepository: service(CatalogViewedProductRepository::class),
+                        urlService: service(UrlService::class)
                     );
                 },
             ],
@@ -51,7 +52,8 @@ return [
                 'constructor' => static function () {
                     return new OffersRepository(
                         iblockCode: 'offers',
-                        catalogService: service(\Beeralex\Core\Service\CatalogService::class)
+                        catalogService: service(\Beeralex\Core\Service\CatalogService::class),
+                        urlService: service(UrlService::class)
                     );
                 },
             ],

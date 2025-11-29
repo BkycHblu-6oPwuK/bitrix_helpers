@@ -69,10 +69,10 @@ class SortingService
         $sorts = $this->getAvailableSortings();
         $sort = $sorts[$this->getRequestedSortIdOrDefault()];
         return [
-            'sortField1' => $sort['SORT_BY']['VALUE'],
-            'sortOrder1' => $sort['DIRECTION']['VALUE'],
-            'sortField2' => 'SORT',
-            'sortOrder2' => 'ASC',
+            'SORT_FIELD_1' => $sort['SORT_BY']['VALUE'],
+            'SORT_ORDER_1' => $sort['DIRECTION']['VALUE'],
+            'SORT_FIELD_2' => 'SORT',
+            'SORT_ORDER_2' => 'ASC',
         ];
     }
 

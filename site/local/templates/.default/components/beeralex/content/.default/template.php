@@ -1,8 +1,11 @@
 <?php
 
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
+use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Service\IblockService;
+
+$catalogService = service(CatalogService::class);
 
 foreach ($arResult as $item) {
 	switch ($item['type']) {
@@ -16,6 +19,7 @@ foreach ($arResult as $item) {
 					'LINK_TO_ALL' => $item['link'],
 					"CACHE_TYPE" => "A",
 					"CACHE_TIME" => "3600000",
+					'CATALOG_SERVICE' => $catalogService,
 				]
 			);
 			break;

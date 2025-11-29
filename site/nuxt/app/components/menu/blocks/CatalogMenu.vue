@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { MenuBlock } from '~/types/menu'
-const props = defineProps<{ data: MenuBlock }>()
+import type { MenuItem } from '~/types/menu'
+const props = defineProps<{ data: MenuItem }>()
 </script>
 
 <template>
@@ -12,7 +12,7 @@ const props = defineProps<{ data: MenuBlock }>()
       trailing
       class="!rounded-lg text-white font-semibold"
     >
-      {{ data.NAME }}
+      {{ data.name }}
     </UButton>
 
     <template #content>
@@ -22,37 +22,37 @@ const props = defineProps<{ data: MenuBlock }>()
                text-gray-800 dark:text-gray-200 transition-colors"
       >
         <div
-          v-for="(item, i) in data.CHILDREN || []"
+          v-for="(item, i) in data.children || []"
           :key="i"
           class="space-y-2"
         >
           <!-- Основной раздел -->
           <NuxtLink
-            :to="item.LINK || '#'"
+            :to="item.link || '#'"
             class="block font-medium text-gray-800 dark:text-gray-100
                    hover:text-primary-600 dark:hover:text-primary-400
                    transition-colors"
           >
-            {{ item.NAME }}
+            {{ item.name }}
           </NuxtLink>
 
           <!-- Подразделы -->
           <ul
-            v-if="item.CHILDREN?.length"
+            v-if="item.children?.length"
             class="space-y-1 text-sm text-gray-600 dark:text-gray-400"
           >
             <li
-              v-for="child in item.CHILDREN"
-              :key="child.ID"
+              v-for="child in item.children"
+              :key="child.id"
             >
               <NuxtLink
-                :to="child.LINK || '#'"
+                :to="child.link || '#'"
                 class="block pl-2 border-l border-gray-100 dark:border-gray-700
                        hover:border-primary-400 dark:hover:border-primary-500
                        hover:text-primary-600 dark:hover:text-primary-400
                        transition-colors"
               >
-                {{ child.NAME }}
+                {{ child.name }}
               </NuxtLink>
             </li>
           </ul>

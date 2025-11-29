@@ -4,12 +4,14 @@ namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Core\Repository\IblockRepository;
 use Beeralex\Core\Service\CatalogService;
+use Beeralex\Core\Service\UrlService;
 
 abstract class AbstractCatalogRepository extends IblockRepository
 {
     public function __construct(
         string $iblockCode,
-        protected readonly CatalogService $catalogService
+        protected readonly CatalogService $catalogService,
+        protected readonly UrlService $urlService
     ) {
         parent::__construct($iblockCode);
     }
@@ -37,6 +39,7 @@ abstract class AbstractCatalogRepository extends IblockRepository
         if ($select === ['*']) {
             $select = ['*', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CATALOG'];
         }
+        $select = array_merge($select, ['IBLOCK.DETAIL_PAGE_URL', 'CODE', 'ID', 'IBLOCK_SECTION_ID']);
         $query = $this->query();
         $priceAdded = false;
         $priceCatalogAdded = false;
@@ -72,6 +75,23 @@ abstract class AbstractCatalogRepository extends IblockRepository
         if ($offset) {
             $query->setOffset($offset);
         }
-        return $this->queryService->fetchGroupedEntities($query);
+        $result = $this->queryService->fetchGroupedEntities($query);
+
+        foreach ($result as &$item) {
+            if (isset($item['PRICE']) && isset($item['PRICE']['ID'])) {
+                $item['PRICE'] = [$item['PRICE']];
+            }
+            if(isset($item['STORE_PRODUCT']) && isset($item['STORE_PRODUCT']['ID'])) {
+                $item['STORE_PRODUCT'] = [$item['STORE_PRODUCT']];
+            }
+            if(isset($item['IBLOCK']['DETAIL_PAGE_URL']) && $item['IBLOCK']['DETAIL_PAGE_URL'] !== '#PRODUCT_URL#') {
+                $item['DETAIL_PAGE_URL'] = $this->urlService->getDetailUrl([
+                    'CODE' => $item['CODE'],
+                    'ID' => $item['ID'],
+                    'IBLOCK_SECTION_ID' => $item['IBLOCK_SECTION_ID'],
+                ], $item['IBLOCK']['DETAIL_PAGE_URL'])['clean_url'];
+            }
+        }
+        return $result;
     }
 }

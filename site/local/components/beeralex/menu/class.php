@@ -1,9 +1,9 @@
 <?php
 
+use Beeralex\Core\Repository\IblockRepository;
+use Beeralex\Core\Repository\IblockSectionRepository;
 use Beeralex\Core\Service\UrlService;
-use Beeralex\Core\Service\IblockService;
 use Bitrix\Main\Loader;
-use Bitrix\Iblock\SectionTable;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -11,6 +11,19 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 
 class BeeralexMenu extends CBitrixComponent
 {
+    protected array $defaultSelect = ['ID', 'NAME', 'CODE', 'IBLOCK_SECTION_ID', 'SECTION_PAGE_URL' => 'IBLOCK.SECTION_PAGE_URL'];
+    protected IblockSectionRepository $iblockSectionRepository;
+
+    public function onPrepareComponentParams($params)
+    {
+        $params['IBLOCK_ID'] = (int)($params['IBLOCK_ID'] ?? 0);
+        if ($params['SELECT'] && is_array($params['SELECT'])) {
+            $this->defaultSelect = array_unique(array_merge($this->defaultSelect, $params['SELECT']));
+        }
+        $iblockRepository = new IblockRepository((int)$params['IBLOCK_ID']);
+        $this->iblockSectionRepository = $iblockRepository->getIblockSectionRepository();
+        return $params;
+    }
     /** @inheritDoc */
     public function executeComponent()
     {
@@ -25,106 +38,18 @@ class BeeralexMenu extends CBitrixComponent
 
     protected function getMenu(): array
     {
-        $menuIblock = service(IblockService::class)->getElementApiTableByCode('menu');
-        $sectionCode = $this->arParams['MENU_TYPE'] ?? 'top_menu';
-        $menuIblockId = service(IblockService::class)->getIblockIdByCode('menu');
-
-        // Берём верхний раздел меню
-        $menuSection = SectionTable::getList([
-            'select' => [
-                'ID',
-                'NAME',
-                'CODE',
-                'LEFT_MARGIN',
-                'RIGHT_MARGIN',
-                'IBLOCK_ID',
-            ],
-            'filter' => [
-                'IBLOCK_ID' => $menuIblockId,
-                '=CODE' => $sectionCode,
-                'ACTIVE' => 'Y',
-            ],
-            'limit' => 1,
-        ])->fetch();
-
-        if (!$menuSection) {
+        $iblockId = $this->arParams['IBLOCK_ID'];
+        if (!$iblockId) {
             return [];
         }
 
-        // Получаем все элементы меню (включая вложенные разделы)
-        $menuItems = $menuIblock::query()
-            ->setSelect([
-                'ID',
-                'NAME',
-                'CODE',
-                'LINK_VALUE' => 'LINK.VALUE',
-                'IBLOCK_ID_LINK_VALUE' => 'IBLOCK_ID_LINK.VALUE',
-                'IBLOCK_SECTION_ID',
-                'SECTION_NAME' => 'SECTION.NAME',
-                'SECTION_ID' => 'SECTION.ID',
-            ])
-            ->registerRuntimeField(
-                'SECTION',
-                [
-                    'data_type' => SectionTable::class,
-                    'reference' => ['this.IBLOCK_SECTION_ID' => 'ref.ID'],
-                    'join_type' => 'inner',
-                ]
-            )
-            ->setFilter([
-                'ACTIVE' => 'Y',
-                'SECTION.IBLOCK_ID' => $menuSection['IBLOCK_ID'],
-                '>=SECTION.LEFT_MARGIN' => $menuSection['LEFT_MARGIN'],
-                '<=SECTION.RIGHT_MARGIN' => $menuSection['RIGHT_MARGIN'],
-            ])
-            ->setOrder(['SECTION.LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'])
-            ->exec()
-            ->fetchAll();
-
-        if (!$menuItems) {
-            return [];
-        }
-
-        $grouped = [];
-        
-        foreach ($menuItems as $item) {
-            $sectionId = (int)$item['SECTION_ID'] ?? 0;
-            $sectionName = $item['SECTION_NAME'] ?? null;
-
-            $link = trim($item['LINK_VALUE'] ?? '');
-            $children = [];
-
-            if (!empty($item['IBLOCK_ID_LINK_VALUE'])) {
-                $children = $this->buildMenuFromIblockSections((int)$item['IBLOCK_ID_LINK_VALUE']);
-            }
-            
-            $element = [
-                'NAME' => $item['NAME'],
-                'LINK' => $link ?: '#',
-                'CHILDREN' => $children,
-            ];
-            
-            if ($sectionId && $sectionName && $sectionId !== (int)$menuSection['ID']) {
-                // Вложенный раздел — добавляем как группу
-                $grouped[$sectionId]['NAME'] = $sectionName;
-                $grouped[$sectionId]['LINK'] = null;
-                $grouped[$sectionId]['CHILDREN'][] = $element;
-            } else {
-                // Элементы верхнего уровня
-                $grouped[] = $element;
-            }
-        }
-
-        // Преобразуем в финальный массив
-        $result = array_values($grouped);
-        
-        return $result;
+        return $this->buildMenuFromIblockSections($iblockId);
     }
 
     protected function buildMenuFromIblockSections(int $iblockId): array
     {
-        $sections = SectionTable::getList([
-            'select' => ['ID', 'NAME', 'CODE', 'IBLOCK_SECTION_ID', 'SECTION_PAGE_URL' => 'IBLOCK.SECTION_PAGE_URL'],
+        $sections = $this->iblockSectionRepository->getList([
+            'select' => $this->defaultSelect,
             'filter' => ['IBLOCK_ID' => $iblockId, 'ACTIVE' => 'Y'],
             'order' => ['LEFT_MARGIN' => 'ASC'],
         ])->fetchAll();

@@ -6,18 +6,22 @@ namespace Beeralex\Api\Domain\Iblock\Content;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
 use Beeralex\Core\Http\Resources\Resource;
 
+/**
+ * @property string $type
+ * @property Resource $result
+ */
 class ContentItemDTO extends Resource
 {
-    public static function makeFrom(ContentTypes $type, array|object $result): static
+    public static function make(array $data): static
     {
-        $stored = $result;
-        if (is_object($result) && method_exists($result, 'toArray')) {
-            $stored = $result->toArray();
-        }
+        throw new \LogicException('Use makeFrom method.');
+    }
 
-        return static::make([
+    public static function makeFrom(ContentTypes $type, Resource $DTO): static
+    {
+        return new static([
             'type' => $type instanceof ContentTypes ? $type->value : (string)$type,
-            'result' => $stored,
+            'result' => $DTO,
         ]);
     }
 
@@ -25,7 +29,7 @@ class ContentItemDTO extends Resource
     {
         return [
             'type' => $this->type ?? null,
-            'result' => $this->result ?? null,
+            'result' => $this->result->toArray() ?? null,
         ];
     }
 }

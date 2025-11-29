@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 use Beeralex\Api\Domain\Iblock\Content\ContentItemDTO;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
-use Beeralex\Api\Domain\Iblock\ElementDTO;
+use Beeralex\Api\Domain\Iblock\Content\MainBannerDTO;
 
-$arResult['dto'] = new ContentItemDTO(
+$arResult['DTO'] = ContentItemDTO::makeFrom(
     ContentTypes::MAIN_BANNER,
-    array_map([ElementDTO::class, 'fromNewsListElement'], $arResult['ITEMS'])
+    MainBannerDTO::make($arResult)
 );
 
-$this->getComponent()->setResultCacheKeys(['dto']);
+$this->getComponent()->setResultCacheKeys(['DTO']);

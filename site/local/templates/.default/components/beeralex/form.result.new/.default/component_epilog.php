@@ -6,13 +6,10 @@ use Beeralex\Api\Domain\Iblock\Content\ContentItemDTO;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
 
 if($arParams['IS_CONTENT_ACTION']) {
-    $data = new ContentItemDTO(
-    ContentTypes::FORM,
-    (array) $arResult['dto']
-    );
-    service(ApiResult::class)->addPageData((array)$data);
+    $data = ContentItemDTO::makeFrom(ContentTypes::FORM, $arResult['DTO']);
+    service(ApiResult::class)->addPageData($data);
 } else {
-    service(ApiResult::class)->addPageData((array) $arResult['dto'], 'form');
+    service(ApiResult::class)->addPageData($arResult['DTO'], 'form');
 }
 
 
