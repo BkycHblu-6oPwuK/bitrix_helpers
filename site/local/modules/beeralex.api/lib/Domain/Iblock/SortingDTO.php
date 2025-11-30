@@ -1,6 +1,6 @@
 <?php
 
-namespace Beeralex\Api\Domain\Iblock\Catalog;
+namespace Beeralex\Api\Domain\Iblock;
 
 use Beeralex\Core\Http\Resources\Resource;
 

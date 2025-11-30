@@ -2,20 +2,20 @@
 
 namespace Beeralex\Api\Domain\Iblock\Catalog;
 
+use Beeralex\Api\Domain\Iblock\SectionItemsDTO;
 use Beeralex\Api\Domain\Pagination\PaginationDTO;
-use Beeralex\Core\Http\Resources\Resource;
 
 /** 
  * @property CatalogItemDTO[] $items
  * @property PaginationDTO|null $pagination
  */
-class CatalogSectionDTO extends Resource
+class CatalogSectionDTO extends SectionItemsDTO
 {
     public static function make(array $arResult): static
     {
-        return new static([
-            'items' => array_map(fn($sectionItem) => CatalogItemDTO::make($sectionItem), $arResult['ITEMS'] ?? []),
-            'pagination' => $arResult['NAV_RESULT'] ? PaginationDTO::fromResult($arResult['NAV_RESULT']) : null,
-        ]);
+        return parent::makeFrom(
+            array_map([CatalogItemDTO::class, 'make'], $arResult['ITEMS'] ?? []),
+            $arResult['NAV_RESULT'] ? PaginationDTO::fromResult($arResult['NAV_RESULT']) : null,
+        );
     }
 }

@@ -1,13 +1,22 @@
+<!--
+  Компонент секции с товарами
+  Отображает сетку товаров и компонент пагинации
+  Каждая карточка товара - это ссылка на детальную страницу
+-->
 <script setup lang="ts">
-import type { CatalogSectionDTO } from '~/types/iblock/catalog'
+import type { SectionItemsDTO } from '~/types/iblock/content';
 import Pagination from './Pagination.vue';
+import type { CatalogItemDTO } from '~/types/iblock/catalog.ts';
 
+// Пропсы: данные секции с массивом товаров и пагинацией
 const props = defineProps<{
-  section: CatalogSectionDTO
+  section: SectionItemsDTO<CatalogItemDTO>
 }>()
+
+// События для родительского компонента
 const emit = defineEmits<{
-  showMore: []
-  changePage: [page: number]
+  showMore: [] // Дозагрузка следующей страницы
+  changePage: [page: number] // Переход на конкретную страницу
 }>()
 </script>
 

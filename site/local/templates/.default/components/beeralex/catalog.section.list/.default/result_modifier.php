@@ -1,7 +1,7 @@
 <?php
 
-use Beeralex\Api\Domain\Iblock\Catalog\SectionsDTO;
+use Beeralex\Api\Domain\Iblock\SectionDTO;
 
-$arResult['DTO'] = array_map([SectionsDTO::class, 'make'], $arResult['SECTIONS'] ?? []);
+$arResult['DTO'] = array_map([SectionDTO::class, 'make'], $arResult['SECTIONS'] ?? []);
 
 $this->getComponent()->SetResultCacheKeys(['DTO']);

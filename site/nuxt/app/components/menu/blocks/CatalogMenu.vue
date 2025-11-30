@@ -1,5 +1,12 @@
+<!--
+  Блок меню каталога с поповером
+  Отображает двухколоночную структуру категорий
+  Основные разделы + подразделы с отступом
+-->
 <script setup lang="ts">
 import type { MenuItem } from '~/types/menu'
+
+// Пропсы: данные меню каталога с дочерними элементами
 const props = defineProps<{ data: MenuItem }>()
 </script>
 

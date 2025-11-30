@@ -1,6 +1,12 @@
+<!--
+  Меню футера с колонками
+  Отображает группы ссылок в нижней части сайта
+  Каждая колонка - это группа с заголовком и списком children
+-->
 <script setup lang="ts">
 import type { MenuItem } from '~/types/menu'
 
+// Пропсы: массив колонок меню футера
 defineProps<{ data: MenuItem[] }>()
 </script>
 

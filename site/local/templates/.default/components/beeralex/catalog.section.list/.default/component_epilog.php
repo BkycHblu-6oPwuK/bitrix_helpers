@@ -2,4 +2,4 @@
 
 use Beeralex\Api\ApiResult;
 
-service(ApiResult::class)->addPageData($arResult['DTO'], 'catalogSectionList');
+service(ApiResult::class)->addPageData($arResult['DTO'], 'sectionList');

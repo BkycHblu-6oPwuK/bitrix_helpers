@@ -5,7 +5,4 @@ global $APPLICATION;
 
 use Beeralex\Api\ApiResult;
 
-service(ApiResult::class)->setData([
-    'articles' => $arResult['ITEMS'],
-    'pagination' => $arResult['PAGINATION'],
-]);
+service(ApiResult::class)->addPageData($arResult['DTO'], 'section');

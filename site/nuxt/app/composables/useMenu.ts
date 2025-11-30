@@ -1,6 +1,14 @@
 import type { MenuData } from '~/types/menu'
 
+/**
+ * Композабл для получения данных меню сайта
+ * В текущей реализации возвращает статические данные
+ * TODO: В будущем можно заменить на API запрос для динамического меню
+ * 
+ * @returns Объект с верхним и нижним меню
+ */
 export const useMenu = () => {
+  // Верхнее меню (основная навигация)
   const topMenu: MenuData = {
     menu: [
       {
@@ -14,6 +22,7 @@ export const useMenu = () => {
     ],
   }
 
+  // Нижнее меню (футер с подразделами)
   const bottomMenu: MenuData = {
     menu: [
       {

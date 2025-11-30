@@ -1,6 +1,6 @@
 <?php
 
-namespace Beeralex\Api\Domain\Iblock\Catalog;
+namespace Beeralex\Api\Domain\Iblock;
 
 use Beeralex\Core\Http\Resources\Resource;
 
@@ -11,7 +11,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property bool $checked
  * @property bool $disabled
  */
-class CatalogFilterValueItemDTO extends Resource
+class FilterValueItemDTO extends Resource
 {
     public static function make(array $valueItem): static
     {

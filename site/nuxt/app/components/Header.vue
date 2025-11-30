@@ -1,3 +1,10 @@
+<!--
+  Компонент шапки сайта
+  Содержит:
+  - Верхнюю панель с переключателем темы, городом и меню
+  - Основную панель с логотипом, меню каталога, поиском и иконками
+  Поддерживает темную/светлую тему
+-->
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useColorMode } from '#imports'
@@ -5,18 +12,32 @@ import Menu from '~/components/menu/Menu.vue'
 import CatalogMenu from '~/components/menu/CatalogMenu.vue'
 import AuthModal from '~/components/auth/AuthModal.vue'
 
+// Управление цветовой темой (dark/light)
 const colorMode = useColorMode()
+
+// Строка поиска
 const query = ref('')
+
+// Состояние модального окна авторизации
 const isAuthModalOpen = ref(false)
 
+/**
+ * Переключение между светлой и темной темой
+ */
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
 }
 
+/**
+ * Обработчик поиска (TODO: реализовать логику)
+ */
 const onSearch = () => {
   console.log('Search:', query.value)
 }
 
+/**
+ * Открытие модального окна авторизации
+ */
 const openAuthModal = () => {
   isAuthModalOpen.value = true
 }

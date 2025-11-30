@@ -1,6 +1,6 @@
 <?php
 
-namespace Beeralex\Api\Domain\Iblock\Catalog;
+namespace Beeralex\Api\Domain\Iblock;
 
 use Beeralex\Core\Http\Resources\Resource;
 /** 
@@ -11,9 +11,9 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $userType
  * @property string $displayType
  * @property bool $displayExpanded
- * @property CatalogFilterValueItemDTO[] $values
+ * @property FilterValueItemDTO[] $values
  */
-class CatalogFilterItemDTO extends Resource
+class FilterItemDTO extends Resource
 {
     public static function make(array $filterItem): static
     {
@@ -25,7 +25,7 @@ class CatalogFilterItemDTO extends Resource
             'userType' => $filterItem['USER_TYPE'] ?? '',
             'displayType' => $filterItem['DISPLAY_TYPE'] ?? '',
             'displayExpanded' => $filterItem['DISPLAY_EXPANDED'] ?? '',
-            'values' => array_values(array_map([CatalogFilterValueItemDTO::class, 'make'], $filterItem['VALUES'] ?? [])),
+            'values' => array_values(array_map([FilterValueItemDTO::class, 'make'], $filterItem['VALUES'] ?? [])),
         ]);
     }
 }

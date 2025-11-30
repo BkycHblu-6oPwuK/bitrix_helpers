@@ -1,24 +1,27 @@
+<!--
+  Компонент пагинации
+  Отображает кнопку "Показать еще" и номера страниц
+  Текущая страница выделена цветом
+-->
 <script setup lang="ts">
-import type { PaginationDTO } from '~/types/pagination';
-
-const props = defineProps<{
-    pagination?: PaginationDTO
-}>()
-
+// События для родительского компонента
 const emit = defineEmits<{
-  showMore: []
-  changePage: [page: number]
+  showMore: [] // Дозагрузка следующей страницы
+  changePage: [page: number] // Переход на конкретную страницу
 }>()
 
+// Обработчик кнопки "Показать еще"
 const handleShowMore = () => {
   emit('showMore')
 }
 
+// Обработчик клика по номеру страницы
 const handleChangePage = (page: number) => {
   emit('changePage', page)
 }
 
-const { pagination, hasMore, currentPage, pageCount } = usePagination(props.pagination)
+// Получаем данные пагинации из store
+const { pagination, hasMore, currentPage, pageCount } = usePagination()
 </script>
 
 <template>

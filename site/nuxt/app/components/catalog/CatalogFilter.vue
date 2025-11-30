@@ -1,37 +1,55 @@
+<!--
+  Компонент панели фильтров с горизонтальным расположением
+  Отображает дропдаун сортировки, поповеры с фильтрами и кнопку очистки
+-->
 <script setup lang="ts">
-import type { CatalogFilterDTO } from '~/types/iblock/catalog'
+import type { FilterDTO } from '~/types/iblock/catalog.ts'
+import CatalogFilterItem from './CatalogFilterItem.vue'
 
+// Пропсы: данные фильтра (поля, сортировки, типы)
 const props = defineProps<{
-  filter: CatalogFilterDTO
+  filter: FilterDTO
 }>()
 
+// События для родительского компонента
 const emit = defineEmits<{
-  applyFilter: []
-  clearFilter: []
-  updateSorting: [sortId: string]
+  applyFilter: [] // Применить фильтры
+  clearFilter: [] // Очистить фильтры
+  updateSorting: [sortId: string] // Изменить сортировку
 }>()
 
-const { selectedFilters, currentSortId, hasActiveFilters, toggleFilter, clearFilters, setSorting } = useCatalogFilter(props.filter)
+// Получаем доступ к store фильтров
+const { selectedFilters, currentSortId, hasActiveFilters, toggleFilter, clearFilters, setSorting } = useSectionFilter()
 
+// Прокидываем событие применения фильтров наверх
 const handleApplyFilter = () => {
   emit('applyFilter')
 }
 
+// Очищаем фильтры в store и прокидываем событие
 const handleClearFilter = () => {
   clearFilters()
   emit('clearFilter')
 }
 
+// Обработчик изменения сортировки
 const handleSortChange = (sortId: string) => {
   setSorting(sortId)
   emit('updateSorting', sortId)
 }
 
+// Переключение значения фильтра
+const handleToggleFilter = (controlId: string, value: string) => {
+  toggleFilter(controlId, value)
+}
+
+// Название текущей сортировки для отображения в кнопке
 const currentSortingName = computed(() => {
   const currentSort = props.filter.sorting.availableSorting.find(s => s.code === currentSortId.value)
   return currentSort?.name || props.filter.sorting.title
 })
 
+// Подсчет выбранных значений в конкретном фильтре (для бейджа)
 const getSelectedCount = (filterItem: any) => {
   if (filterItem.displayType === props.filter.types.checkbox) {
     return filterItem.values.filter((v: any) => selectedFilters.value[v.controlId]).length
@@ -71,52 +89,16 @@ const getSelectedCount = (filterItem: any) => {
       </template>
     </UPopover>
 
-    <UPopover
+    <CatalogFilterItem
       v-for="filterItem in filter.items"
       :key="filterItem.id"
-      mode="hover"
-      :popper="{ placement: 'bottom-start', offsetDistance: 8 }"
-    >
-      <UButton
-        color="neutral"
-        variant="outline"
-        trailing-icon="i-heroicons-chevron-down"
-        class="font-normal"
-      >
-        {{ filterItem.name }}
-        <UBadge
-          v-if="getSelectedCount(filterItem) > 0"
-          :label="getSelectedCount(filterItem).toString()"
-          color="primary"
-          size="xs"
-          class="ml-2"
-        />
-      </UButton>
-
-      <template #content>
-        <div v-if="filterItem.displayType === filter.types.checkbox" class="p-3 min-w-[250px] max-h-[400px] overflow-y-auto">
-          <div class="space-y-2">
-            <label
-              v-for="value in filterItem.values"
-              :key="value.controlId"
-              :class="[
-                'flex items-center gap-2 cursor-pointer p-2 rounded-md transition-colors hover:bg-gray-50 dark:hover:bg-gray-800',
-                { 'opacity-50 cursor-not-allowed': value.disabled }
-              ]"
-            >
-              <input
-                type="checkbox"
-                :checked="!!selectedFilters[value.controlId]"
-                :disabled="value.disabled"
-                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                @change="toggleFilter(value.controlId, value.htmlValue); handleApplyFilter()"
-              />
-              <span class="text-sm" v-html="value.htmlValue"></span>
-            </label>
-          </div>
-        </div>
-      </template>
-    </UPopover>
+      :filter-item="filterItem"
+      :filter="filter"
+      :selected-filters="selectedFilters"
+      :selected-count="getSelectedCount(filterItem)"
+      @toggle-filter="handleToggleFilter"
+      @apply-filter="handleApplyFilter"
+    />
 
     <UButton
       v-if="hasActiveFilters"

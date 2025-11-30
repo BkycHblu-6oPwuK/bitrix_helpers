@@ -1,7 +1,13 @@
+<!--
+  Компонент списка дочерних разделов (подкатегорий)
+  Отображает сетку с карточками разделов
+  Показывается вверху страницы каталога для навигации
+-->
 <script setup lang="ts">
-import type { SectionDTO } from '~/types/iblock/catalog';
+import type { SectionDTO } from '~/types/iblock/catalog.ts';
 import SectionItem from './SectionItem.vue';
 
+// Пропсы: массив дочерних разделов
 const props = defineProps<{
   sections: Array<SectionDTO>
 }>()

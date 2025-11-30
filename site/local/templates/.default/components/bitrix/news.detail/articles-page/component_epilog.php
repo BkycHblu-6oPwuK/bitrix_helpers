@@ -2,6 +2,4 @@
 
 use Beeralex\Api\ApiResult;
 
-service(ApiResult::class)->setData([
-    'element' => $arResult['dto'],
-]);
+service(ApiResult::class)->addPageData($arResult['DTO'], 'element');

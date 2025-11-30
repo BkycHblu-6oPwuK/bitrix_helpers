@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import Catalog from '~/components/catalog/Catalog.vue'
-import type { CatalogPageApiResponse } from '~/types/iblock/catalog'
+import type { CatalogPageApiResponse } from '~/types/iblock/catalog.ts'
 
 const route = useRoute()
-const { data } = await useApi<CatalogPageApiResponse>(`catalog/${route.params.search}`)
+const search = route.params.search.join('/')
+const { data } = await useApi<CatalogPageApiResponse>(`catalog/${search}`)
 if (data.value?.data?.seo) {
   useSeoPage(data.value.data.seo)
 }

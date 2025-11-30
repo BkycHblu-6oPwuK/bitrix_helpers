@@ -1,15 +1,27 @@
+<!--
+  Меню каталога с ленивой загрузкой
+  Открывается при наведении на кнопку "Каталог"
+  Данные загружаются только при первом открытии
+  Клик по кнопке ведет на страницу каталога
+-->
 <script setup lang="ts">
 import { watch, ref, computed } from 'vue'
 import type { MenuData } from '~/types/menu'
 
+// Состояние открытия поповера
 const isOpen = ref(false)
 
+// Ссылка на API объект (lazy-loaded)
 const api = ref<any>(null)
 
+// Computed свойства для удобного доступа к данным API
 const data = computed(() => api.value?.data)
 const pending = computed(() => api.value?.pending)
 const error = computed(() => api.value?.error)
 
+/**
+ * Инициализация API объекта (только при первом вызове)
+ */
 async function ensureApi() {
   if (!api.value) {
     api.value = await useApi<MenuData>('get-menu', {
@@ -18,6 +30,9 @@ async function ensureApi() {
   }
 }
 
+/**
+ * Загрузка данных меню, если еще не загружено
+ */
 async function fetchMenuIfNeeded() {
   await ensureApi()
   if (!data.value && !pending.value) {
@@ -25,10 +40,14 @@ async function fetchMenuIfNeeded() {
   }
 }
 
+/**
+ * Переход на страницу каталога по клику на кнопку
+ */
 function toCatalog() {
   navigateTo('/catalog')
 }
 
+// Загружаем данные при открытии поповера
 watch(isOpen, async (value) => {
   if (value) {
     await fetchMenuIfNeeded()

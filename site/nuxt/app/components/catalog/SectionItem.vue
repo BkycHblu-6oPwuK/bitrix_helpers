@@ -1,6 +1,12 @@
+<!--
+  Карточка дочернего раздела (подкатегории)
+  Отображает название раздела и ссылку на него
+  Используется в компоненте Sections для навигации по подразделам
+-->
 <script setup lang="ts">
-import type { SectionDTO } from '~/types/iblock/catalog';
+import type { SectionDTO } from '~/types/iblock/catalog.ts';
 
+// Пропсы: данные раздела (id, название, URL)
 const props = defineProps<{
     item: SectionDTO
 }>()

@@ -1,7 +1,7 @@
 <?php
 
 use Beeralex\Api\ApiResult;
-use Beeralex\Api\Domain\Iblock\Catalog\CatalogFilterDTO;
+use Beeralex\Api\Domain\Iblock\FilterDTO;
 use Bitrix\Iblock\SectionPropertyTable;
 use Beeralex\Catalog\Service\SortingService;
 
@@ -22,7 +22,7 @@ foreach($arResult['ITEMS'] as $key => &$item){
 
 $urlService = service(\Beeralex\Core\Service\UrlService::class);
 
-$arResult['DTO'] = CatalogFilterDTO::make([
+$arResult['DTO'] = FilterDTO::make([
     'filterUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL']),
     'clearUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL']),
     'items' => $items,
@@ -36,5 +36,5 @@ $arResult['DTO'] = CatalogFilterDTO::make([
         'radio' => SectionPropertyTable::RADIO_BUTTONS,
     ]
 ]);
-service(ApiResult::class)->addPageData($arResult['DTO'], 'catalogFilter');
+service(ApiResult::class)->addPageData($arResult['DTO'], 'filter');
 $this->getComponent()->setResultCacheKeys(['DTO']);

@@ -1,6 +1,15 @@
+/**
+ * Типы для свойств элементов инфоблоков Bitrix
+ * Используются для хранения дополнительных полей элементов
+ */
+
+/**
+ * Свойство элемента инфоблока
+ * Может содержать различные типы данных: текст, число, файл, список и т.д.
+ */
 export interface PropertyItemDTO {
-  code: string
-  name: string
-  value: string | number | boolean | null
-  type?: string | null
+  code: string                           // Символьный код свойства
+  name: string                           // Название свойства
+  value: string | number | boolean | null // Значение свойства
+  type?: string | null                   // Тип свойства (string, number, file, list и т.д.)
 }

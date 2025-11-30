@@ -1,56 +1,41 @@
-import { ref, computed } from 'vue'
-import type { PaginationDTO } from '~/types/pagination'
+import { useSectionStore } from '~/stores/section'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 
-export function usePagination(initialPagination?: PaginationDTO) {
-  const pagination = ref<PaginationDTO | null>(initialPagination || null)
-  const setPagination = (data: PaginationDTO) => {
-    pagination.value = data
-  }
-  const currentPage = computed(() => pagination.value?.currentPage || 1)
-  const pageCount = computed(() => pagination.value?.pageCount || 1)
-  const hasMore = computed(() => {
-    if (!pagination.value) return false
-    return pagination.value.currentPage < pagination.value.pageCount
-  })
-  const hasPrevious = computed(() => {
-    if (!pagination.value) return false
-    return pagination.value.currentPage > 1
-  })
+/**
+ * Композабл для работы с пагинацией
+ * Предоставляет информацию о текущей странице, общем количестве страниц
+ * и методы для генерации URL различных страниц
+ * 
+ * @returns Объект с данными пагинации и вспомогательными методами
+ */
+export function usePagination() {
+  const store = useSectionStore()
 
-  const getPageUrl = (page: number): string | null => {
-    if (!pagination.value) return null
-    const url = new URL(window.location.href)
-    const params = new URLSearchParams(url.search)
-    
-    if (page === 1) {
-      params.delete(pagination.value.paginationUrlParam)
-    } else {
-      params.set(pagination.value.paginationUrlParam, page.toString())
-    }
-    
-    url.search = params.toString()
-    return url.pathname + url.search
-  }
+  // Получаем реактивные данные из store
+  const { pagination } = storeToRefs(store)
+  const { currentPage, pageCount, hasMore, hasPrevious } = storeToRefs(store)
 
+  // URL следующей страницы (или null если это последняя страница)
   const nextPageUrl = computed(() => {
     if (!hasMore.value) return null
-    return getPageUrl(currentPage.value + 1)
+    return store.getPageUrl(currentPage.value + 1)
   })
 
+  // URL предыдущей страницы (или null если это первая страница)
   const previousPageUrl = computed(() => {
     if (!hasPrevious.value) return null
-    return getPageUrl(currentPage.value - 1)
+    return store.getPageUrl(currentPage.value - 1)
   })
 
   return {
-    pagination,
-    currentPage,
-    pageCount,
-    hasMore,
-    hasPrevious,
-    nextPageUrl,
-    previousPageUrl,
-    setPagination,
-    getPageUrl,
+    pagination, // Полный объект пагинации с сервера
+    currentPage, // Номер текущей страницы
+    pageCount, // Общее количество страниц
+    hasMore, // Есть ли следующая страница
+    hasPrevious, // Есть ли предыдущая страница
+    nextPageUrl, // URL следующей страницы
+    previousPageUrl, // URL предыдущей страницы
+    getPageUrl: store.getPageUrl, // Метод получения URL любой страницы
   }
 }

@@ -1,55 +1,85 @@
+<!--
+  Основной компонент-оркестратор для каталога товаров
+  Управляет взаимодействием между фильтрами, списком товаров и пагинацией
+  Обрабатывает события от дочерних компонентов и обновляет URL/данные
+-->
 <script setup lang="ts">
-import type { CatalogDTO } from '~/types/iblock/catalog'
+import type { CatalogDTO, CatalogItemDTO } from '~/types/iblock/catalog.ts';
 import CatalogFilter from './CatalogFilter.vue'
 import CatalogSection from './CatalogSection.vue'
 import Sections from './Sections.vue'
 
+// Пропсы: начальные данные каталога с сервера
 const props = defineProps<{
   catalog: CatalogDTO
 }>()
-const { catalogData, isLoading, setAppendMode } = useCatalog(props.catalog)
-const { buildFilterUrl, setSorting } = useCatalogFilter(catalogData.value?.catalogFilter)
-const { getPageUrl } = usePagination(catalogData.value?.catalogSection.pagination)
 
+// Инициализируем store с данными и получаем методы управления
+const { catalogData, isLoading, setAppendMode, loadCatalogPage } = useSection<CatalogItemDTO>(props.catalog)
+const { buildFilterUrl, setSorting, filterData } = useSectionFilter()
+const { getPageUrl } = usePagination()
+
+/**
+ * Обработчик применения фильтров
+ * Строит URL с выбранными фильтрами и загружает новые данные
+ */
 const handleApplyFilter = async () => {
-  if (!catalogData.value?.catalogFilter) return
-  
+  if (!catalogData.value?.filter) return
   const url = buildFilterUrl(window.location.href)
-  await navigateTo(url.pathname + url.search, { replace: false })
+  loadCatalogPage(url)
 }
 
+/**
+ * Обработчик сброса всех фильтров
+ * Переходит на URL без фильтров и обновляет данные
+ */
 const handleClearFilter = async () => {
-  if (!catalogData.value?.catalogFilter) return
+  if (!catalogData.value?.filter) return
   
-  const clearUrl = catalogData.value.catalogFilter.clearUrl
+  const clearUrl = catalogData.value.filter.clearUrl
   await navigateTo(clearUrl, { replace: false })
+  loadCatalogPage(new URL(clearUrl, window.location.origin))
 }
 
+/**
+ * Обработчик изменения сортировки
+ * Обновляет ID сортировки в store и загружает отсортированные данные
+ */
 const handleUpdateSorting = async (sortId: string) => {
   setSorting(sortId)
   const url = buildFilterUrl(window.location.href)
-  await navigateTo(url.pathname + url.search, { replace: false })
+  await loadCatalogPage(url)
+  console.log(filterData.value)
 }
 
+/**
+ * Обработчик кнопки "Показать еще"
+ * Дозагружает следующую страницу и добавляет товары к существующим
+ */
 const handleShowMore = async () => {
-  if (!catalogData.value?.catalogSection.pagination) return
+  if (!catalogData.value?.section.pagination) return
   
-  const nextPage = catalogData.value.catalogSection.pagination.currentPage + 1
+  const nextPage = catalogData.value.section.pagination.currentPage + 1
   const pageUrl = getPageUrl(nextPage)
   
   if (pageUrl) {
-    setAppendMode(true)
+    setAppendMode(true) // Включаем режим добавления
     await navigateTo(pageUrl, { replace: true })
+    loadCatalogPage(pageUrl, { append: true })
   }
 }
 
+/**
+ * Обработчик перехода на конкретную страницу
+ * Заменяет текущий список товаров и прокручивает вверх
+ */
 const handleChangePage = async (page: number) => {
   const pageUrl = getPageUrl(page)
-  
   if (pageUrl) {
-    setAppendMode(false)
+    setAppendMode(false) // Выключаем режим добавления
     await navigateTo(pageUrl, { replace: false })
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    loadCatalogPage(pageUrl)
   }
 }
 </script>
@@ -64,8 +94,8 @@ const handleChangePage = async (page: number) => {
       <aside class="lg:col-span-1">
         <div class="sticky top-4">
           <CatalogFilter
-            v-if="catalogData.catalogFilter"
-            :filter="catalogData.catalogFilter"
+            v-if="catalogData.filter"
+            :filter="catalogData.filter"
             @apply-filter="handleApplyFilter"
             @clear-filter="handleClearFilter"
             @update-sorting="handleUpdateSorting"
@@ -75,14 +105,14 @@ const handleChangePage = async (page: number) => {
 
       <main class="lg:col-span-3">
         <Sections
-          v-if="catalogData.catalogSectionList?.length"
-          :sections="catalogData.catalogSectionList"
+          v-if="catalogData.sectionList?.length"
+          :sections="catalogData.sectionList"
           class="mb-8"
         />
 
         <CatalogSection
-          v-if="catalogData.catalogSection"
-          :section="catalogData.catalogSection"
+          v-if="catalogData.section"
+          :section="catalogData.section"
           @show-more="handleShowMore"
           @change-page="handleChangePage"
         />

@@ -1,6 +1,12 @@
+<!--
+  Верхнее горизонтальное меню сайта
+  Отображает пункты меню в одну строку
+  Используется в шапке сайта
+-->
 <script setup lang="ts">
 import type { MenuItem } from '~/types/menu'
 
+// Пропсы: массив пунктов меню
 defineProps<{ data: MenuItem[] }>()
 </script>
 
