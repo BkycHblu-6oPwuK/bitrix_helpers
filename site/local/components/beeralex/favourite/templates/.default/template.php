@@ -1,7 +1,14 @@
+<?
+use Beeralex\Api\Domain\Pagination\PaginationDTO;
+use Beeralex\Core\Service\FileService;
+
+?>
+
 <div class="section__container">
     <div class="favourites-block">
         <div class="favourites-block__container">
             <?
+
             foreach ($arResult['items'] as $item) {
                 $APPLICATION->IncludeComponent(
                     'bitrix:catalog.item',
@@ -16,14 +23,9 @@
         </div>
         <?
         if ($arResult['pagination']['pageCount'] > 1) {
-            $APPLICATION->IncludeComponent(
-                'beeralex:pagination',
-                '.default',
-                [
-                    'PAGINATION' => $arResult['pagination'],
-                    'HIDE_SHOW_MODE' => true
-                ]
-            );
+            service(FileService::class)->includeFile('pagination', [
+                'pagination' => PaginationDTO::make($arResult['pagination'])
+            ]);
         }
         ?>
     </div>

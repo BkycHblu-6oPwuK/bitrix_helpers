@@ -22,7 +22,7 @@ class CatalogFilterDTO extends Resource
         return new static([
             'filterUrl' => (string)$catalogFilter['filterUrl'] ?? '',
             'clearUrl' => (string)$catalogFilter['clearUrl'] ?? '',
-            'items' => array_map([CatalogFilterItemDTO::class, 'make'], $catalogFilter['items'] ?? []),
+            'items' => array_values(array_map([CatalogFilterItemDTO::class, 'make'], $catalogFilter['items'] ?? [])),
             'sorting' => SortingDTO::make($catalogFilter['sorting'] ?? []),
             'types' => $catalogFilter['types'] ?? [],
         ]);

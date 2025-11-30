@@ -9,6 +9,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $defaultSortId
  * @property string $title
  * @property SortingItemDTO[] $availableSorting
+ * @property string $requestParam
  */
 class SortingDTO extends Resource
 {
@@ -19,6 +20,7 @@ class SortingDTO extends Resource
             'defaultSortId' => (string)$sorting['DEFAULT_SORT_ID'] ?? '',
             'title' => (string)$sorting['TITLE'] ?? '',
             'availableSorting' => array_map([SortingItemDTO::class, 'make'], $sorting['AVAILABLE_SORTING'] ?? []),
+            'requestParam' => (string)$sorting['REQUEST_PARAM'] ?? '',
         ]);
     }
 }

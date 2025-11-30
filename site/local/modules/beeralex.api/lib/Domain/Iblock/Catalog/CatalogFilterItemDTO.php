@@ -25,7 +25,7 @@ class CatalogFilterItemDTO extends Resource
             'userType' => $filterItem['USER_TYPE'] ?? '',
             'displayType' => $filterItem['DISPLAY_TYPE'] ?? '',
             'displayExpanded' => $filterItem['DISPLAY_EXPANDED'] ?? '',
-            'values' => array_map([CatalogFilterValueItemDTO::class, 'make'], $filterItem['VALUES'] ?? []),
+            'values' => array_values(array_map([CatalogFilterValueItemDTO::class, 'make'], $filterItem['VALUES'] ?? [])),
         ]);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Iblock\Content\ContentItemDTO;
 use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Service\FileService;
@@ -8,15 +10,15 @@ use Beeralex\Core\Service\IblockService;
 $catalogService = service(CatalogService::class);
 
 foreach ($arResult as $item) {
-	switch ($item['type']) {
+	switch ($item['TYPE']) {
 		case ContentTypes::SLIDER:
 			$APPLICATION->IncludeComponent(
 				"beeralex:product.slider",
 				".default",
 				[
-					'IDS' => $item['ids'],
-					'TITLE' => $item['title'],
-					'LINK_TO_ALL' => $item['link'],
+					'IDS' => $item['IDS'],
+					'TITLE' => $item['TITLE'],
+					'LINK_TO_ALL' => $item['LINK'],
 					"CACHE_TYPE" => "A",
 					"CACHE_TIME" => "3600000",
 					'CATALOG_SERVICE' => $catalogService,
@@ -24,7 +26,7 @@ foreach ($arResult as $item) {
 			);
 			break;
 		case ContentTypes::MAIN_BANNER:
-			$GLOBALS['mainBannerFilter']['=ID'] = $item['ids'];
+			$GLOBALS['mainBannerFilter']['=ID'] = $item['IDS'];
 			$APPLICATION->IncludeComponent(
 				"bitrix:news.list",
 				"mainBanner",
@@ -89,88 +91,31 @@ foreach ($arResult as $item) {
 			);
 			break;
 		case ContentTypes::VIDEO:
-			$APPLICATION->IncludeComponent(
-				"beeralex:video",
-				".default",
-				[
-					'VIDEO_LINK' => $item['video_link'],
-					'PREVIEW_ID' => $item['video_preview_id'],
-					'TEXT' => $item['text'],
-					'TITLE' => $item['title'],
-					"CACHE_TYPE" => "A",
-					"CACHE_TIME" => "3600000",
-				]
-			);
-			break;
-			$GLOBALS['arrFilterArticles'] = ['ID' => $item['ids']];
+			$GLOBALS['arrFilterVideo'] = ['ID' => $item['IDS']];
 			$APPLICATION->IncludeComponent(
 				"bitrix:news.list",
-				"twoArticles",
-				array(
-					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode("articles"),
-					"NEWS_COUNT" => "2",
+				"video",
+				[
+					"CACHE_TYPE" => "A",
+					"CACHE_TIME" => "3600000",
+					"FILTER_NAME" => "arrFilterVideo",
+					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode('video'),
+					"NEWS_COUNT" => "20",
 					"SET_BROWSER_TITLE" => "N",
 					"SET_LAST_MODIFIED" => "N",
 					"SET_META_DESCRIPTION" => "N",
 					"SET_META_KEYWORDS" => "N",
 					"SET_STATUS_404" => "N",
 					"SET_TITLE" => "N",
-					"SHOW_404" => "N",
+					"DISPLAY_DATE" => "N",
 					"SORT_BY1" => "ID",
 					"SORT_ORDER1" => "DESC",
-					"FILTER_NAME" => "arrFilterArticles",
-					"CACHE_TYPE" => "A",
-					"CACHE_TIME" => "3600000",
-					"COMPONENT_TEMPLATE" => "twoArticles",
-					"IBLOCK_TYPE" => "news",
-					"SORT_BY2" => "SORT",
-					"SORT_ORDER2" => "ASC",
-					"FIELD_CODE" => array(
-						0 => "PREVIEW_PICTURE",
-						1 => "PREVIEW_TEXT",
-						2 => "NAME",
-					),
-					"PROPERTY_CODE" => array(
-						0 => "",
-					),
-					"CHECK_DATES" => "Y",
-					"DETAIL_URL" => "",
-					"AJAX_MODE" => "N",
-					"AJAX_OPTION_JUMP" => "N",
-					"AJAX_OPTION_STYLE" => "Y",
-					"AJAX_OPTION_HISTORY" => "N",
-					"AJAX_OPTION_ADDITIONAL" => "",
-					"CACHE_FILTER" => "N",
-					"CACHE_GROUPS" => "Y",
-					"PREVIEW_TRUNCATE_LEN" => "",
-					"ACTIVE_DATE_FORMAT" => "d.m.Y",
-					"INCLUDE_IBLOCK_INTO_CHAIN" => "Y",
-					"ADD_SECTIONS_CHAIN" => "Y",
-					"HIDE_LINK_WHEN_NO_DETAIL" => "N",
-					"PARENT_SECTION" => "",
-					"PARENT_SECTION_CODE" => "",
-					"INCLUDE_SUBSECTIONS" => "Y",
-					"STRICT_SECTION_CHECK" => "N",
-					"DISPLAY_DATE" => "N",
-					"DISPLAY_NAME" => "Y",
-					"DISPLAY_PICTURE" => "Y",
-					"DISPLAY_PREVIEW_TEXT" => "Y",
-					"PAGER_TEMPLATE" => ".default",
-					"DISPLAY_TOP_PAGER" => "N",
-					"DISPLAY_BOTTOM_PAGER" => "N",
-					"PAGER_TITLE" => "Новости",
-					"PAGER_SHOW_ALWAYS" => "N",
-					"PAGER_DESC_NUMBERING" => "N",
-					"PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",
-					"PAGER_SHOW_ALL" => "N",
-					"PAGER_BASE_LINK_ENABLE" => "N",
-					"MESSAGE_404" => ""
-				),
+				],
 				false
 			);
 			break;
 		case ContentTypes::ARTICLES:
-			$GLOBALS['arrFilterArticles'] = ['ID' => $item['ids']];
+			$GLOBALS['arrFilterArticles'] = ['ID' => $item['IDS']];
 			$APPLICATION->IncludeComponent(
 				"bitrix:news.list",
 				"mainArticles",
@@ -189,16 +134,19 @@ foreach ($arResult as $item) {
 					"DISPLAY_DATE" => "N",
 					"SORT_BY1" => "ID",
 					"SORT_ORDER1" => "DESC",
-					"LINK_TO_ALL" => $item['link']
+					"LINK_TO_ALL" => $item['LINK']
 				],
 				false
 			);
 			break;
 		case ContentTypes::FORM:
 			service(FileService::class)->includeFile('v1.form.index', [
-				'formId' => $item['id'],
+				'formId' => $item['ID'],
 				'isContentAction' => true
 			]);
+			break;
+		case ContentTypes::HTML:
+			service(ApiResult::class)->addPageData(ContentItemDTO::makeFrom(ContentTypes::HTML, $item['CONTENT']));
 			break;
 		default:
 			continue;

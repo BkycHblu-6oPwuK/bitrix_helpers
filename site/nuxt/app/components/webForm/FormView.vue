@@ -33,7 +33,7 @@ async function handleSubmit() {
   try {
     const { data, error } = await useApi<FormStoreRequest>(
       `/web-form/${props.form.id}`,
-      { method: 'POST', body: { ...formValues } }
+      { method: 'post', body: { ...formValues } }
     )
 
     if (error.value) throw error.value

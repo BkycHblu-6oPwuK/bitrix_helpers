@@ -1,22 +1,37 @@
 <script setup lang="ts">
-import { watch, ref } from 'vue'
+import { watch, ref, computed } from 'vue'
 import type { MenuData } from '~/types/menu'
 
 const isOpen = ref(false)
 
-const { data, pending, error, execute } = await useApi<MenuData>('get-menu', {
-  query: { menuType: 'catalog' },
-  immediate: false,
-})
+const api = ref<any>(null)
 
-// следим за открытием попапа
+const data = computed(() => api.value?.data)
+const pending = computed(() => api.value?.pending)
+const error = computed(() => api.value?.error)
+
+async function ensureApi() {
+  if (!api.value) {
+    api.value = await useApi<MenuData>('get-menu', {
+      query: { menuType: 'catalog' },
+    })
+  }
+}
+
+async function fetchMenuIfNeeded() {
+  await ensureApi()
+  if (!data.value && !pending.value) {
+    await api.value.execute()
+  }
+}
+
+function toCatalog() {
+  navigateTo('/catalog')
+}
+
 watch(isOpen, async (value) => {
   if (value) {
-    console.log('CatalogMenu opened')
-    // загружаем только если ещё не загружено и сейчас не грузится
-    if (!data.value && !pending.value) {
-      execute()
-    }
+    await fetchMenuIfNeeded()
   }
 })
 </script>
@@ -33,7 +48,8 @@ watch(isOpen, async (value) => {
         variant="solid"
         icon="i-heroicons-bars-3"
         trailing
-        class="!rounded-lg text-white font-semibold"
+        class="cursor-pointer !rounded-lg text-white font-semibold"
+        @click="toCatalog"
       >
         Каталог
       </UButton>

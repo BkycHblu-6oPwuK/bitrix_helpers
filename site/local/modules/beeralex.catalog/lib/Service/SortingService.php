@@ -22,7 +22,8 @@ class SortingService
             'CURRENT_SORT_ID'    => $currentSortId,
             'DEFAULT_SORT_ID'    => $this->getDefaultSortId(),
             'TITLE'            => $sortTitle,
-            'AVAILABLE_SORTING' => array_values($availableSorting)
+            'AVAILABLE_SORTING' => array_values($availableSorting),
+            'REQUEST_PARAM'     => static::REQUEST_PARAM,
         ];
     }
 

@@ -1,4 +1,5 @@
 import type { PaginationDTO } from "~/types/pagination"
+import type { PageData } from '../content'
 
 export interface CatalogFilterValueItemDTO {
   controlId: string
@@ -34,6 +35,7 @@ export interface SortingDTO {
   defaultSortId: string
   title: string
   availableSorting: SortingItemDTO[]
+  requestParam: string
 }
 
 export interface CatalogFilterDTO {
@@ -41,7 +43,14 @@ export interface CatalogFilterDTO {
   clearUrl: string
   items: CatalogFilterItemDTO[]
   sorting: SortingDTO
-  types: any[]
+  types: {
+    checkbox: string
+    radio: string
+    dropdown: string
+    range: string,
+    numbers: string,
+    calendar: string,
+  }
 }
 
 export interface CatalogPriceGroupDTO {
@@ -124,11 +133,11 @@ export interface CatalogItemDTO {
   searchableContent: string
   offers: CatalogOfferDTO[]
   preselectedOffer: CatalogOfferDTO | null
-  price: CatalogPriceDTO | null
+  prices: CatalogPriceDTO[]
   catalog: CatalogProductDTO | null
 }
 
-export interface SectionsDTO {
+export interface SectionDTO {
   id: string
   name: string
   code: string
@@ -140,3 +149,17 @@ export interface CatalogSectionDTO {
   items: CatalogItemDTO[]
   pagination: PaginationDTO | null
 }
+
+export interface SectionsDTO {
+  catalogSectionList: SectionDTO[]
+}
+
+export interface CatalogDTO {
+  catalogSectionList: SectionDTO[]
+  catalogFilter: CatalogFilterDTO
+  catalogSection: CatalogSectionDTO
+}
+
+export type SectionsPageApiResponse = PageData<SectionsDTO>
+export type CatalogPageApiResponse = PageData<CatalogDTO>
+

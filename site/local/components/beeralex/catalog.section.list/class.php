@@ -2,7 +2,6 @@
 
 use Beeralex\Core\Service\UrlService;
 use Beeralex\Core\Repository\IblockRepository;
-use Beeralex\Core\Repository\IblockRepositoryContract;
 use Beeralex\Core\Repository\IblockSectionRepository;
 use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Service\IblockService;

@@ -53,7 +53,7 @@ $APPLICATION->IncludeComponent(
         "SECTION_TOP_DEPTH" => "1",
         "SECTIONS_VIEW_MODE" => "TILE",
         "SECTIONS_SHOW_PARENT_NAME" => "N",
-        "PAGE_ELEMENT_COUNT" => "16",
+        "PAGE_ELEMENT_COUNT" => "2",
         "LINE_ELEMENT_COUNT" => "1",
         "ELEMENT_SORT_FIELD" => "desc",
         "ELEMENT_SORT_ORDER" => "asc",

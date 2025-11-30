@@ -1,13 +1,20 @@
 <?php
-$pagination = $arParams['PAGINATION'];
+
+use Beeralex\Api\Domain\Pagination\PaginationDTO;
+
+if (!$pagination || !($pagination instanceof PaginationDTO)) {
+    return;
+}
+global $APPLICATION;
+$baseUrl = $APPLICATION->GetCurPage() . "?{$pagination['paginationUrlParam']}=";
 ?>
 <div>
-    <? if(!$arParams['HIDE_SHOW_MODE']): ?>
+    <? if (!$arParams['HIDE_SHOW_MODE']): ?>
         <button class="catalog-type__btn-more">Показать еще</button>
     <? endif ?>
     <div class="catalog-type__pagination">
         <? if ($pagination['currentPage'] > 1): ?>
-            <a href="<?= $arResult['BASE_URL'] . --$pagination['currentPage']?>" class="catalog-type__pagination-prev">
+            <a href="<?= $arResult['BASE_URL'] . --$pagination['currentPage'] ?>" class="catalog-type__pagination-prev">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M19 10L1 10" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"
                         stroke-linejoin="round" />
@@ -16,7 +23,7 @@ $pagination = $arParams['PAGINATION'];
                 </svg>
                 <span>Назад</span>
             </a>
-            <a href="<?= $arResult['BASE_URL'] . --$pagination['currentPage']?>" class="catalog-type__pagination-prev-mobile">
+            <a href="<?= $arResult['BASE_URL'] . --$pagination['currentPage'] ?>" class="catalog-type__pagination-prev-mobile">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M12.5 15L7.5 10L12.5 5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="square" />
                 </svg>
@@ -28,7 +35,7 @@ $pagination = $arParams['PAGINATION'];
             <? endforeach; ?>
         </div>
         <? if ($pagination['currentPage'] < $pagination['pageCount']): ?>
-            <a href="<?= $arResult['BASE_URL'] . ++$pagination['currentPage']?>" class="catalog-type__pagination-next">
+            <a href="<?= $arResult['BASE_URL'] . ++$pagination['currentPage'] ?>" class="catalog-type__pagination-next">
                 <span>Дальше</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M1 10L19 10" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"
@@ -37,7 +44,7 @@ $pagination = $arParams['PAGINATION'];
                         stroke-linejoin="round" />
                 </svg>
             </a>
-            <a href="<?= $arResult['BASE_URL'] . ++$pagination['currentPage']?>" class="catalog-type__pagination-next-mobile">
+            <a href="<?= $arResult['BASE_URL'] . ++$pagination['currentPage'] ?>" class="catalog-type__pagination-next-mobile">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M7.5 15L12.5 10L7.5 5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="square" />
                 </svg>

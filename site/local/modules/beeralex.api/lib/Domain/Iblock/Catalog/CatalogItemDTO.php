@@ -14,7 +14,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $searchableContent
  * @property CatalogOfferDTO[] $offers
  * @property CatalogOfferDTO|null $preselectedOffer
- * @property CatalogPriceDTO|null $price
+ * @property CatalogPriceDTO[] $prices
  * @property CatalogProductDTO|null $catalog
  */
 class CatalogItemDTO extends Resource
@@ -33,7 +33,7 @@ class CatalogItemDTO extends Resource
             'preselectedOffer' => isset($catalogItem['PRESELECTED_OFFER'])
                 ? CatalogOfferDTO::make($catalogItem['PRESELECTED_OFFER'])
                 : null,
-            'price' => isset($catalogItem['PRICE'][0]) ? CatalogPriceDTO::make($catalogItem['PRICE'][0]) : null,
+            'prices' => array_map([CatalogPriceDTO::class, 'make'], $catalogItem['PRICE'] ?? []),
             'catalog' => isset($catalogItem['CATALOG']) ? CatalogProductDTO::make($catalogItem['CATALOG']) : null,
         ]);
     }

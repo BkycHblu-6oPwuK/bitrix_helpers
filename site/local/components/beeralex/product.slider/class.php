@@ -12,7 +12,6 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
  */
 class BeeralexProductSlider extends CBitrixComponent
 {
-
     public function onPrepareComponentParams($params)
     {
         if ($params['CATALOG_SERVICE'] === null || !($params['CATALOG_SERVICE'] instanceof CatalogService)) {

@@ -6,6 +6,8 @@ use Beeralex\Api\Domain\Pagination\PaginationDTO;
 use Beeralex\Core\Http\Resources\Resource;
 
 /** 
+ * @property CatalogItemDTO[] $items
+ * @property PaginationDTO|null $pagination
  */
 class CatalogSectionDTO extends Resource
 {

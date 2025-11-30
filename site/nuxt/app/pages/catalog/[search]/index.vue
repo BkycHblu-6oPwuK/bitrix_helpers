@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import Dump from '~/components/dev/Dump.vue';
-import type { CatalogData } from '~/types/catalog/catalog';
-const route = useRoute();
-const { data } = await useApi<CatalogData>(`catalog/${route.params.search}`)
-useSeoPage(data.value?.data?.seo);
+import Catalog from '~/components/catalog/Catalog.vue'
+import type { CatalogPageApiResponse } from '~/types/iblock/catalog'
+
+const route = useRoute()
+const { data } = await useApi<CatalogPageApiResponse>(`catalog/${route.params.search}`)
+if (data.value?.data?.seo) {
+  useSeoPage(data.value.data.seo)
+}
 </script>
 
 <template>
-   <Dump :data="data" :label="'Каталог'"></Dump>
+  <div class="container mx-auto px-4 py-8">
+    <Catalog v-if="data?.data?.page" :catalog="data.data.page" />
+  </div>
 </template>
