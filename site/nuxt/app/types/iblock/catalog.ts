@@ -1,78 +1,11 @@
 /**
- * Типы для каталога товаров и фильтрации
- * Включает структуры для товаров, торговых предложений, цен, фильтров и сортировки
+ * Типы для каталога товаров
+ * Включает структуры для товаров, торговых предложений, цен
  */
 
-import type { PageData, SectionItemsDTO } from './content'
+import type { PageData } from './content'
+import type { FilterDTO, SectionDTO, SectionsDTO, SectionData } from './section'
 
-/**
- * Одно значение фильтра (checkbox, radio option)
- */
-export interface FilterValueItemDTO {
-  controlId: string   // ID контрола в форме (для привязки к URL параметру)
-  htmlValue: string   // Значение для отправки на сервер
-  value: string       // Отображаемое значение (может содержать HTML)
-  checked: boolean    // Выбрано ли значение
-  disabled: boolean   // Заблокировано ли значение (нет товаров)
-}
-
-/**
- * Один пункт фильтра (группа значений)
- * Например: "Производитель", "Цвет", "Размер"
- */
-export interface FilterItemDTO {
-  id: number                  // Уникальный ID фильтра
-  code: string                // Символьный код свойства
-  name: string                // Название фильтра
-  propertyType: string        // Тип свойства в Bitrix
-  userType: string            // Пользовательский тип
-  displayType: string         // Тип отображения (checkbox, radio, range)
-  displayExpanded: boolean    // Развернут ли фильтр по умолчанию
-  values: FilterValueItemDTO[] // Массив доступных значений
-}
-
-/**
- * Один вариант сортировки
- */
-export interface SortingItemDTO {
-  id: number        // ID варианта сортировки
-  name: string      // Название ("По цене", "По популярности")
-  code: string      // Символьный код
-  sort: number      // Порядок отображения
-  default: boolean  // Является ли дефолтной
-  direction: string // Направление (asc/desc)
-  sortBy: string    // Поле для сортировки
-}
-
-/**
- * Настройки сортировки для каталога
- */
-export interface SortingDTO {
-  currentSortId: string         // ID текущей выбранной сортировки
-  defaultSortId: string         // ID сортировки по умолчанию
-  title: string                 // Заголовок блока сортировки
-  availableSorting: SortingItemDTO[] // Массив доступных вариантов
-  requestParam: string          // Название параметра в URL (обычно 'sort')
-}
-
-/**
- * Полная структура фильтра каталога
- * Содержит все поля фильтрации, сортировку и служебные URL
- */
-export interface FilterDTO {
-  filterUrl: string        // URL для применения фильтров
-  clearUrl: string         // URL для сброса всех фильтров
-  items: FilterItemDTO[]   // Массив всех доступных фильтров
-  sorting: SortingDTO      // Настройки сортировки
-  types: {                 // Константы типов отображения фильтров
-    checkbox: string       // Тип "чекбокс"
-    radio: string          // Тип "радио"
-    dropdown: string       // Тип "выпадающий список"
-    range: string          // Тип "диапазон" (от-до)
-    numbers: string        // Тип "числовой"
-    calendar: string       // Тип "календарь"
-  }
-}
 
 /**
  * Ценовая группа (тип цены в Bitrix)
@@ -182,32 +115,10 @@ export interface CatalogItemDTO {
 }
 
 /**
- * Раздел каталога (категория)
- */
-export interface SectionDTO {
-  id: string        // ID раздела
-  name: string      // Название раздела
-  code: string      // Символьный код
-  url: string       // URL раздела
-  pictureSrc: string // URL картинки раздела
-}
-
-/**
- * Список разделов каталога
- */
-export interface SectionsDTO {
-  sectionList: SectionDTO[] // Массив разделов
-}
-
-/**
  * Полные данные страницы каталога
  * Включает список разделов, фильтр и список товаров с пагинацией
  */
-export interface CatalogDTO {
-  sectionList: SectionDTO[]              // Дочерние разделы (подкатегории)
-  filter: FilterDTO                      // Фильтр с настройками
-  section: SectionItemsDTO<CatalogItemDTO> // Товары с пагинацией
-}
+export interface CatalogDTO extends SectionData<SectionDTO[], FilterDTO, CatalogItemDTO> {}
 
 /** Тип ответа API для страницы списка разделов */
 export type SectionsPageApiResponse = PageData<SectionsDTO>

@@ -4,7 +4,7 @@
   Обрабатывает события от дочерних компонентов и обновляет URL/данные
 -->
 <script setup lang="ts">
-import type { CatalogDTO, CatalogItemDTO } from '~/types/iblock/catalog.ts';
+import type { CatalogDTO } from '~/types/iblock/catalog.ts';
 import CatalogFilter from './CatalogFilter.vue'
 import CatalogSection from './CatalogSection.vue'
 import Sections from './Sections.vue'
@@ -15,7 +15,7 @@ const props = defineProps<{
 }>()
 
 // Инициализируем store с данными и получаем методы управления
-const { catalogData, isLoading, setAppendMode, loadCatalogPage } = useSection<CatalogItemDTO>(props.catalog)
+const { catalogData, isLoading, setAppendMode, loadCatalogPage } = useSection<CatalogDTO>(props.catalog)
 const { buildFilterUrl, setSorting, filterData } = useSectionFilter()
 const { getPageUrl } = usePagination()
 
@@ -26,7 +26,7 @@ const { getPageUrl } = usePagination()
 const handleApplyFilter = async () => {
   if (!catalogData.value?.filter) return
   const url = buildFilterUrl(window.location.href)
-  loadCatalogPage(url)
+  await loadCatalogPage<CatalogDTO>(url, { navigateFilter: true })
 }
 
 /**
@@ -37,8 +37,7 @@ const handleClearFilter = async () => {
   if (!catalogData.value?.filter) return
   
   const clearUrl = catalogData.value.filter.clearUrl
-  await navigateTo(clearUrl, { replace: false })
-  loadCatalogPage(new URL(clearUrl, window.location.origin))
+  loadCatalogPage<CatalogDTO>(new URL(clearUrl, window.location.origin), { navigateFilter: true })
 }
 
 /**
@@ -48,8 +47,7 @@ const handleClearFilter = async () => {
 const handleUpdateSorting = async (sortId: string) => {
   setSorting(sortId)
   const url = buildFilterUrl(window.location.href)
-  await loadCatalogPage(url)
-  console.log(filterData.value)
+  await loadCatalogPage<CatalogDTO>(url)
 }
 
 /**
@@ -64,8 +62,7 @@ const handleShowMore = async () => {
   
   if (pageUrl) {
     setAppendMode(true) // Включаем режим добавления
-    await navigateTo(pageUrl, { replace: true })
-    loadCatalogPage(pageUrl, { append: true })
+    loadCatalogPage<CatalogDTO>(pageUrl, { append: true })
   }
 }
 
@@ -77,9 +74,8 @@ const handleChangePage = async (page: number) => {
   const pageUrl = getPageUrl(page)
   if (pageUrl) {
     setAppendMode(false) // Выключаем режим добавления
-    await navigateTo(pageUrl, { replace: false })
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    loadCatalogPage(pageUrl)
+    loadCatalogPage<CatalogDTO>(pageUrl)
   }
 }
 </script>

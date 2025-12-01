@@ -1,4 +1,5 @@
-import { useSectionStore, type SectionData } from '~/stores/section'
+import { useSectionStore } from '~/stores/section'
+import type { SectionData } from '~/types/iblock/section.ts'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
@@ -10,24 +11,23 @@ import { computed } from 'vue'
  * @param initialData - Начальные данные с сервера для инициализации store
  * @returns Объект с данными секции и методами управления
  */
-export function useSection<T = any>(initialData?: SectionData<T>) {
+export function useSection<T extends SectionData>(initialData?: T) {
   const store = useSectionStore()
 
   // Инициализируем store данными с сервера (только при первой загрузке)
   if (initialData) {
-    store.initialize<T>(initialData)
+    store.initialize(initialData)
   }
 
   // Получаем реактивные ссылки на данные из store
   const { items, pagination, sectionList, filterData, isLoading, error } = storeToRefs(store)
 
   // Объединяем данные в единую структуру для удобного использования в компонентах
-  const catalogData = computed<SectionData<T> | null>(() => {
-    if (!filterData.value) return null
+  const catalogData = computed<SectionData>(() => {
     return {
       filter: filterData.value,
       section: {
-        items: items.value as T[],
+        items: items.value,
         pagination: pagination.value
       },
       sectionList: sectionList.value

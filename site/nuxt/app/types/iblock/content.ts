@@ -16,7 +16,6 @@ import type { CatalogItemDTO } from './catalog'
 import type { FormDTO } from '../webForm/form'
 import type { ElementDTO } from './element'
 import type { SeoData } from '../seo'
-import type { PaginationDTO } from '../pagination'
 
 /**
  * Доступные типы блоков контента
@@ -156,15 +155,6 @@ export type PageContent = (
 export interface PageData<T = PageContent> {
   page: T
   seo: SeoData
-}
-
-/**
- * Структура секции с массивом элементов и информацией о пагинации.
- * Используется компонентами секции/каталога.
- */
-export interface SectionItemsDTO<T = any> {
-  items: T[]
-  pagination: PaginationDTO | null
 }
 
 /**

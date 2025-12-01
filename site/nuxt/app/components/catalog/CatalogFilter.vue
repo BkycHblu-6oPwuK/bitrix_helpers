@@ -3,7 +3,7 @@
   Отображает дропдаун сортировки, поповеры с фильтрами и кнопку очистки
 -->
 <script setup lang="ts">
-import type { FilterDTO } from '~/types/iblock/catalog.ts'
+import type { FilterDTO } from '~/types/iblock/section.ts'
 import CatalogFilterItem from './CatalogFilterItem.vue'
 
 // Пропсы: данные фильтра (поля, сортировки, типы)
