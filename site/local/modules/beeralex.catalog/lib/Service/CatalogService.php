@@ -20,7 +20,7 @@ class CatalogService extends CoreCatalogService
         protected readonly PriceTypeRepository $priceTypeRepository,
         protected readonly SortingService $sortingService,
         protected readonly DiscountFactory $discountFactory,
-        protected readonly CatalogSectionService $catalogSectionService,
+        protected readonly CatalogSectionsService $catalogSectionsService,
         protected readonly SearchService $searchService
     ) {}
 
@@ -87,7 +87,7 @@ class CatalogService extends CoreCatalogService
     {
         $result = [];
         $productsIds = $this->searchService->getProductsIds($query, $searchLimit);
-        $sections = $this->catalogSectionService->getSections($productsIds);
+        $sections = $this->catalogSectionsService->getSections($productsIds);
         $productsIds = array_splice($productsIds, 0, $realLimit);
         $result['PRODUCTS'] = $this->getProductsWithOffers($productsIds);
         $result['SECTIONS'] = $sections;

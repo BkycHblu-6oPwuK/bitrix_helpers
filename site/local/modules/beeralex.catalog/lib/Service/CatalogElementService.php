@@ -2,144 +2,108 @@
 
 namespace Beeralex\Catalog\Service;
 
+use Beeralex\Catalog\Contracts\OfferRepositoryContract;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
-use Beeralex\Catalog\Repository\OffersRepository;
+use Beeralex\Core\Repository\PropertyFeaturesRepository;
+use Beeralex\Core\Repository\PropertyRepository;
+use Beeralex\Core\Service\FileService;
+use Beeralex\Core\Service\HlblockService;
 use Bitrix\Iblock\InheritedProperty\ElementValues;
 use Bitrix\Main\Loader;
-use Bitrix\Highloadblock\HighloadBlockTable;
 
 class CatalogElementService
 {
     public function __construct(
         protected readonly ProductRepositoryContract $productRepository,
-        protected readonly OffersRepository $offersRepository
+        protected readonly OfferRepositoryContract $offersRepository,
+        protected readonly PropertyRepository $propertyRepository,
+        protected readonly PropertyFeaturesRepository $propertyFeaturesRepository,
+        protected readonly HlblockService $hlblockService,
+        protected readonly FileService $fileService,
     ) {
-        $this->productRepository = $productRepository;
         Loader::includeModule('iblock');
     }
 
     public function getElementData(int $elementId, ?int $offerId = null): array
     {
-        $product = $this->productRepository->one(['ID' => $elementId]);
+        $product = $this->productRepository->getProducts([$elementId])[0] ?? null;
         if (!$product) {
             return [];
         }
-
-        $offers = service(\Beeralex\Catalog\Contracts\OfferRepositoryContract::class)->getOffersByProductIds([$elementId]);
+        $offers = $this->offersRepository->getOffersByProductIds([$elementId]);
         $product['OFFERS'] = $offers[$elementId] ?? [];
+        $propertiesIds = $this->getPropertiesIds($product);
+        $properties = $this->propertyRepository->getByIds($propertiesIds, ['ID', 'CODE', 'NAME', 'USER_TYPE_SETTINGS_LIST', 'USER_TYPE', 'PROPERTY_TYPE']);
+        $propertyTreeFeatures = $this->propertyFeaturesRepository->getByOffersTree(['PROPERTY_ID', 'IS_ENABLED']);
+        $tableNames = $this->getTableNames($properties);
+        $highloadClasses = $this->hlblockService->getHlBlocksByTableNames($tableNames);
+        $this->buildPropertiesForProduct($product, $properties, $propertyTreeFeatures, $highloadClasses);
 
-        // Handle selected offer
-        if ($offerId) {
-            $offers = collect($product['OFFERS']);
-            $offer = $offers->first(fn($value) => $value['ID'] == $offerId);
-            if ($offer) {
-                $product['PRESELECTED_OFFER'] = $offer;
-                $product['SELECTED_OFFER_ID'] = $offer['ID'];
+        $product['OFFER_TREE'] = $this->buildOfferTree($product['OFFERS'], $properties, $propertyTreeFeatures);
+        $preselectedOffer = $this->getPreselectedOffer($product, $offerId);
+        $product['PRESELECTED_OFFER'] = $preselectedOffer;
+        $product['SELECTED_OFFER_ID'] = $preselectedOffer['ID'] ?? null;
+
+        return $product;
+    }
+
+    protected function getPreselectedOffer(array $product, ?int $offerId): array
+    {
+        foreach ($product['OFFERS'] as $offer) {
+            if($offerId === null) {
+                return $offer;
+            }
+            if ((int)$offer['ID'] === $offerId) {
+                return $offer;
             }
         }
 
-        $properties = $this->getProperties($product['IBLOCK_ID'], $elementId);
-
-        $data = [
-            'product' => $product,
-            'propertiesDefault' => $properties,
-            'properties' => $this->getFormattedProperties($properties),
-            'seo' => $this->getSeoData($product['IBLOCK_ID'], $elementId),
-        ];
-
-        $data['colors'] = $this->getColors(
-            $product['ID'],
-            $product['PROPERTIES']['CML2_ARTICLE']['VALUE'] ?? null,
-            $properties['TSVET_NA_SAYTE']['TABLE_NAME'] ?? null
-        );
-
-        return $data;
+        return [];
     }
 
-    protected function getProperties(int $iblockId, int $elementId): array
+    protected function getPropertiesIds(array $product): array
     {
-        $properties = [];
-        $res = \CIBlockElement::GetProperty($iblockId, $elementId, '', '', ['=ACTIVE' => 'Y']);
-        while ($property = $res->GetNext()) {
-            $property = \CIBlockFormatProperties::GetDisplayValue([], $property);
-            if (!empty($property['VALUE_ENUM'])) {
-                $property['VALUE'] = $property['VALUE_ENUM'];
-            } else {
-                $property['VALUE'] = $property['DISPLAY_VALUE'];
-            }
-            if (!empty($property['VALUE'])) {
-                $value = [
-                    'NAME' => $property['NAME'],
-                    'CODE' => $property['CODE'],
-                    'VALUE' => mb_ucfirst($property['VALUE']),
-                ];
-                if (is_array($property['USER_TYPE_SETTINGS'])) {
-                    $value['XML_ID'] = $property['~VALUE'];
-                    $value['TABLE_NAME'] = $property['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                }
-                if ($property['CODE'] == 'TSVET_NA_SAYTE') {
-                    $entity = $this->getHighload($value['TABLE_NAME']);
-                    $result = $entity::query()->setSelect(['UF_FILE'])->where('UF_XML_ID', $property['~VALUE'])->fetch();
-                    $value['FILE'] = $result ? \CFile::GetPath($result['UF_FILE']) : null;
-                }
-                if ($property['MULTIPLE'] == 'Y') {
-                    $properties[$property['CODE']][] = $value;
-                } else {
-                    $properties[$property['CODE']] = $value;
+        $propertyIds = [];
+
+        if (!empty($product['IBLOCK_PROPERTY_ID'])) {
+            $propertyIds[] = $product['IBLOCK_PROPERTY_ID'];
+        }
+
+        foreach ($product as $item) {
+            if (is_array($item)) {
+                foreach ($item as $key => $subItem) {
+                    if ($key === 'IBLOCK_PROPERTY_ID' && !empty($subItem)) {
+                        $propertyIds[$subItem] = $subItem;
+                    } elseif (is_array($subItem) && !empty($subItem['IBLOCK_PROPERTY_ID'])) {
+                        $propertyIds[$subItem['IBLOCK_PROPERTY_ID']] = $subItem['IBLOCK_PROPERTY_ID'];
+                    }
                 }
             }
         }
-        return $properties;
-    }
 
-    protected function getFormattedProperties(array $properties): array
-    {
-        $propertyKeys = [
-            'KARMANY',
-            'SILUET',
-            'TSVET_NA_SAYTE',
-            'OTDELKA',
-            'DLINA_IZDELIYA',
-            'SOSTAV'
-        ];
-        return array_values(array_filter(array_map(function ($key) use ($properties) {
-            if (!empty($properties[$key]['VALUE'])) {
-                return [
-                    'NAME' => $properties[$key]['NAME'],
-                    'VALUE' => $properties[$key]['VALUE']
-                ];
-            }
-            return null;
-        }, $propertyKeys)));
-    }
-
-    protected function getColors(int $productId, ?string $article, ?string $hlTableName): array
-    {
-        if (!$article || !$hlTableName) return [];
-        $highload = $this->getHighload($hlTableName);
-        if (!$highload) return [];
-
-        $colors = [];
-        $elements = $this->productRepository->all(
-            ['=PROPERTY.CML2_ARTICLE' => $article, '=ACTIVE' => 'Y', '=CATALOG.AVAILABLE' => 'Y'],
-            ['ID', 'TSVET_ID' => 'PROPERTY.TSVET_NA_SAYTE']
-        );
-
-        foreach ($elements as $element) {
-            $hlelement = $highload::query()->setSelect(['UF_FILE'])->where('UF_XML_ID', $element['TSVET_ID'])->fetch();
-            $element['FILE'] = $hlelement ? \CFile::GetPath($hlelement['UF_FILE']) : null;
-            if ($element['FILE']) {
-                $colors[] = [
-                    'id' => $element['ID'],
-                    'file' => $element['FILE'],
-                ];
+        if (!empty($product['OFFERS']) && is_array($product['OFFERS'])) {
+            foreach ($product['OFFERS'] as $offer) {
+                foreach ($offer as $item) {
+                    if (is_array($item) && !empty($item['IBLOCK_PROPERTY_ID'])) {
+                        $propertyIds[$item['IBLOCK_PROPERTY_ID']] = $item['IBLOCK_PROPERTY_ID'];
+                    }
+                }
             }
         }
 
-        usort($colors, static function ($a, $b) use ($productId) {
-            return $a['id'] === $productId ? -1 : ($b['id'] === $productId ? 1 : 0);
-        });
-        return $colors;
+        return array_values($propertyIds);
+    }
+
+    protected function getTableNames(array $properties): array
+    {
+        $tableNames = [];
+        foreach ($properties as $property) {
+            if (!empty($property['USER_TYPE_SETTINGS_LIST']['TABLE_NAME'])) {
+                $tableNames[$property['USER_TYPE_SETTINGS_LIST']['TABLE_NAME']] = $property['USER_TYPE_SETTINGS_LIST']['TABLE_NAME'];
+            }
+        }
+
+        return array_values($tableNames);
     }
 
     protected function getSeoData(int $iblockId, int $elementId): array
@@ -147,19 +111,119 @@ class CatalogElementService
         return (new ElementValues($iblockId, $elementId))->getValues();
     }
 
-    protected function getHighload(?string $tableName): ?string
+    protected function buildPropertiesForProduct(array &$product, array $properties, array $propertyTreeFeatures, array $highloadClasses): void
     {
-        if (Loader::IncludeModule('highloadblock') && $tableName) {
-            static $entity = [];
-            if (empty($entity[$tableName])) {
-                $hlblock = HighloadBlockTable::getList(['filter' => ['=TABLE_NAME' => $tableName]])->fetch();
-                if ($hlblock) {
-                    $entityClass = HighloadBlockTable::compileEntity($hlblock)->getDataClass();
-                    $entity[$tableName] = $entityClass;
+        $getFromHighload = function ($tableEntity, $value) {
+            $result = null;
+            if ($tableEntity && $value) {
+                $rsData = $this->fileService->addPictireSrcInQuery($tableEntity::query(), 'UF_FILE')->setSelect(['*', 'PICTURE_SRC'])->setFilter(['=UF_XML_ID' => $value])->setLimit(1)->exec();
+                if ($arData = $rsData->fetch()) {
+                    $result = $arData;
                 }
             }
-            return $entity[$tableName] ?? null;
+            return $result;
+        };
+
+        foreach ($properties as &$property) {
+            // property features
+            $property['HLBLOCK_CLASS'] = null;
+            $property['TREE'] = false;
+            foreach ($propertyTreeFeatures as $feat) {
+                if (!empty($feat['PROPERTY_ID']) && $feat['PROPERTY_ID'] == $property['ID']) {
+                    $property['TREE'] = $feat['IS_ENABLED'] === 'Y';
+                    break;
+                }
+            }
+            if (
+                !empty($property['USER_TYPE_SETTINGS_LIST']['TABLE_NAME'])
+                && isset($highloadClasses[$property['USER_TYPE_SETTINGS_LIST']['TABLE_NAME']])
+            ) {
+                $property['HLBLOCK_CLASS'] = $highloadClasses[$property['USER_TYPE_SETTINGS_LIST']['TABLE_NAME']];
+            }
+            if (isset($product[$property['CODE']])) {
+                if (is_array($product[$property['CODE']][0])) {
+                    foreach ($product[$property['CODE']] as &$propValue) {
+                        $propValue = array_merge($propValue, $property);
+                        $propValue['HL_DATA'] = $getFromHighload($propValue['HLBLOCK_CLASS'], $propValue['VALUE']);
+                    }
+                } else {
+                    $product[$property['CODE']] = array_merge($product[$property['CODE']], $property);
+                    $product[$property['CODE']]['HL_DATA'] = $getFromHighload($product[$property['CODE']]['HLBLOCK_CLASS'], $product[$property['CODE']]['VALUE']);
+                }
+            }
+            foreach ($product['OFFERS'] as &$offer) {
+                if (isset($offer[$property['CODE']])) {
+                    if (is_array($offer[$property['CODE']][0])) {
+                        foreach ($offer[$property['CODE']] as &$propValue) {
+                            $propValue = array_merge($propValue, $property);
+                            $propValue['HL_DATA'] = $getFromHighload($propValue['HLBLOCK_CLASS'], $propValue['VALUE']);
+                        }
+                    } else {
+                        $offer[$property['CODE']] = array_merge($offer[$property['CODE']], $property);
+                        $offer[$property['CODE']]['HL_DATA'] = $getFromHighload($offer[$property['CODE']]['HLBLOCK_CLASS'], $offer[$property['CODE']]['VALUE']);
+                    }
+                }
+            }
         }
-        return null;
+    }
+
+    protected function buildOfferTree(array $offers): array
+    {
+        $treeProps = [];
+        $offersMap = [];
+
+        if (empty($offers)) {
+            return ['PROPS' => [], 'MAP' => []];
+        }
+
+        foreach ($offers as $offer) {
+            foreach ($offer as $code => $prop) {
+                if (is_array($prop) && !empty($prop['TREE'])) {
+                    $treeProps[$code] = [
+                        'CODE' => $code,
+                        'NAME' => $prop['NAME'] ?? $code,
+                        'VALUES' => []
+                    ];
+                }
+            }
+        }
+
+        if (empty($treeProps)) {
+            return ['PROPS' => [], 'MAP' => []];
+        }
+
+        foreach ($offers as $offer) {
+            $offerId = $offer['ID'];
+            $offersMap[$offerId] = [];
+
+            foreach ($treeProps as $code => &$treeProp) {
+                if (!isset($offer[$code]['VALUE'])) continue;
+
+                $value = $offer[$code]['VALUE'];
+                $hl = $offer[$code]['HL_DATA'] ?? null;
+
+                $offersMap[$offerId][$code] = $value;
+
+                if (!isset($treeProp['VALUES'][$value])) {
+                    $treeProp['VALUES'][$value] = [
+                        'ID' => $value,
+                        'VALUE' => $value,
+                        'NAME' => $hl['UF_NAME'] ?? $value,
+                        'XML_ID' => $offer[$code]['XML_ID'] ?? null,
+                        'PICT' => $hl['PICTURE_SRC'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        // Убираем ключи
+        foreach ($treeProps as &$prop) {
+            $prop['VALUES'] = array_values($prop['VALUES']);
+        }
+
+        return [
+            'PROPS' => array_values($treeProps),
+            'MAP' => $offersMap
+        ];
     }
 }

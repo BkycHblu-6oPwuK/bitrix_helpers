@@ -37,6 +37,7 @@
 // echo '</pre>';
 
 use Beeralex\Catalog\Basket\BasketFacade;
+use Beeralex\Catalog\Service\CatalogElementService;
 use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Catalog\Service\SortingService;
 use Beeralex\Content\Repository\HeaderRepository;
@@ -367,8 +368,9 @@ global $APPLICATION;
 //dd(service(IblockService::class)->getTableEntityByPropertyId(5));
 //
 // dd(service(SortingService::class)->getSorting());
-dd((new IblockRepository('catalog'))->getById(16, ['BRAND_REF']));
-dd(service(CatalogService::class)->getProductsWithOffers([16]));
+// dd((new IblockRepository('catalog'))->getById(16, ['BRAND_REF']));
+// dd(service(CatalogService::class)->getProductsWithOffers([16]));
+dd(service(CatalogElementService::class)->getElementData(35));
 
 // dd(service(BasketFacade::class)->getItems());
 // $userHelper = service(UserService::class);

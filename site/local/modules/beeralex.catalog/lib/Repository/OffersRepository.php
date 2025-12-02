@@ -50,7 +50,7 @@ class OffersRepository extends AbstractCatalogRepository implements OfferReposit
         $items = $this->findAll(
             ['ID' => $offerIds],
             [
-                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CML2_LINK.VALUE'
+                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CML2_LINK'
             ]
         );
         $offers = [];

@@ -27,6 +27,10 @@ return function (RoutingConfigurator $routes): void {
                 [CatalogController::class, 'index']
             )->where('search', '.*');
             $routes->get(
+                'product/{search}',
+                [CatalogController::class, 'index']
+            )->where('search', '.*');
+            $routes->get(
                 'catalog',
                 [CatalogController::class, 'index']
             );

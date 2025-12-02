@@ -22,11 +22,16 @@ use Beeralex\Catalog\Repository\PriceRepository;
 use Beeralex\Catalog\Repository\SortingRepository;
 use Beeralex\Catalog\Repository\StoreRepository;
 use Beeralex\Catalog\Service\Basket\BasketFactory;
-use Beeralex\Catalog\Service\CatalogSectionService;
+use Beeralex\Catalog\Service\CatalogElementService;
+use Beeralex\Catalog\Service\CatalogSectionsService;
 use Beeralex\Catalog\Service\Discount\CouponsService;
 use Beeralex\Catalog\Service\Discount\DiscountFactory;
 use Beeralex\Catalog\Service\PriceService;
 use Beeralex\Catalog\Service\SearchService;
+use Beeralex\Core\Repository\PropertyFeaturesRepository;
+use Beeralex\Core\Repository\PropertyRepository;
+use Beeralex\Core\Service\FileService;
+use Beeralex\Core\Service\HlblockService;
 use Beeralex\Core\Service\LanguageService;
 use Beeralex\Core\Service\LocationService;
 use Beeralex\Core\Service\UrlService;
@@ -82,9 +87,9 @@ return [
             PriceRepository::class => [
                 'className' => PriceRepository::class,
             ],
-            CatalogSectionService::class => [
+            CatalogSectionsService::class => [
                 'constructor' => static function () {
-                    return new CatalogSectionService(
+                    return new CatalogSectionsService(
                         productsRepository: service(DIServiceKey::PRODUCT_REPOSITORY->value),
                         urlService: service(UrlService::class)
                     );
@@ -99,8 +104,20 @@ return [
                         priceTypeRepository: service(PriceTypeRepository::class),
                         sortingService: service(SortingService::class),
                         discountFactory: service(DiscountFactory::class),
-                        catalogSectionService: service(CatalogSectionService::class),
+                        catalogSectionsService: service(CatalogSectionsService::class),
                         searchService: service(SearchService::class)
+                    );
+                }
+            ],
+            CatalogElementService::class => [
+                'constructor' => static function () {
+                    return new CatalogElementService(
+                        productRepository: service(DIServiceKey::PRODUCT_REPOSITORY->value),
+                        offersRepository: service(DIServiceKey::OFFERS_REPOSITORY->value),
+                        propertyRepository: service(PropertyRepository::class),
+                        propertyFeaturesRepository: service(PropertyFeaturesRepository::class),
+                        hlblockService: service(HlblockService::class),
+                        fileService: service(FileService::class),
                     );
                 }
             ],

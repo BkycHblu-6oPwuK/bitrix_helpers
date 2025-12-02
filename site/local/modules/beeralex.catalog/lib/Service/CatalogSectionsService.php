@@ -5,7 +5,7 @@ namespace Beeralex\Catalog\Service;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Core\Service\UrlService;
 
-class CatalogSectionService
+class CatalogSectionsService
 {
     public function __construct(
         protected readonly ProductRepositoryContract $productsRepository,
