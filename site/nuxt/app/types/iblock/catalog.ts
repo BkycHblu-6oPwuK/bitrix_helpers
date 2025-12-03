@@ -4,6 +4,7 @@
  */
 
 import type { PageData } from './content'
+import type { PropertiesType } from './property'
 import type { FilterDTO, SectionDTO, SectionsDTO, SectionData } from './section'
 
 
@@ -94,6 +95,7 @@ export interface CatalogOfferDTO {
   prices: CatalogPriceDTO[]                // Цены предложения
   storeProduct: CatalogStoreProductItemDTO[] // Остатки на складах
   detailPageUrl: string                    // URL детальной страницы
+  properties: Record<string, PropertiesType>    // Свойства товара
 }
 
 /**
@@ -112,6 +114,7 @@ export interface CatalogItemDTO {
   preselectedOffer: CatalogOfferDTO | null // Предвыбранное предложение
   prices: CatalogPriceDTO[]            // Цены товара (для простых товаров)
   catalog: CatalogProductDTO | null    // Торговая информация (для простых товаров)
+  properties: Record<string, PropertiesType>    // Свойства товара
 }
 
 /**

@@ -2,7 +2,7 @@
 
 namespace Beeralex\Api\Domain\Iblock\Catalog;
 
-use Beeralex\Core\Http\Resources\Resource;
+use Beeralex\Api\Domain\Iblock\AbstractIblockItemDTO;
 
 /** 
  * @property int $id
@@ -12,11 +12,13 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property CatalogPriceDTO[] $prices
  * @property CatalogStoreProductItemDTO[] $storeProduct
  * @property string $detailPageUrl
+ * DTO элемента предложения
  */
-class CatalogOfferDTO extends Resource
+class CatalogOfferDTO extends AbstractIblockItemDTO
 {
     public static function make(array $catalogOffer): static
     {
+        $properties = static::getFromDecomposeProperties($catalogOffer);
         return new static([
             'id' => (int)$catalogOffer['ID'] ?? 0,
             'active' => (bool)$catalogOffer['ACTIVE'] ?? false,
@@ -25,6 +27,7 @@ class CatalogOfferDTO extends Resource
             'prices' => array_map([CatalogPriceDTO::class, 'make'], $catalogOffer['PRICE'] ?? []),
             'storeProduct' => array_map([CatalogStoreProductItemDTO::class, 'make'], $catalogOffer['STORE_PRODUCT'] ?? []),
             'detailPageUrl' => $catalogOffer['DETAIL_PAGE_URL'] ?? '',
+            'properties' => $properties,
         ]);
     }
 }

@@ -10,6 +10,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $code
  * @property string $url
  * @property string $picture_src
+ * DTO для секции инфоблока, например элемент из catalog.section.list
  */
 class SectionDTO extends Resource
 {

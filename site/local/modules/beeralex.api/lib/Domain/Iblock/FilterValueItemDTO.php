@@ -10,6 +10,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $value
  * @property bool $checked
  * @property bool $disabled
+ * DTO для элемента значения фильтра catalog.smart.filter
  */
 class FilterValueItemDTO extends Resource
 {

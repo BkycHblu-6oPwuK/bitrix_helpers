@@ -24,6 +24,8 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $sectionDetailPictureFileTitle
  * @property string $sectionPictureFileName
  * @property string $sectionDetailPictureFileName
+ * DTO для свойств инфоблока, которые могут быть использованы в элементах и секциях
+ * Эти свойства могут быть использованы для SEO, изображений и других метаданных
 */
 class IPropertyValuesDTO extends Resource 
 {

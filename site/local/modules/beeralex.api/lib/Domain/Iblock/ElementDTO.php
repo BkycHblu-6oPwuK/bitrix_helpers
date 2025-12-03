@@ -4,12 +4,11 @@ declare(strict_types=1);
 namespace Beeralex\Api\Domain\Iblock;
 
 use Beeralex\Core\Service\UrlService;
-use Beeralex\Core\Http\Resources\Resource;
 
 /**
  * @property int $id
- * @property string $code
  * @property string $name
+ * @property string $code
  * @property string $previewText
  * @property string $detailText
  * @property string $previewPictureSrc
@@ -18,8 +17,9 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $listPageUrl
  * @property string $dateCreate
  * @property PropertyItemDTO[] $properties
+ * DTO для элементов инфоблока, которые могут быть использованы в списках новостей
  */
-class ElementDTO extends Resource
+class ElementDTO extends AbstractIblockItemDTO
 {
     public static function make(array $data): static
     {
@@ -28,20 +28,12 @@ class ElementDTO extends Resource
 
     public static function fromNewsListElement(array $element): static
     {
-        $props = [];
-        if (!empty($element['DISPLAY_PROPERTIES'])) {
-            foreach ($element['DISPLAY_PROPERTIES'] as $prop) {
-                $dto = PropertyItemDTO::make($prop);
-                if ($dto) {
-                    $props[] = $dto;
-                }
-            }
-        }
+        $props = static::getFromDisplayProperties($element);
 
         return new static([
             'id' => (int)$element['ID'],
-            'code' => (string)$element['CODE'],
             'name' => (string)$element['NAME'],
+            'code' => (string)$element['CODE'],
             'previewText' => $element['PREVIEW_TEXT'] ?? '',
             'detailText' => $element['DETAIL_TEXT'] ?? '',
             'previewPictureSrc' => $element['PREVIEW_PICTURE']['SRC'] ?? '',
@@ -54,20 +46,12 @@ class ElementDTO extends Resource
 
     public static function fromNewsDetailElement(array $element): static
     {
-        $props = [];
-        if (!empty($element['DISPLAY_PROPERTIES'])) {
-            foreach ($element['DISPLAY_PROPERTIES'] as $prop) {
-                $dto = PropertyItemDTO::make($prop);
-                if ($dto) {
-                    $props[] = $dto;
-                }
-            }
-        }
+        $props = static::getFromDisplayProperties($element);
 
         return new static([
             'id' => (int)$element['ID'],
-            'code' => (string)$element['CODE'],
             'name' => (string)$element['NAME'],
+            'code' => (string)$element['CODE'],
             'detailText' => $element['DETAIL_TEXT'] ?? '',
             'previewText' => $element['PREVIEW_TEXT'] ?? '',
             'detailPictureSrc' => $element['DETAIL_PICTURE']['SRC'] ?? '',

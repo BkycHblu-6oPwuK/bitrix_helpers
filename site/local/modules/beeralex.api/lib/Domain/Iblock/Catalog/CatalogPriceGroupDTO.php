@@ -10,6 +10,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property bool $base
  * @property int $sort
  * @property string $xmlId
+ * DTO для группы цен
  */
 class CatalogPriceGroupDTO extends Resource
 {

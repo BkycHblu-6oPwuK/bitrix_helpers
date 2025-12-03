@@ -10,6 +10,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property int $productId
  * @property float $amount
  * @property float $quantityReserved
+ * DTO для элемента остатка из таблицы b_catalog_store_product
  */
 class CatalogStoreProductItemDTO extends Resource
 {

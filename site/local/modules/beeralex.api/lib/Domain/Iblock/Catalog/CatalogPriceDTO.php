@@ -15,6 +15,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property int $quantityTo
  * @property float $priceScale
  * @property CatalogPriceGroupDTO|null $catalogGroup
+ * DTO для цены товара из таблицы b_catalog_price
  */
 class CatalogPriceDTO extends Resource
 {

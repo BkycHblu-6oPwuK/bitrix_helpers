@@ -8,6 +8,7 @@ use Beeralex\Api\Domain\Pagination\PaginationDTO;
 /** 
  * @property CatalogItemDTO[] $items
  * @property PaginationDTO|null $pagination
+ * DTO для catalog.section
  */
 class CatalogSectionDTO extends SectionItemsDTO
 {

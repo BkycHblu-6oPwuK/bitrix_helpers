@@ -12,6 +12,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property bool $default
  * @property string $direction
  * @property string $sortBy
+ * DTO для элемента сортировки, который используется в фильтре catalog.smart.filter
  */
 class SortingItemDTO extends Resource
 {

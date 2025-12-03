@@ -10,6 +10,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $title
  * @property SortingItemDTO[] $availableSorting
  * @property string $requestParam
+ * DTO сортировки
  */
 class SortingDTO extends Resource
 {

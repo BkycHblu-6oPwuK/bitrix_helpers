@@ -33,6 +33,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $type
  * @property bool $available
  * @property bool $bundle
+ * DTO для данных товара из ProductTable
  */
 class CatalogProductDTO extends Resource
 {

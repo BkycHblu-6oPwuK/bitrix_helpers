@@ -8,6 +8,7 @@ use Beeralex\Core\Http\Resources\Resource;
 /** 
  * @property CatalogItemDTO[] $items
  * @property PaginationDTO|null $pagination
+ * DTO для секции с элементами (каталог, статьи и т.д.)
  */
 class SectionItemsDTO extends Resource
 {

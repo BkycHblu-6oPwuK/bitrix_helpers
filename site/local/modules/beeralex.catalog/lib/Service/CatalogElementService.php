@@ -8,7 +8,6 @@ use Beeralex\Core\Repository\PropertyFeaturesRepository;
 use Beeralex\Core\Repository\PropertyRepository;
 use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Service\HlblockService;
-use Bitrix\Iblock\InheritedProperty\ElementValues;
 use Bitrix\Main\Loader;
 
 class CatalogElementService
@@ -104,11 +103,6 @@ class CatalogElementService
         }
 
         return array_values($tableNames);
-    }
-
-    protected function getSeoData(int $iblockId, int $elementId): array
-    {
-        return (new ElementValues($iblockId, $elementId))->getValues();
     }
 
     protected function buildPropertiesForProduct(array &$product, array $properties, array $propertyTreeFeatures, array $highloadClasses): void
@@ -210,7 +204,7 @@ class CatalogElementService
                         'VALUE' => $value,
                         'NAME' => $hl['UF_NAME'] ?? $value,
                         'XML_ID' => $offer[$code]['XML_ID'] ?? null,
-                        'PICT' => $hl['PICTURE_SRC'] ?? null,
+                        'PICTURE_SRC' => $hl['PICTURE_SRC'] ?? null,
                     ];
                 }
             }

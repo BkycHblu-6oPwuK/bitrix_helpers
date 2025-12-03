@@ -12,6 +12,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property string $displayType
  * @property bool $displayExpanded
  * @property FilterValueItemDTO[] $values
+ * DTO для элемента фильтра catalog.smart.filter (Бренд, Цвет, Объем и т.д.)
  */
 class FilterItemDTO extends Resource
 {

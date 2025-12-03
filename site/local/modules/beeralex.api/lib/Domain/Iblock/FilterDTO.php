@@ -10,6 +10,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property FilterItemDTO[] $items
  * @property SortingDTO[] $sorting
  * @property array $types
+ * DTO для фильтра catalog.smart.filter
  */
 class FilterDTO extends Resource
 {

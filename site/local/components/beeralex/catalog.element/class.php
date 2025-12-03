@@ -1,31 +1,24 @@
 <?
 
-class BeeralexCatalogElement extends \CBitrixComponent
+use Beeralex\Catalog\Service\CatalogElementService;
+use Beeralex\Core\Service\IblockService;
+use Bitrix\Main\Loader;
+
+CBitrixComponent::includeComponentClass("bitrix:catalog.element");
+
+class BeeralexCatalogElement extends \CatalogElementComponent
 {
-    public function __construct($component = null)
+    public function onPrepareComponentParams($params)
     {
-        parent::__construct($component);
-    }
-
-    public function executeComponent()
-    {
-        if ($this->startResultCache(false, [$this->request->get('offerId')], 'beeralex/catalog.element')) {
-            
-            $this->includeComponentTemplate();
+        if (!$params['IBLOCK_ID']) {
+            $params['IBLOCK_ID'] = service(IblockService::class)->getIblockIdByCode('catalog');
         }
-        $this->initSeoData();
 
-        return $this->arResult;
-    }
+        if ($params['CATALOG_ELEMENT_SERVICE'] === null || !($params['CATALOG_ELEMENT_SERVICE'] instanceof CatalogElementService)) {
+            Loader::requireModule('beeralex.catalog');
+            $params['CATALOG_ELEMENT_SERVICE'] = service(CatalogElementService::class);
+        }
 
-    protected function initSeoData(): void
-    {
-        /** @var Cmain */
-        global $APPLICATION;
-        $seoData = $this->arResult['seo'];
-        $APPLICATION->SetTitle($seoData['ELEMENT_META_TITLE']);
-        $APPLICATION->SetPageProperty('description', $seoData['ELEMENT_META_DESCRIPTION']);
-        $APPLICATION->SetPageProperty('keywords', $seoData['ELEMENT_META_KEYWORDS']);
-        $APPLICATION->SetPageProperty('title', $seoData['ELEMENT_META_TITLE']);
+        return parent::onPrepareComponentParams($params);
     }
 }
