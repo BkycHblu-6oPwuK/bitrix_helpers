@@ -2,12 +2,13 @@
 
 namespace Beeralex\Api\Domain\Iblock\Catalog;
 
-use Beeralex\Api\Domain\Pagination\PaginationDTO;
+use Beeralex\Api\Domain\Iblock\SectionDTO;
 use Beeralex\Core\Http\Resources\Resource;
 
 /** 
- * @property CatalogItemDTO[] $items
- * @property PaginationDTO|null $pagination
+ * @property CatalogItemDTO $element
+ * @property SectionDTO[] $path
+ * DTO для элемента каталога
  */
 class CatalogElementDTO extends Resource
 {
@@ -18,9 +19,9 @@ class CatalogElementDTO extends Resource
 
     public static function makeFrom(array $elementData, array $arResult)
     {
-        $item = [];
         return new static([
-            'element' => $item,
+            'element' => CatalogItemDTO::make($elementData),
+            'path' => array_map([SectionDTO::class, 'make'], $arResult['PATH'] ?? []),
         ]);
     }
 }

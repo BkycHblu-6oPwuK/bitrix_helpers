@@ -3,7 +3,7 @@ import { ref, reactive } from 'vue'
 import { useApi } from '~/composables/useApi'
 import FormField from './FormField.vue'
 import SubmitButton from '../ui/SubmitButton.vue'
-import type { FormDTO, FormStoreRequest } from '~/types/webForm/form'
+import type { FormDTO, FormStoreRequest } from '~/types/webForm'
 
 const props = defineProps<{ form: FormDTO }>()
 const emit = defineEmits<{ (e: 'submitted', payload: any): void }>()

@@ -13,9 +13,10 @@
  */
 
 import type { CatalogItemDTO } from './catalog'
-import type { FormDTO } from '../webForm/form'
+import type { FormDTO } from '../webForm'
 import type { ElementDTO } from './element'
 import type { SeoData } from '../seo'
+import type { SectionDTO } from '.'
 
 /**
  * Доступные типы блоков контента
@@ -158,11 +159,17 @@ export interface PageData<T = PageContent> {
 }
 
 /**
+ * Универсальная структура данных для детальной страницы
+ */
+export interface DetailPageDTO<T = any> {
+  element: T
+  path: Record<string, SectionDTO> // путь к элементу, хлебные крошки
+}
+
+/**
  * Специальная форма PageData для отображения одиночного элемента (детальная страница)
- * @template T - Тип элемента (ElementDTO, CatalogItemDTO и т.д.)
+ * @template T - Тип элемента (ElementDTO и т.д.)
  */
 export interface PageDataWithElement<T = any> extends Omit<PageData, 'page'> {
-  page: {
-    element: T
-  }
+  page: DetailPageDTO<T>
 }

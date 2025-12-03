@@ -4,7 +4,8 @@
   Используется внутри поповера CatalogFilterItem
 -->
 <script setup lang="ts">
-import type { FilterValueItemDTO } from '~/types/iblock/section.ts'
+import type { FilterValueItemDTO } from '~/types/iblock/page';
+
 
 // Пропсы от родителя
 const props = defineProps<{

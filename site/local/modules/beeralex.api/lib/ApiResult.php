@@ -17,8 +17,26 @@ class ApiResult extends \Bitrix\Main\Result
         return $this;
     }
 
+    public function mergePageData(array|Resource $data, ?string $key = null)
+    {
+        if (!isset($this->data['page'])) {
+            $this->data['page'] = [];
+        }
+        if ($key) {
+            $this->data['page'][$key] = array_merge(
+                $this->data['page'][$key] ?? [],
+                $data instanceof Resource ? $data->toArray() : $data
+            );
+        } else {
+            $this->data['page'] = array_merge($this->data['page'], $data instanceof Resource ? $data->toArray() : $data);
+        }
+    }
+
     public function addPageData(array|Resource $data, ?string $key = null)
     {
+        if (!isset($this->data['page'])) {
+            $this->data['page'] = [];
+        }
         if ($key) {
             $this->data['page'][$key] = $data instanceof Resource ? $data->toArray() : $data;
         } else {

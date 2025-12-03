@@ -4,7 +4,7 @@
   Показывается вверху страницы каталога для навигации
 -->
 <script setup lang="ts">
-import type { SectionDTO } from '~/types/iblock/catalog.ts';
+import type { SectionDTO } from '~/types/iblock';
 import SectionItem from './SectionItem.vue';
 
 // Пропсы: массив дочерних разделов

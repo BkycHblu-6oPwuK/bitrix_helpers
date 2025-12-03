@@ -5,7 +5,7 @@
 
 import type { ElementDTO } from "./element"
 import type { PageData, PageDataWithElement } from "./content"
-import type { SectionData } from "./section"
+import type { SectionData } from "./page"
 
 /**
  * Данные списка статей с пагинацией

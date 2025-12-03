@@ -2,6 +2,7 @@
 
 namespace Beeralex\Api\Domain\Iblock\Catalog;
 
+use Beeralex\Api\Domain\Iblock\SectionDTO;
 use Beeralex\Api\Domain\Iblock\SectionItemsDTO;
 use Beeralex\Api\Domain\Pagination\PaginationDTO;
 
@@ -17,6 +18,7 @@ class CatalogSectionDTO extends SectionItemsDTO
         return parent::makeFrom(
             array_map([CatalogItemDTO::class, 'make'], $arResult['ITEMS'] ?? []),
             $arResult['NAV_RESULT'] ? PaginationDTO::fromResult($arResult['NAV_RESULT']) : null,
+            array_map([SectionDTO::class, 'make'], $arResult['PATH'] ?? [])
         );
     }
 }

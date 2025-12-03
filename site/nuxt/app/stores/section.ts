@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { PageData } from '~/types/iblock/content'
-import type { FilterDTO, SectionData } from '~/types/iblock/section'
+import type { FilterDTO, SectionData } from '~/types/iblock/page';
 import type { PaginationDTO } from '~/types/pagination'
 
 const getSelectedFilterHash = (selectedFilters: Record<string, string>) => {

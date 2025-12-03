@@ -4,7 +4,7 @@
   Каждая карточка товара - это ссылка на детальную страницу
 -->
 <script setup lang="ts">
-import type { SectionItemsDTO } from '~/types/iblock/content';
+import type { SectionItemsDTO } from '~/types/iblock/page';
 import Pagination from './Pagination.vue';
 import type { CatalogItemDTO } from '~/types/iblock/catalog.ts';
 

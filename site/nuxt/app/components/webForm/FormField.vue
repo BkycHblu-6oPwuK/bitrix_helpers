@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { UInput, UTextarea, USelect, UCheckbox, URadioGroup } from '#components'
-import type { FormNewFieldDTO } from '~/types/webForm/form';
+import { UInput, UTextarea, USelect, URadioGroup } from '#components'
+import type { FormNewFieldDTO } from '~/types/webForm';
 
 const props = defineProps<{ field: FormNewFieldDTO; error?: string }>()
 const model = defineModel<any>()

@@ -1,8 +1,9 @@
 /**
- * Типы для секции страниц (фильтрация, сортировка и элементы с пагинацией и разделами)
+ * Типы для страниц на основе инфоблоков (фильтрация, сортировка и элементы с пагинацией и разделами)
  * например - каталолог, статьи, новости и т.д.
  */
 
+import type { SectionDTO } from "."
 import type { PaginationDTO } from "../pagination"
 
 /**
@@ -23,7 +24,8 @@ export interface SectionData<SL = any[]|null, F = FilterDTO|null, S = any> {
  */
 export interface SectionItemsDTO<T = any> {
     items: T[]
-    pagination: PaginationDTO | null
+    pagination: PaginationDTO | null,
+    path: Record<string, SectionDTO> // хлебные крошки
 }
 
 /**
@@ -94,17 +96,6 @@ export interface FilterItemDTO {
     displayType: string         // Тип отображения (checkbox, radio, range)
     displayExpanded: boolean    // Развернут ли фильтр по умолчанию
     values: FilterValueItemDTO[] // Массив доступных значений
-}
-
-/**
- * Раздел каталога (категория)
- */
-export interface SectionDTO {
-    id: string        // ID раздела
-    name: string      // Название раздела
-    code: string      // Символьный код
-    url: string       // URL раздела
-    pictureSrc: string // URL картинки раздела
 }
 
 /**

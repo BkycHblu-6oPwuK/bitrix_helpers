@@ -4,7 +4,8 @@
   Используется в компоненте Sections для навигации по подразделам
 -->
 <script setup lang="ts">
-import type { SectionDTO } from '~/types/iblock/catalog.ts';
+import type { SectionDTO } from '~/types/iblock';
+
 
 // Пропсы: данные раздела (id, название, URL)
 const props = defineProps<{

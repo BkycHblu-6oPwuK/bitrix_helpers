@@ -1,7 +1,7 @@
 import { useSectionStore } from '~/stores/section'
-import type { SectionData } from '~/types/iblock/section.ts'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
+import type { SectionData } from '~/types/iblock/page'
 
 /**
  * Композабл для работы с секцией (каталог, статьи и т.д.)

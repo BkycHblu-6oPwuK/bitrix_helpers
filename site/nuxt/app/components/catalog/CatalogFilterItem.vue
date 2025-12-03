@@ -4,7 +4,7 @@
   При наведении открывает поповер с чекбоксами
 -->
 <script setup lang="ts">
-import type { FilterItemDTO, FilterDTO } from '~/types/iblock/catalog.ts'
+import type { FilterDTO, FilterItemDTO } from '~/types/iblock/page';
 import CatalogFilterCheckboxField from './CatalogFilterCheckboxField.vue'
 
 // Пропсы от родительского компонента
