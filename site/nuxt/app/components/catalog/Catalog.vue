@@ -15,8 +15,8 @@ const props = defineProps<{
 }>()
 
 // Инициализируем store с данными и получаем методы управления
-const { catalogData, isLoading, setAppendMode, loadCatalogPage } = useSection<CatalogDTO>(props.catalog)
-const { buildFilterUrl, setSorting, filterData } = useSectionFilter()
+const { catalogData, isLoading, setAppendMode, loadCatalogPage, selectedFilters } = useSection<CatalogDTO>(props.catalog)
+const { buildFilterUrl, setSorting } = useSectionFilter()
 const { getPageUrl } = usePagination()
 
 /**
@@ -24,8 +24,13 @@ const { getPageUrl } = usePagination()
  * Строит URL с выбранными фильтрами и загружает новые данные
  */
 const handleApplyFilter = async () => {
+  if(Object.keys(selectedFilters.value).length === 0) {
+    handleClearFilter()
+    return
+  }
   if (!catalogData.value?.filter) return
-  const url = buildFilterUrl(window.location.href)
+  console.log('Applying filters...')
+  const url = buildFilterUrl()
   await loadCatalogPage<CatalogDTO>(url, { navigateFilter: true })
 }
 
@@ -35,6 +40,11 @@ const handleApplyFilter = async () => {
  */
 const handleClearFilter = async () => {
   if (!catalogData.value?.filter) return
+  console.log('Clearing filters...')
+  
+  // Сначала очищаем выбранные фильтры в store
+  const store = useSectionStore()
+  store.clearFilters()
   
   const clearUrl = catalogData.value.filter.clearUrl
   loadCatalogPage<CatalogDTO>(new URL(clearUrl, window.location.origin), { navigateFilter: true })
@@ -46,7 +56,8 @@ const handleClearFilter = async () => {
  */
 const handleUpdateSorting = async (sortId: string) => {
   setSorting(sortId)
-  const url = buildFilterUrl(window.location.href)
+  console.log('Updating sorting to:', sortId)
+  const url = buildFilterUrl()
   await loadCatalogPage<CatalogDTO>(url)
 }
 
@@ -56,10 +67,9 @@ const handleUpdateSorting = async (sortId: string) => {
  */
 const handleShowMore = async () => {
   if (!catalogData.value?.section.pagination) return
-  
   const nextPage = catalogData.value.section.pagination.currentPage + 1
   const pageUrl = getPageUrl(nextPage)
-  
+  console.log('Loading more items for page:', nextPage, 'URL:', pageUrl)
   if (pageUrl) {
     setAppendMode(true) // Включаем режим добавления
     loadCatalogPage<CatalogDTO>(pageUrl, { append: true })
@@ -72,6 +82,7 @@ const handleShowMore = async () => {
  */
 const handleChangePage = async (page: number) => {
   const pageUrl = getPageUrl(page)
+  console.log('Changing page to:', pageUrl)
   if (pageUrl) {
     setAppendMode(false) // Выключаем режим добавления
     window.scrollTo({ top: 0, behavior: 'smooth' })

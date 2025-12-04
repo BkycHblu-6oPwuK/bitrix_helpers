@@ -25,7 +25,7 @@ export interface SectionData<SL = any[]|null, F = FilterDTO|null, S = any> {
 export interface SectionItemsDTO<T = any> {
     items: T[]
     pagination: PaginationDTO | null,
-    path: Record<string, SectionDTO> // хлебные крошки
+    path: Record<string, SectionDTO> | null // хлебные крошки
 }
 
 /**

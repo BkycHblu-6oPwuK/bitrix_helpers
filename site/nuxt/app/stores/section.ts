@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
+import type { SectionDTO } from '~/types/iblock';
 import type { PageData } from '~/types/iblock/content'
 import type { FilterDTO, SectionData } from '~/types/iblock/page';
 import type { PaginationDTO } from '~/types/pagination'
 
 const getSelectedFilterHash = (selectedFilters: Record<string, string>) => {
+  console.log(selectedFilters)
   return JSON.stringify(JSON.parse(JSON.stringify(selectedFilters)));
 }
 
@@ -28,6 +30,9 @@ export const useSectionStore = defineStore('section', {
     // Данные пагинации (текущая страница, общее кол-во страниц и т.д.)
     pagination: null as PaginationDTO | null,
 
+    // Путь для хлебных крошек (объект с ключами - ID разделов)
+    path: null as Record<string, SectionDTO> | null,
+
     // Список дочерних разделов для отображения навигации
     sectionList: null as any[] | null,
 
@@ -42,6 +47,9 @@ export const useSectionStore = defineStore('section', {
 
     // Хеш выбранных фильтров для отслеживания изменений
     oldSelectedFilterHash: '{}' as string,
+
+    // Флаг для пропуска следующего срабатывания watch при программной навигации
+    skipNextRouteWatch: false,
   }),
 
   getters: {
@@ -96,7 +104,17 @@ export const useSectionStore = defineStore('section', {
       }
 
       this.selectedFilters = selectedFilters
-      this.oldSelectedFilterHash = getSelectedFilterHash(selectedFilters);
+
+      // Включаем в хеш все параметры из URL, чтобы отслеживать изменения страницы при навигации
+      const urlParams = new URLSearchParams(window.location.search)
+      if (Object.keys(this.selectedFilters).length > 0 && !urlParams.has('ajax')) {
+        urlParams.set('ajax', 'y')
+      }
+      const allParams = {
+        ...selectedFilters,
+        ...Object.fromEntries(urlParams)
+      }
+      this.oldSelectedFilterHash = getSelectedFilterHash(allParams);
       this.currentSortId = this.filterData.sorting.currentSortId
     },
 
@@ -136,11 +154,10 @@ export const useSectionStore = defineStore('section', {
 
     /**
      * Построение URL с учетом выбранных фильтров и сортировки
-     * @param baseUrl - Базовый URL страницы
      * @returns URL объект с параметрами фильтрации
      */
-    buildFilterUrl(baseUrl: string): URL {
-      const url = new URL(baseUrl)
+    buildFilterUrl(): URL {
+      const url = new URL(window.location.href)
       const params = new URLSearchParams(url.search)
       const selectedFilters = Object.entries(this.selectedFilters)
 
@@ -155,7 +172,8 @@ export const useSectionStore = defineStore('section', {
       }
 
       // Помечаем запрос как AJAX для серверной обработки
-      if (selectedFilters.length && !params.has('ajax')) {
+      // Добавляем флаг ajax только если в параметрах есть другие параметры
+      if (Object.keys(this.selectedFilters).length > 0 && !params.has('ajax')) {
         params.set('ajax', 'y')
       }
 
@@ -197,17 +215,21 @@ export const useSectionStore = defineStore('section', {
      * @param url - URL для загрузки
      * @param options - Настройки загрузки
      *   - append: добавить элементы к существующим (true) или заменить (false)
-     *   - fromWatch: вызов из watch роутера (использует nextAppendMode)
+     *   - navigateFilter: навигация на URL фильтра после загрузки (по умолчанию false)
      */
     async loadPage<T extends SectionData>(url: URL, options?: { append?: boolean; navigateFilter?: boolean }) {
       this.isLoading = true
       this.error = null
+      console.log('Loading page:', url.href)
 
       try {
         const path = url.pathname
         const query = Object.fromEntries(url.searchParams);
 
-        const oldSelectedFilterHash = getSelectedFilterHash(this.selectedFilters);
+        const oldSelectedFilterHash = getSelectedFilterHash({
+          ...this.selectedFilters,
+          ...query
+        });
 
         if (oldSelectedFilterHash === this.oldSelectedFilterHash) {
           return;
@@ -219,7 +241,7 @@ export const useSectionStore = defineStore('section', {
         const shouldAppend = options?.append || false
 
         // Уникальный ключ кеша включает режим для предотвращения конфликтов
-        const uniqueKey = `${path}-${JSON.stringify(query)}-${shouldAppend ? 'append' : 'replace'}`
+        const uniqueKey = `${path}-${oldSelectedFilterHash}-${shouldAppend ? 'append' : 'replace'}`
 
         const { data: response, error: apiError } = await useApi<PageData<T>>(path, {
           key: uniqueKey,
@@ -249,13 +271,18 @@ export const useSectionStore = defineStore('section', {
           this.filterData = newPageData.filter
         }
 
-        // Сбрасываем флаг режима после использования
         this.nextAppendMode = false
 
-        if (options?.navigateFilter) {
-          await navigateTo(response.value.data.page.filter?.filterUrl)
+        let newUrl = ''
+        if (options?.navigateFilter && response.value.data.page.filter?.filterUrl) {
+          newUrl = response.value.data.page.filter.filterUrl // чпу фильтра
         } else {
-          await navigateTo(url.pathname + url.search)
+          newUrl = url.pathname + url.search // полная ссылка с параметрами
+        }
+
+        // Добавляем в историю только если URL изменился
+        if (window.location.pathname + window.location.search !== newUrl) {
+          window.history.pushState({ timestamp: Date.now() }, '', newUrl) // с использованием навигации nuxt - происходит переход на новую страницу и повторяется загрузка данных
         }
 
         return response.value

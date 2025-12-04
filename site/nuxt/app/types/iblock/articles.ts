@@ -3,7 +3,7 @@
  * Используются для списков и детальных страниц статей
  */
 
-import type { ElementDTO } from "./element"
+import type { ElementDTO } from "."
 import type { PageData, PageDataWithElement } from "./content"
 import type { SectionData } from "./page"
 
