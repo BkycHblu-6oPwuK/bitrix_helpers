@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
@@ -7,6 +8,7 @@ use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Catalog\Service\Basket\BasketFactory;
 use Beeralex\Catalog\Service\Basket\BasketService;
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Request;
 
 /**
@@ -20,30 +22,31 @@ class BasketController extends Controller
 
     public function __construct(?Request $request = null)
     {
+        Loader::requireModule('beeralex.favorite');
         parent::__construct($request);
         $this->basketService = service(BasketFactory::class)->createBasketServiceForCurrentUser();
     }
-    
+
     public function configureActions()
     {
         return [
             'getBasket' => [
-                '-prefilters' => [],
+                'prefilters' => [],
             ],
             'add' => [
-                '-prefilters' => [],
+                'prefilters' => [],
             ],
             'update' => [
-                '-prefilters' => [],
+                'prefilters' => [],
             ],
             'delete' => [
-                '-prefilters' => [],
+                'prefilters' => [],
             ],
             'clear' => [
-                '-prefilters' => [],
+                'prefilters' => [],
             ],
             'applyCoupon' => [
-                '-prefilters' => [],
+                'prefilters' => [],
             ],
         ];
     }

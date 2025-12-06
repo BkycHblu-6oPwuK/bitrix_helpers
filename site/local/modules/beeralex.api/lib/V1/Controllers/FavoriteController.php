@@ -7,6 +7,7 @@ use Beeralex\Api\ApiResult;
 use Beeralex\Favorite\FavouriteService;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Error;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Request;
 
 class FavoriteController extends Controller
@@ -17,6 +18,7 @@ class FavoriteController extends Controller
 
     public function __construct(?Request $request = null)
     {
+        Loader::requireModule('beeralex.favorite');
         $this->favouriteService = service(FavouriteService::class);
         parent::__construct($request);
     }
@@ -52,12 +54,7 @@ class FavoriteController extends Controller
                 return $apiResult;
             }
             
-            $fuserId = \Bitrix\Sale\Fuser::getId();
-            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
-            
             $apiResult->setData([
-                'fuserId' => $fuserId,
-                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
                 'count' => $this->favouriteService->getCountByUser(),
                 'items' => $this->favouriteService->getByUser(),
             ]);
@@ -75,12 +72,7 @@ class FavoriteController extends Controller
                 return $apiResult;
             }
             
-            $fuserId = \Bitrix\Sale\Fuser::getId();
-            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
-            
             $apiResult->setData([
-                'fuserId' => $fuserId,
-                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
                 'count' => $this->favouriteService->getCountByUser(),
                 'items' => $this->favouriteService->getByUser(),
             ]);
@@ -107,12 +99,7 @@ class FavoriteController extends Controller
                 return $apiResult;
             }
             
-            $fuserId = \Bitrix\Sale\Fuser::getId();
-            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
-            
             $apiResult->setData([
-                'fuserId' => $fuserId,
-                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
                 'action' => $action,
                 'isFavorite' => !$isFavorite,
                 'count' => $this->favouriteService->getCountByUser(),
@@ -131,12 +118,7 @@ class FavoriteController extends Controller
                 return $apiResult;
             }
             
-            $fuserId = \Bitrix\Sale\Fuser::getId();
-            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
-            
             $apiResult->setData([
-                'fuserId' => $fuserId,
-                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
                 'count' => 0,
                 'items' => [],
             ]);
@@ -149,12 +131,7 @@ class FavoriteController extends Controller
         return $this->process(function () {
             $apiResult = service(ApiResult::class);
             
-            $fuserId = \Bitrix\Sale\Fuser::getId();
-            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
-            
             $apiResult->setData([
-                'fuserId' => $fuserId,
-                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
                 'items' => $this->favouriteService->getByUser(),
                 'count' => $this->favouriteService->getCountByUser(),
             ]);

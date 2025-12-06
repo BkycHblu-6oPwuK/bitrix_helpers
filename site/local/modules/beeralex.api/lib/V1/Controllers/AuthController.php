@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Beeralex\Api\V1\Controllers\User;
+namespace Beeralex\Api\V1\Controllers;
 
+use Beeralex\Api\ActionFilter\JwtOrCsrfFilter;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Core\Http\Controllers\ApiController;
-use Beeralex\User\Auth\ActionFilter\JwtAuthFilter;
 use Beeralex\User\Auth\AuthService;
 use Beeralex\User\Auth\AuthCredentialsDto;
+use Beeralex\User\Auth\FuserTokenManager;
+use Bitrix\Sale\Fuser;
 
 class AuthController extends ApiController
 {
@@ -30,6 +32,9 @@ class AuthController extends ApiController
             'login' => [
                 'prefilters' => [],
             ],
+            'loginFuser' => [
+                'prefilters' => [],
+            ],
             'refresh' => [
                 'prefilters' => [],
             ],
@@ -38,7 +43,7 @@ class AuthController extends ApiController
             ],
             'logout' => [
                 'prefilters' => [
-                    new JwtAuthFilter(),
+                    new JwtOrCsrfFilter(),
                 ],
             ],
             'methods' => [
@@ -74,6 +79,18 @@ class AuthController extends ApiController
             }
 
             return $result;
+        });
+    }
+
+    /**
+     * Получаем Fuser токен для текущего Fuser ID
+     */
+    public function loginFuserAction(): array
+    {
+        return $this->process(function () {
+            $fuserManager = \service(FuserTokenManager::class);
+            $fuserId = Fuser::getId();
+            return $fuserManager->generateToken($fuserId);
         });
     }
 
@@ -115,7 +132,7 @@ class AuthController extends ApiController
             return $this->authService->refreshTokens($refreshToken);
         });
     }
-    
+
     /**
      * Выход с отзывом refresh токена
      * Требует JWT авторизации

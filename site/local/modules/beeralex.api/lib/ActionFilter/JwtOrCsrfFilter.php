@@ -10,6 +10,7 @@ use Bitrix\Main\Engine\ActionFilter\Base;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
+use Bitrix\Main\Loader;
 
 class JwtOrCsrfFilter extends Base
 {
@@ -23,9 +24,9 @@ class JwtOrCsrfFilter extends Base
      *   - 'returnNew' (bool) - возвращать ли новый токен (по умолчанию true)
      *   - 'optional' (bool) - токен JWT не обязателен, но если есть - будет проверен
      */
-    protected function __construct(array $params = [])
+    public function __construct(array $params = [])
     {
-        $this->isUserModuleLoaded = \Bitrix\Main\Loader::includeModule('beeralex.user');
+        $this->isUserModuleLoaded = Loader::includeModule('beeralex.user');
         $this->params = $params;
     }
 

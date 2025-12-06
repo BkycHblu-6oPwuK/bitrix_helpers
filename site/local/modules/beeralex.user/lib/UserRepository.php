@@ -151,9 +151,9 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
     /**
      * Возвращает одного пользователя по фильтру
      */
-    public function one(array $filter = [], array $select = []): ?UserEntityContract
+    public function one(array $filter = [], array $select = [], int $cacheTtl = 0, bool $cacheJoins = false): ?UserEntityContract
     {
-        $fields = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->setFilter($filter)->setLimit(1)->enablePrivateFields()->fetch();
+        $fields = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setSelect(static::FIELD_SELECT_DEFAULT, $select)->setFilter($filter)->setCacheTtl($cacheTtl)->cacheJoins($cacheJoins)->setLimit(1)->enablePrivateFields()->fetch();
         return $fields ? $this->factory->create($fields) : null;
     }
 
@@ -161,10 +161,10 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
      * Возвращает всех пользователей по фильтру
      * @return User[]
      */
-    public function all(array $filter = [], array $select = [], array $order = []): array
+    public function all(array $filter = [], array $select = [], array $order = [], int $cacheTtl = 0, bool $cacheJoins = false): array
     {
         $result = [];
-        $res = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setFilter($filter)->setSelect(array_merge(static::FIELD_SELECT_DEFAULT, $select))->setOrder($order)->enablePrivateFields()->exec();
+        $res = $this->fileService->addPictireSrcInQuery($this->query(), 'PERSONAL_PHOTO')->setFilter($filter)->setSelect(array_merge(static::FIELD_SELECT_DEFAULT, $select))->setOrder($order)->setCacheTtl($cacheTtl)->cacheJoins($cacheJoins)->setLimit(1)->enablePrivateFields()->exec();
         while ($item = $res->fetch()) {
             $result[] = $this->factory->create($item);
         }

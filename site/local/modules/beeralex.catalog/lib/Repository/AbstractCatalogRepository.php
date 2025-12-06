@@ -1,10 +1,13 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Core\Repository\IblockRepository;
 use Beeralex\Core\Service\CatalogService;
 use Beeralex\Core\Service\UrlService;
+use Bitrix\Iblock\ORM\Query;
 
 abstract class AbstractCatalogRepository extends IblockRepository
 {
@@ -33,6 +36,28 @@ abstract class AbstractCatalogRepository extends IblockRepository
      */
     public function findAll(array $filter = [], array $select = ['*'], array $order = ['SORT' => 'ASC'], ?int $limit = null, ?int $offset = null): array
     {
+        $query = $this->buildQuery($filter, $select, $order, $limit, $offset);
+        $result = $this->queryService->fetchGroupedEntities($query);
+        foreach ($result as &$item) {
+            if (isset($item['PRICE']) && isset($item['PRICE']['ID'])) {
+                $item['PRICE'] = [$item['PRICE']];
+            }
+            if (isset($item['STORE_PRODUCT']) && isset($item['STORE_PRODUCT']['ID'])) {
+                $item['STORE_PRODUCT'] = [$item['STORE_PRODUCT']];
+            }
+            if (isset($item['IBLOCK']['DETAIL_PAGE_URL']) && $item['IBLOCK']['DETAIL_PAGE_URL'] !== '#PRODUCT_URL#') {
+                $item['DETAIL_PAGE_URL'] = $this->urlService->getDetailUrl([
+                    'CODE' => $item['CODE'],
+                    'ID' => $item['ID'],
+                    'IBLOCK_SECTION_ID' => $item['IBLOCK_SECTION_ID'],
+                ], $item['IBLOCK']['DETAIL_PAGE_URL'])['clean_url'];
+            }
+        }
+        return $result;
+    }
+
+    protected function buildQuery(array $filter = [], array $select = ['*'], array $order = ['SORT' => 'ASC'], ?int $limit = null, ?int $offset = null): Query
+    {
         if (empty($select)) {
             $select = ['*'];
         }
@@ -60,7 +85,7 @@ abstract class AbstractCatalogRepository extends IblockRepository
                 $query = $this->catalogService->addCatalogToQuery($query);
                 $catalogAdded = true;
             }
-            if($priceAdded && $priceCatalogAdded && $storeAdded && $catalogAdded) {
+            if ($priceAdded && $priceCatalogAdded && $storeAdded && $catalogAdded) {
                 break;
             }
         }
@@ -75,23 +100,6 @@ abstract class AbstractCatalogRepository extends IblockRepository
         if ($offset) {
             $query->setOffset($offset);
         }
-        $result = $this->queryService->fetchGroupedEntities($query);
-
-        foreach ($result as &$item) {
-            if (isset($item['PRICE']) && isset($item['PRICE']['ID'])) {
-                $item['PRICE'] = [$item['PRICE']];
-            }
-            if(isset($item['STORE_PRODUCT']) && isset($item['STORE_PRODUCT']['ID'])) {
-                $item['STORE_PRODUCT'] = [$item['STORE_PRODUCT']];
-            }
-            if(isset($item['IBLOCK']['DETAIL_PAGE_URL']) && $item['IBLOCK']['DETAIL_PAGE_URL'] !== '#PRODUCT_URL#') {
-                $item['DETAIL_PAGE_URL'] = $this->urlService->getDetailUrl([
-                    'CODE' => $item['CODE'],
-                    'ID' => $item['ID'],
-                    'IBLOCK_SECTION_ID' => $item['IBLOCK_SECTION_ID'],
-                ], $item['IBLOCK']['DETAIL_PAGE_URL'])['clean_url'];
-            }
-        }
-        return $result;
+        return $query;
     }
 }

@@ -5,7 +5,7 @@
 
 import type { PageData, PageDataWithElement } from './content'
 import type { FilterDTO, SectionsDTO, SectionData } from './page'
-import type { SectionDTO, PropertiesType } from '.'
+import type { SectionDTO, PropertiesType, PropertyItemDTO } from '.'
 
 
 /**
@@ -108,14 +108,18 @@ export interface CatalogItemDTO {
   code: string                         // Символьный код
   detailPageUrl: string                // URL детальной страницы
   detailText: string                   // Описание товара
+  previewPictureSrc: string           // URL превью картинки
+  detailPictureSrc: string            // URL детальной картинки
   detailTextType: string               // Тип текста (html/text)
   searchableContent: string            // Индексируемый контент для поиска
   offers: CatalogOfferDTO[]            // Массив торговых предложений (для товаров с SKU)
   preselectedOffer: CatalogOfferDTO | null // Предвыбранное предложение
   prices: CatalogPriceDTO[]            // Цены товара (для простых товаров)
   catalog: CatalogProductDTO | null    // Торговая информация (для простых товаров)
-  properties: Record<string, PropertiesType>    // Свойства товара
+  properties: CatalogItemPropertiesType // Свойства товара
 }
+
+export type CatalogItemPropertiesType = Record<string, PropertiesType> & { MORE_PHOTO?: PropertyItemDTO[] }
 
 /**
  * Полные данные страницы каталога

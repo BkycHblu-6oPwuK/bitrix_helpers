@@ -26,13 +26,14 @@ class CatalogItemDTO extends AbstractIblockItemDTO
     public static function make(array $catalogItem): static
     {
         $properties = static::getFromDecomposeProperties($catalogItem);
-
         return new static([
             'id' => $catalogItem['ID'],
             'name' => $catalogItem['NAME'],
             'code' => $catalogItem['CODE'],
             'detailPageUrl' => $catalogItem['DETAIL_PAGE_URL'],
             'detailText' => $catalogItem['DETAIL_TEXT'],
+            'previewPictureSrc' => $catalogItem['PREVIEW_PICTURE_SRC'] ?? '',
+            'detailPictureSrc' => $catalogItem['DETAIL_PICTURE_SRC'] ?? '',
             'detailTextType' => $catalogItem['DETAIL_TEXT_TYPE'],
             'searchableContent' => $catalogItem['SEARCHABLE_CONTENT'],
             'offers' => array_map(fn($offer) => CatalogOfferDTO::make($offer), $catalogItem['OFFERS'] ?? []),

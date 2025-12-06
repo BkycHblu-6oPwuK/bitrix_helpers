@@ -27,6 +27,7 @@ if ($query) {
 	$foundIds = service(SearchService::class)->getProductsIds($query, 100000);
 	${$PREFILTER_NAME}['ID'] = !empty($foundIds) ? $foundIds : false;
 }
+
 if ($isFilter) {
 	$APPLICATION->IncludeComponent(
 		"beeralex:catalog.smart.filter",

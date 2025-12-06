@@ -7,7 +7,7 @@ use Beeralex\Api\V1\Controllers\CatalogController;
 use Beeralex\Api\V1\Controllers\FormController;
 use Beeralex\Api\V1\Controllers\MainController;
 use Beeralex\Api\V1\Controllers\ReviewController;
-use Beeralex\Api\V1\Controllers\User\AuthController;
+use Beeralex\Api\V1\Controllers\AuthController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
@@ -15,6 +15,7 @@ return function (RoutingConfigurator $routes): void {
         $routes->prefix('v1')->group(function (RoutingConfigurator $routes) {
             $routes->prefix('user')->group(function (RoutingConfigurator $routes) {
                 $routes->post('login', [AuthController::class, 'login']);
+                $routes->post('login-fuser', [AuthController::class, 'loginFuser']);
                 $routes->post('refresh', [AuthController::class, 'refresh']);
                 $routes->post('register', [AuthController::class, 'register']);
                 $routes->post('logout', [AuthController::class, 'logout']);

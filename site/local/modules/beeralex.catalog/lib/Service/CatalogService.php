@@ -8,6 +8,7 @@ use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Catalog\Repository\PriceTypeRepository;
 use Beeralex\Catalog\Service\Discount\DiscountFactory;
 use Beeralex\Core\Service\CatalogService as CoreCatalogService;
+use Beeralex\Core\Service\SortingService;
 use Bitrix\Main\Context;
 use Bitrix\Main\Web\Uri;
 
