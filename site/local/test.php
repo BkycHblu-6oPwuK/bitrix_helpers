@@ -39,7 +39,6 @@
 use Beeralex\Catalog\Basket\BasketFacade;
 use Beeralex\Catalog\Service\CatalogElementService;
 use Beeralex\Catalog\Service\CatalogService;
-use Beeralex\Catalog\Service\SortingService;
 use Beeralex\Content\Repository\HeaderRepository;
 use Beeralex\Content\Repository\MenuRepository;
 use Beeralex\Core\Config\Config as CoreConfig;
@@ -52,6 +51,7 @@ use Beeralex\Core\Service\UrlService;
 use Beeralex\Core\Service\UserService;
 use Beeralex\Core\UserType\IblockLinkType;
 use Beeralex\Core\UserType\WebFormLinkType;
+use Beeralex\Favorite\FavouriteService;
 use Beeralex\Notification\Events\SmsEvent;
 use Beeralex\Notification\Tables\NotificationLinkEventTypeTable;
 use Beeralex\Notification\Tables\NotificationTemplateLinkTable;
@@ -62,6 +62,7 @@ use Beeralex\User\Auth\Factories\SocialAuthenticatorFactory;
 use Beeralex\User\Auth\Social\SocialManager;
 use Beeralex\User\Contracts\UserRepositoryContract;
 use Beeralex\User\EventHandlers;
+use Beeralex\User\Options;
 use Beeralex\User\Phone;
 use Bitrix\Main\Application;
 use Bitrix\Main\Config\Option;
@@ -370,10 +371,10 @@ global $APPLICATION;
 // dd(service(SortingService::class)->getSorting());
 // dd((new IblockRepository('catalog'))->getById(16, ['BRAND_REF']));
 // dd(service(CatalogService::class)->getProductsWithOffers([16]));
-dd(service(CatalogElementService::class)->getElementData(35));
+//dd(service(CatalogElementService::class)->getElementData(35));
 
 // dd(service(BasketFacade::class)->getItems());
 // $userHelper = service(UserService::class);
 // dd($userHelper->generatePassword($userHelper->getDefaultUserGroups()));
-
+dd(new FavouriteService());
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

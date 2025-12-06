@@ -19,6 +19,14 @@ export const useMenu = () => {
         code: '',
         iblockSectionId: 0,
       },
+      {
+        id: 2,
+        name: 'Отзывы',
+        link: '/reviews',
+        children: [],
+        code: '',
+        iblockSectionId: 0,
+      },
     ],
   }
 

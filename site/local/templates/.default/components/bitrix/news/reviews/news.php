@@ -15,9 +15,10 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
 /** @var string $componentPath */
 /** @var CBitrixComponent $component */
 $this->setFrameMode(true);
+
 $APPLICATION->IncludeComponent(
     "bitrix:news.list",
-    "articles-page",
+    "reviews",
     [
         "IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
         "IBLOCK_ID" => $arParams["IBLOCK_ID"],

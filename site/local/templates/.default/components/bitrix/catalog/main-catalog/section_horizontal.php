@@ -1,9 +1,9 @@
 <?
 
+use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Service\CatalogService;
 use Bitrix\Main\Context;
 use Beeralex\Catalog\Service\SearchService;
-use Beeralex\Catalog\Service\SortingService;
 use Bitrix\Main\Loader;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
@@ -20,7 +20,7 @@ $PREFILTER_NAME = (string)$arParams["PREFILTER_NAME"];
 global ${$PREFILTER_NAME};
 $request = Context::getCurrent()->getRequest();
 $query = $request->get('q');
-$sortService = service(SortingService::class);
+$sortService = service(DIServiceKey::SORTING_SERVICE->value);
 $catalogService = service(CatalogService::class);
 if ($query) {
 	$APPLICATION->SetTitle("Вы искали «{$query}»");

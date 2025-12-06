@@ -3,8 +3,9 @@ declare(strict_types=1);
 namespace Beeralex\Catalog\Repository;
 
 use Beeralex\Core\Repository\IblockRepository;
+use Beeralex\Core\Repository\SortingRepositoryContract;
 
-class SortingRepository extends IblockRepository
+class SortingRepository extends IblockRepository implements SortingRepositoryContract
 {
     public function __construct(
         string $iblockCode,

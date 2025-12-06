@@ -1,5 +1,7 @@
 <?php
 
+use Beeralex\Api\EventHandlers;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 
 class beeralex_api extends CModule
@@ -19,11 +21,25 @@ class beeralex_api extends CModule
     {
         \Bitrix\Main\ModuleManager::registerModule($this->MODULE_ID);
         Loader::includeModule($this->MODULE_ID);
+        $this->InstallEvents();
     }
 
     public function DoUninstall()
     {
         Loader::includeModule($this->MODULE_ID);
+        $this->UnInstallEvents();
         \Bitrix\Main\ModuleManager::unRegisterModule($this->MODULE_ID);
+    }
+
+    public function InstallEvents()
+    {
+        $eventManager = EventManager::getInstance();
+        $eventManager->registerEventHandler('main', 'OnPageStart', $this->MODULE_ID, EventHandlers::class, 'onPageStart');
+    }
+
+    public function UnInstallEvents()
+    {
+        $eventManager = EventManager::getInstance();
+        $eventManager->unRegisterEventHandler('main', 'OnPageStart', $this->MODULE_ID, EventHandlers::class, 'onPageStart');
     }
 }

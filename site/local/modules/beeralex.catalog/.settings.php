@@ -3,7 +3,6 @@ require_once __DIR__ . '/lib/Enum/DIServiceKey.php';
 
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Helper\OrderService;
-use Beeralex\Catalog\Service\SortingService;
 use Beeralex\Catalog\Location\BitrixLocationResolver;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Beeralex\Catalog\Location\Contracts\LocationApiClientContract;
@@ -34,6 +33,7 @@ use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Service\HlblockService;
 use Beeralex\Core\Service\LanguageService;
 use Beeralex\Core\Service\LocationService;
+use Beeralex\Core\Service\SortingService;
 use Beeralex\Core\Service\UrlService;
 use Bitrix\Main\Loader;
 
@@ -102,7 +102,7 @@ return [
                         offersRepository: service(DIServiceKey::OFFERS_REPOSITORY->value),
                         viewedProductRepository: service(CatalogViewedProductRepository::class),
                         priceTypeRepository: service(PriceTypeRepository::class),
-                        sortingService: service(SortingService::class),
+                        sortingService: service(DIServiceKey::SORTING_SERVICE->value),
                         discountFactory: service(DiscountFactory::class),
                         catalogSectionsService: service(CatalogSectionsService::class),
                         searchService: service(SearchService::class)
@@ -141,7 +141,7 @@ return [
                     );
                 }
             ],
-            SortingService::class => [
+            DIServiceKey::SORTING_SERVICE->value => [
                 'constructor' => static function () {
                     return new SortingService(
                         sortingRepository: service(DIServiceKey::SORTING_REPOSITORY->value)

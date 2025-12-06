@@ -104,15 +104,10 @@ class JwtAuthFilter extends Base
                 throw new \InvalidArgumentException('Invalid token type. Access token required.');
             }
 
-            // Получаем ID пользователя
-            $userId = (int)$decoded['sub'];
-
-            if ($userId > 0) {
-                global $USER;
-                if ($USER instanceof \CUser && (!$USER->IsAuthorized() || $USER->GetID() != $userId)) {
-                    service(EmptyAuthentificator::class)->authorizeByUserId($userId);
-                }
-            }
+            // Сохраняем данные токена в request для использования в контроллере
+            $request->set('jwt_user_id', (int)$decoded['sub']);
+            $request->set('jwt_payload', $decoded);
+            $request->set('jwt_token', $token);
 
             return null;
 

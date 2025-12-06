@@ -18,7 +18,7 @@ $this->setFrameMode(true);
 
 $APPLICATION->IncludeComponent(
 	"bitrix:news.detail",
-	"articles-page",
+	"reviews",
 	[
 		"DISPLAY_DATE" => $arParams["DISPLAY_DATE"],
 		"DISPLAY_NAME" => $arParams["DISPLAY_NAME"],
@@ -70,4 +70,4 @@ $APPLICATION->IncludeComponent(
 		'STRICT_SECTION_CHECK' => $arParams['STRICT_SECTION_CHECK'],
 	],
 	$component
-);?>
+);

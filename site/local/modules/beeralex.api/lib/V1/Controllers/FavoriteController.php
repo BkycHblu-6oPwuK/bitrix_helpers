@@ -1,105 +1,164 @@
 <?php
 
-namespace Beeralex\Favorite\Controllers;
+namespace Beeralex\Api\V1\Controllers;
 
+use Beeralex\Api\ApiProcessResultTrait;
+use Beeralex\Api\ApiResult;
+use Beeralex\Favorite\FavouriteService;
 use Bitrix\Main\Engine\Controller;
-use Bitrix\Main\Engine\ActionFilter;
 use Bitrix\Main\Error;
-use Beeralex\Favorite\Helper;
+use Bitrix\Main\Request;
 
 class FavoriteController extends Controller
 {
+    use ApiProcessResultTrait;
+
+    protected readonly FavouriteService $favouriteService;
+
+    public function __construct(?Request $request = null)
+    {
+        $this->favouriteService = service(FavouriteService::class);
+        parent::__construct($request);
+    }
+
     public function configureActions()
     {
         return [
-            'add' => [
-                'prefilters' => [
-                    new ActionFilter\Csrf(),
-                    new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_POST]),
-                ],
+            'store' => [
+                'prefilters' => [],
             ],
             'delete' => [
-                'prefilters' => [
-                    new ActionFilter\Csrf(),
-                    new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_POST]),
-                ],
+                'prefilters' => [],
             ],
             'toggle' => [
-                'prefilters' => [
-                    new ActionFilter\Csrf(),
-                    new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_POST]),
-                ],
+                'prefilters' => [],
             ],
             'clear' => [
-                'prefilters' => [
-                    new ActionFilter\Csrf(),
-                    new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_POST]),
-                ],
+                'prefilters' => [],
             ],
             'get' => [
-                'prefilters' => [
-                    new ActionFilter\Csrf(),
-                    new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_POST]),
-                ],
+                'prefilters' => [],
             ],
         ];
     }
 
-    public function addAction(int $productID)
+    public function storeAction(int $productID)
     {
-        $res = Helper::add($productID);
-
-        if ($res) {
-            return [
-                'result'     => 'success',
-                'totalCount' => Helper::getCountByUser(),
-            ];
-        }
-
-        $this->addError(new Error('Failed to add favorite item.'));
-        return null;
+        return $this->process(function () use ($productID) {
+            $apiResult = service(ApiResult::class);
+            $result = $this->favouriteService->add($productID);
+            if(!$result) {
+                $apiResult->addError(new Error("Ошибка добавления товара в избранное", 'favourite'));
+                return $apiResult;
+            }
+            
+            $fuserId = \Bitrix\Sale\Fuser::getId();
+            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
+            
+            $apiResult->setData([
+                'fuserId' => $fuserId,
+                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
+                'count' => $this->favouriteService->getCountByUser(),
+                'items' => $this->favouriteService->getByUser(),
+            ]);
+            return $apiResult;
+        });
     }
 
     public function deleteAction(int $productID)
     {
-        $res = Helper::deleteByProductID($productID);
-
-        if ($res) {
-            return [
-                'result'     => 'success',
-                'totalCount' => Helper::getCountByUser(),
-            ];
-        }
-
-        $this->addError(new Error('Failed to delete favorite item.'));
-        return null;
+        return $this->process(function () use ($productID) {
+            $apiResult = service(ApiResult::class);
+            $result = $this->favouriteService->deleteByProductID($productID);
+            if(!$result) {
+                $apiResult->addError(new Error("Ошибка удаления товара из избранного", 'favourite'));
+                return $apiResult;
+            }
+            
+            $fuserId = \Bitrix\Sale\Fuser::getId();
+            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
+            
+            $apiResult->setData([
+                'fuserId' => $fuserId,
+                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
+                'count' => $this->favouriteService->getCountByUser(),
+                'items' => $this->favouriteService->getByUser(),
+            ]);
+            return $apiResult;
+        });
     }
 
     public function toggleAction(int $productID)
     {
-        if (Helper::isFavoriteProduct($productID)) {
-            $result = $this->deleteAction($productID);
-            if ($result) {
-                $result['action'] = 'delete';
+        return $this->process(function () use ($productID) {
+            $apiResult = service(ApiResult::class);
+            $isFavorite = $this->favouriteService->isFavoriteProduct($productID);
+            
+            if ($isFavorite) {
+                $result = $this->favouriteService->deleteByProductID($productID);
+                $action = 'removed';
+            } else {
+                $result = $this->favouriteService->add($productID);
+                $action = 'added';
             }
-        } else {
-            $result = $this->addAction($productID);
-            if ($result) {
-                $result['action'] = 'add';
+            
+            if(!$result) {
+                $apiResult->addError(new Error("Ошибка переключения товара в избранном", 'favourite'));
+                return $apiResult;
             }
-        }
-
-        return $result ?? ['result' => 'error'];
+            
+            $fuserId = \Bitrix\Sale\Fuser::getId();
+            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
+            
+            $apiResult->setData([
+                'fuserId' => $fuserId,
+                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
+                'action' => $action,
+                'isFavorite' => !$isFavorite,
+                'count' => $this->favouriteService->getCountByUser(),
+            ]);
+            return $apiResult;
+        });
     }
 
     public function clearAction()
     {
-        $isSuccess = Helper::clear();
-        return ['success' => $isSuccess];
+        return $this->process(function () {
+            $apiResult = service(ApiResult::class);
+            $result = $this->favouriteService->clear();
+            if(!$result) {
+                $apiResult->addError(new Error("Ошибка очистки избранного", 'favourite'));
+                return $apiResult;
+            }
+            
+            $fuserId = \Bitrix\Sale\Fuser::getId();
+            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
+            
+            $apiResult->setData([
+                'fuserId' => $fuserId,
+                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
+                'count' => 0,
+                'items' => [],
+            ]);
+            return $apiResult;
+        });
     }
 
     public function getAction()
     {
-        return Helper::getByUser();
+        return $this->process(function () {
+            $apiResult = service(ApiResult::class);
+            
+            $fuserId = \Bitrix\Sale\Fuser::getId();
+            $fuserTokenResult = service(\Beeralex\User\Auth\FuserTokenManager::class)->generateToken($fuserId);
+            
+            $apiResult->setData([
+                'fuserId' => $fuserId,
+                'fuserToken' => $fuserTokenResult->isSuccess() ? $fuserTokenResult->getData()['fuserToken'] : null,
+                'items' => $this->favouriteService->getByUser(),
+                'count' => $this->favouriteService->getCountByUser(),
+            ]);
+            return $apiResult;
+        });
     }
 }
