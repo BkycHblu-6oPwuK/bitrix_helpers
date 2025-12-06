@@ -3,12 +3,16 @@
 use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\Iblock\Content\ContentRepository;
 use Beeralex\Api\Domain\Iblock\Content\ContentService;
+use Beeralex\Api\Options;
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Bitrix\Main\Loader;
 
 return [
     'services' => [
         'value' => [
+            Options::class => [
+                'className' => Options::class,
+            ],
             ApiResult::class => [
                 'className' => ApiResult::class,
             ],

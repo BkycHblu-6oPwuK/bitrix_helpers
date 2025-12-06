@@ -11,6 +11,11 @@ class EventHandlers
 {
     public static function onPageStart()
     {
+        $options = service(Options::class);
+        if(!$options->spaApiEnabled) {
+            return;
+        }
+        
         $request = Context::getCurrent()->getRequest();
 
         JwtTokenHandler::handle($request); // авторизация по JWT токену
