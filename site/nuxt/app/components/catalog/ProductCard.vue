@@ -4,66 +4,21 @@
 -->
 <script setup lang="ts">
 import type { CatalogItemDTO } from '~/types/iblock/catalog';
+import Price from './Price.vue';
 
 const props = defineProps<{
     item: CatalogItemDTO
 }>()
-
-const basePrice = computed(() => {
-    if (props.item.prices && props.item.prices.length > 0) {
-        const price = props.item.prices.find(p => p.catalogGroup?.base === true) || props.item.prices[0];
-        return price;
-    }
-
-    if (props.item.preselectedOffer && props.item.preselectedOffer.prices.length > 0) {
-        const price = props.item.preselectedOffer.prices.find(p => p.catalogGroup?.base === true) || props.item.preselectedOffer.prices[0];
-        return price;
-    }
-
-    if (props.item.offers && props.item.offers.length > 0) {
-        const firstOffer = props.item.offers[0];
-        const price = firstOffer.prices.find(p => p.catalogGroup?.base === true) || firstOffer.prices[0];
-        return price;
-    }
-
-    return null;
-});
-
-const productImage = computed(() => {
-    if (props.item.previewPictureSrc) {
-        return props.item.previewPictureSrc;
-    }
-    if (props.item.detailPictureSrc) {
-        return props.item.detailPictureSrc;
-    }
-
-    return null;
-});
-
-const isAvailable = computed(() => {
-    if (props.item.catalog) {
-        return props.item.catalog.available;
-    }
-
-    if (props.item.preselectedOffer) {
-        return props.item.preselectedOffer.catalog.available;
-    }
-
-    if (props.item.offers && props.item.offers.length > 0) {
-        return props.item.offers[0].catalog.available;
-    }
-
-    return false;
-});
+const item = toRef(props, 'item');
+const { isAvailable, images, price } = useCatalogItem(item);
 
 </script>
 
 <template>
     <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-transform hover:scale-105">
         <NuxtLink :to="item.detailPageUrl" class="block">
-            <!-- Изображение товара -->
             <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md mb-4 overflow-hidden">
-                <img v-if="productImage" :src="productImage" :alt="item.name" class="w-full h-full object-cover" />
+                <img v-if="images && images.length > 0" :src="images[0]" :alt="item.name" class="w-full h-full object-cover" />
                 <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
                     <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -72,17 +27,12 @@ const isAvailable = computed(() => {
                 </div>
             </div>
 
-            <!-- Название товара -->
             <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-2 line-clamp-2 min-h-[3rem]">
                 {{ item.name }}
             </h3>
 
-            <!-- Цена -->
-            <div v-if="basePrice" class="text-lg font-bold text-primary-600 dark:text-primary-400 mb-2">
-                {{ formatPrice(basePrice.price, basePrice.currency) }}
-            </div>
+            <Price v-if="price" :price="price"/>
 
-            <!-- Статус наличия -->
             <div class="mt-2 text-sm">
                 <span :class="[
                     'inline-block px-2 py-1 rounded',

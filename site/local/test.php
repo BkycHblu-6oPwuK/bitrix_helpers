@@ -377,5 +377,6 @@ global $APPLICATION;
 // dd(service(BasketFacade::class)->getItems());
 // $userHelper = service(UserService::class);
 // dd($userHelper->generatePassword($userHelper->getDefaultUserGroups()));
-dd(service(DIServiceKey::PRODUCT_REPOSITORY->value)->getProducts([25]));
+// dd(service(DIServiceKey::PRODUCT_REPOSITORY->value)->getProducts([25]));
+dd(service(CatalogElementService::class)->getElementData(29));
 require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");

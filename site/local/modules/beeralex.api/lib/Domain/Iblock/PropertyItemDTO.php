@@ -54,13 +54,15 @@ class PropertyItemDTO extends Resource
     public static function makeFromDecomposeData(array $property, string $code)
     {
         $hlData = $property['HL_DATA'] ?? [];
+        $itemData = $property['ITEM'] ?? [];
+        
         return new static([
             'id' => (int)($property['ID'] ?? 0),
             'code' => $code,
             'name' => $property['NAME'] ?? '',
-            'value' => $hlData['UF_NAME'] ?? $property['VALUE'] ?? null,
+            'value' => $hlData['UF_NAME'] ?? $itemData['VALUE'] ?? $property['VALUE'] ?? null,
             'type' => $property['PROPERTY_TYPE'] ?? null,
-            'xmlId' => $hlData['UF_XML_ID'] ?? $property['XML_ID'] ?? null,
+            'xmlId' => $hlData['UF_XML_ID'] ?? $itemData['XML_ID'] ?? null,
             'link' => $hlData['UF_LINK'] ?? $property['LINK'] ?? null,
             'pictureSrc' => $hlData['PICTURE_SRC'] ?? $property['PICTURE_SRC'] ?? null,
         ]);

@@ -117,8 +117,39 @@ export interface CatalogItemDTO {
   prices: CatalogPriceDTO[]            // Цены товара (для простых товаров)
   catalog: CatalogProductDTO | null    // Торговая информация (для простых товаров)
   properties: CatalogItemPropertiesType // Свойства товара
+  offersTree: OffersTreeDTO            // Карта предложений
 }
 
+/**
+ * Карта торговых предложений товара
+ */
+export interface OffersTreeDTO {
+  props: OffersTreePropsItemDTO[] // Свойства, участвующие в предложениях
+  map: Record<string, any>   // Карта предложений
+}
+
+/**
+ * Свойство в карте торговых предложений
+ */
+export interface OffersTreePropsItemDTO {
+  code: string,
+  name: string,
+  values: OffersTreePropsValuesItemDTO[]
+}
+
+/**
+ * Значение свойства в карте торговых предложений
+ */
+export interface OffersTreePropsValuesItemDTO {
+  id: number,
+  name: string, 
+  pictureSrc: string,
+  value: string
+}
+
+/**
+ * Типы свойств товара в каталоге
+ */
 export type CatalogItemPropertiesType = Record<string, PropertiesType> & { MORE_PHOTO?: PropertyItemDTO[] }
 
 /**

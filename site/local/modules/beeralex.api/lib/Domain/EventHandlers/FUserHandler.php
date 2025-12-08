@@ -27,27 +27,33 @@ class FUserHandler
 
         $headers = $request->getHeaders();
         $token = $headers->get('X-Fuser-Token');
-
         $manager = service(FuserTokenManager::class);
+        if ($token) {
+            $verify = $manager->verifyToken($token);
 
-        $fuserId = $token ? $manager->getFuserId($token) : 0;
+            if ($verify->isSuccess()) {
+                $fuserId = $verify->getData()['fuserId'];
+                $_SESSION['SALE_USER_ID'] = $fuserId;
+                return;
+            }
 
-        if ($fuserId > 0) {
-            $_SESSION['SALE_USER_ID'] = $fuserId;
-            return;
+            if ($verify->getErrorCollection()->getErrorByCode('expired')) {
+
+                $fuserId = $verify->getData()['fuserId'];
+
+                if ($fuserId > 0) {
+                    $_SESSION['SALE_USER_ID'] = $fuserId;
+
+                    $newToken = $manager->generateToken($fuserId)->getData()['fuserToken'];
+                    Context::getCurrent()->getResponse()->addHeader('X-New-Fuser-Token', $newToken);
+
+                    return;
+                }
+            }
         }
-
-        $fuserId = Fuser::getId();
-        $result = $manager->generateToken($fuserId);
-
-        if(!$result->isSuccess()) {
-            return;
-        }
-
-        $newToken = $result->getData()['fuserToken'];
-
-        $_SESSION['SALE_USER_ID'] = $fuserId;
-
+        $newFuserId = Fuser::getId();
+        $newToken = $manager->generateToken($newFuserId)->getData()['fuserToken'];
+        $_SESSION['SALE_USER_ID'] = $newFuserId;
         Context::getCurrent()->getResponse()->addHeader('X-New-Fuser-Token', $newToken);
     }
 }

@@ -16,7 +16,7 @@ class OffersRepository extends CatalogOffersRepository
         $items = $this->findAll(
             ['ID' => $offerIds],
             [
-                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CML2_LINK', 'COLOR_REF', 'SIZES_SHOES', 'SIZES_CLOTHES'
+                'ID', 'ACTIVE', 'CATALOG', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CML2_LINK', 'COLOR_REF', 'SIZES_SHOES', 'SIZES_SHOES.ITEM', 'SIZES_CLOTHES', 'SIZES_CLOTHES.ITEM',
             ]
         );
         $offers = [];

@@ -16,7 +16,6 @@ export function useSection<T extends SectionData>(initialData?: T) {
 
   // Инициализируем store данными с сервера (только при первой загрузке)
   if (initialData) {
-    console.log('Initializing section store with data:', initialData)
     store.initialize(initialData)
   }
 

@@ -43,6 +43,7 @@ class CatalogItemDTO extends AbstractIblockItemDTO
             'prices' => array_map([CatalogPriceDTO::class, 'make'], $catalogItem['PRICE'] ?? []),
             'catalog' => isset($catalogItem['CATALOG']) ? CatalogProductDTO::make($catalogItem['CATALOG']) : null,
             'properties' => $properties,
+            'offersTree' => OffersTreeDTO::make($catalogItem['OFFER_TREE'] ?? []),
         ]);
     }
 }

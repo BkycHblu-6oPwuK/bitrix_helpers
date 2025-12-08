@@ -1,10 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\User\Auth;
 
 use Beeralex\User\Options;
 use Bitrix\Main\Result;
+use Bitrix\Main\Web\Json;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -19,8 +21,7 @@ class FuserTokenManager
 
     public function __construct(
         protected readonly Options $options
-    )
-    {}
+    ) {}
 
     /**
      * Генерация JWT токена для FuserId
@@ -31,7 +32,7 @@ class FuserTokenManager
     public function generateToken(int $fuserId): Result
     {
         $result = new Result();
-        
+
         if (empty($this->options->jwtSecretKey)) {
             $result->addError(new \Bitrix\Main\Error('JWT secret key is not configured', 'fuser_token'));
             return $result;
@@ -71,40 +72,36 @@ class FuserTokenManager
     public function verifyToken(string $token): Result
     {
         $result = new Result();
-        
-        if (empty($this->options->jwtSecretKey)) {
-            $result->addError(new \Bitrix\Main\Error('JWT secret key is not configured', 'fuser_token'));
-            return $result;
-        }
 
         try {
             $decoded = JWT::decode($token, new Key($this->options->jwtSecretKey, $this->options->jwtAlgorithm));
             $payload = (array)$decoded;
-            
-            // Проверяем тип токена
-            if (!isset($payload['type']) || $payload['type'] !== self::TOKEN_TYPE) {
-                $result->addError(new \Bitrix\Main\Error('Invalid token type', 'fuser_token'));
-                return $result;
-            }
-            
-            $fuserId = (int)($payload['sub'] ?? 0);
-            if ($fuserId <= 0) {
-                $result->addError(new \Bitrix\Main\Error('Invalid fuserId in token', 'fuser_token'));
-                return $result;
-            }
-            
-            $result->setData(['fuserId' => $fuserId]);
-            
-        } catch (\Firebase\JWT\ExpiredException $e) {
-            $result->addError(new \Bitrix\Main\Error('Token has expired', 'fuser_token'));
-        } catch (\Firebase\JWT\SignatureInvalidException $e) {
-            $result->addError(new \Bitrix\Main\Error('Invalid token signature', 'fuser_token'));
-        } catch (\Exception $e) {
-            $result->addError(new \Bitrix\Main\Error('Invalid token: ' . $e->getMessage(), 'fuser_token'));
-        }
 
-        return $result;
+            if (($payload['type'] ?? null) !== self::TOKEN_TYPE) {
+                $result->addError(new \Bitrix\Main\Error('Invalid token type'));
+                return $result;
+            }
+
+            $result->setData(['fuserId' => (int)$payload['sub']]);
+            return $result;
+        } catch (\Firebase\JWT\ExpiredException $e) {
+
+            $payload = $this->decodePayloadUnsafe($token);
+
+            if ($payload && ($payload['type'] ?? null) === self::TOKEN_TYPE) {
+                $result->addError(new \Bitrix\Main\Error('expired', 'expired'));
+                $result->setData(['fuserId' => (int)($payload['sub'] ?? 0)]);
+                return $result;
+            }
+
+            $result->addError(new \Bitrix\Main\Error('Token expired'));
+            return $result;
+        } catch (\Exception $e) {
+            $result->addError(new \Bitrix\Main\Error('Invalid token'));
+            return $result;
+        }
     }
+
 
     /**
      * Извлечение FuserId из токена (упрощенный метод)
@@ -118,7 +115,7 @@ class FuserTokenManager
         if (!$result->isSuccess()) {
             return 0;
         }
-        
+
         return $result->getData()['fuserId'] ?? 0;
     }
 
@@ -141,5 +138,21 @@ class FuserTokenManager
     private function generateJti(): string
     {
         return bin2hex(random_bytes(16));
+    }
+
+    /**
+     * Декодирование payload JWT без проверки exp/nbf/signature
+     * для возможности рефреша.
+     */
+    private function decodePayloadUnsafe(string $token): ?array
+    {
+        // JWT формат: header.payload.signature
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            return null;
+        }
+
+        $payload = Json::decode(base64_decode(strtr($parts[1], '-_', '+/')));
+        return is_array($payload) ? $payload : null;
     }
 }

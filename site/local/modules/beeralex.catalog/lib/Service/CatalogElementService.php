@@ -37,8 +37,8 @@ class CatalogElementService
         $tableNames = $this->getTableNames($properties);
         $highloadClasses = $this->hlblockService->getHlBlocksByTableNames($tableNames);
         $this->buildPropertiesForProduct($product, $properties, $propertyTreeFeatures, $highloadClasses);
-
-        $product['OFFER_TREE'] = $this->buildOfferTree($product['OFFERS'], $properties, $propertyTreeFeatures);
+        
+        $product['OFFER_TREE'] = $this->buildOfferTree($product['OFFERS']);
         $preselectedOffer = $this->getPreselectedOffer($product, $offerId);
         $product['PRESELECTED_OFFER'] = $preselectedOffer;
         $product['SELECTED_OFFER_ID'] = $preselectedOffer['ID'] ?? null;
@@ -117,7 +117,7 @@ class CatalogElementService
             }
             return $result;
         };
-
+        
         foreach ($properties as &$property) {
             // property features
             $property['HLBLOCK_CLASS'] = null;
@@ -159,6 +159,7 @@ class CatalogElementService
                 }
             }
         }
+
     }
 
     protected function buildOfferTree(array $offers): array
@@ -192,18 +193,18 @@ class CatalogElementService
 
             foreach ($treeProps as $code => &$treeProp) {
                 if (!isset($offer[$code]['VALUE'])) continue;
-
-                $value = $offer[$code]['VALUE'];
-                $hl = $offer[$code]['HL_DATA'] ?? null;
+                $prop = $offer[$code];
+                $value = $prop['ITEM']['VALUE'] ?? $prop['VALUE'];
+                $hl = $prop['HL_DATA'] ?? null;
 
                 $offersMap[$offerId][$code] = $value;
 
                 if (!isset($treeProp['VALUES'][$value])) {
                     $treeProp['VALUES'][$value] = [
-                        'ID' => $value,
+                        'ID' => $prop['IBLOCK_PROPERTY_ID'] ?? 0,
                         'VALUE' => $value,
-                        'NAME' => $hl['UF_NAME'] ?? $value,
-                        'XML_ID' => $offer[$code]['XML_ID'] ?? null,
+                        'NAME' => $hl['UF_NAME'] ?? $prop['NAME'] ?? '',
+                        'XML_ID' => $prop['XML_ID'] ?? null,
                         'PICTURE_SRC' => $hl['PICTURE_SRC'] ?? null,
                     ];
                 }

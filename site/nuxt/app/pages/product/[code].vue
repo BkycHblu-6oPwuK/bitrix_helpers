@@ -1,18 +1,21 @@
 <script setup lang="ts">
-
-import Dump from '~/components/dev/Dump.vue';
 import type { CatalogDetailPageApiResponse } from '~/types/iblock/catalog';
+import ProductDetail from '~/components/catalog/CatalogElement/ProductDetail.vue';
+
 const route = useRoute();
-console.log(route.params.code)
 
 const { data } = await useApi<CatalogDetailPageApiResponse>(`product/${route.params.code}`)
 
 if (data.value?.data?.seo) {
     useSeoPage(data.value.data.seo)
 }
-
 </script>
 
 <template>
-    <Dump :data="data" :label="'Product Page'" />
+    <div class="container mx-auto px-4 py-8">
+        <ProductDetail 
+            v-if="data?.data?.page.element" 
+            :item="data?.data?.page.element" 
+        />
+    </div>
 </template>
