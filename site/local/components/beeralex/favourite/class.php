@@ -39,7 +39,7 @@ class BeeralexFavourite extends \CBitrixComponent
         $pagination = $this->paginationService->getPagination(count($favoriteProductIds), $this->arParams['PAGE_SIZE']);
         $favoriteProductIds = array_slice(
             $favoriteProductIds,
-            $pagination['OFFSET'],
+            $pagination['offset'],
             $this->arParams['PAGE_SIZE']
         );
         return [

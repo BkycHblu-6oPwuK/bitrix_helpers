@@ -18,6 +18,7 @@ export interface PaginationDTO {
   pages: PaginationPage[]     // Массив всех страниц
   pageSize: number            // Количество элементов на страницу
   currentPage: number         // Номер текущей страницы
+  offset: number              // Смещение для выборки элементов
   pageCount: number           // Общее количество страниц
   paginationUrlParam: string  // Название URL параметра для пагинации (напр.: 'page')
 }

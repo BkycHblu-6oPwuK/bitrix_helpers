@@ -87,9 +87,15 @@ const openAuthModal = () => {
         </div>
 
         <div class="flex items-center gap-3">
-          <UButton variant="ghost" icon="i-heroicons-chart-bar" label="Сравнение" size="sm" />
-          <UButton variant="ghost" icon="i-heroicons-heart" label="Избранное" size="sm" />
-          <UButton variant="ghost" icon="i-heroicons-shopping-cart" label="Корзина" size="sm" />
+          <NuxtLink to="/favourite" class="flex items-center gap-2 px-2 py-1 rounded text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <UIcon name="i-heroicons-heart" class="w-5 h-5" />
+            <span>Избранное</span>
+          </NuxtLink>
+
+          <NuxtLink to="/cart" class="flex items-center gap-2 px-2 py-1 rounded text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <UIcon name="i-heroicons-shopping-cart" class="w-5 h-5" />
+            <span>Корзина</span>
+          </NuxtLink>
           <UButton variant="ghost" icon="i-heroicons-user" label="Профиль" size="sm" @click="openAuthModal" />
         </div>
       </UContainer>

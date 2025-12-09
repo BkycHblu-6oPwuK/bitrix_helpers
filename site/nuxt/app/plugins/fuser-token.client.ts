@@ -1,6 +1,6 @@
 export default defineNuxtPlugin((nuxtApp) => {
   const { token } = useFuser()
-
+  console.log('Fuser token plugin initialized', token.value)
   // Добавляем токен в каждый запрос
   nuxtApp.$fetch = $fetch.create({
     onRequest({ options }) {

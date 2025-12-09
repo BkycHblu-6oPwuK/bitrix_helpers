@@ -9,13 +9,14 @@ use Beeralex\Core\Service\PaginationService;
  * @property array $pages
  * @property int $pageSize
  * @property int $currentPage
+ * @property int $offset
  * @property int $pageCount
  * @property string $paginationUrlParam
  */
 class PaginationDTO extends \Beeralex\Core\Http\Resources\Resource
 {
     /**
-     * @param array{pages?: array, pageSize?: int, currentPage?: int, pageCount?: int, paginationUrlParam?: string} $data
+     * @param array{pages?: array, pageSize?: int, currentPage?: int, offset?: int, pageCount?: int, paginationUrlParam?: string} $data
      */
     public static function make(array $data): static
     {
@@ -23,6 +24,7 @@ class PaginationDTO extends \Beeralex\Core\Http\Resources\Resource
             'pages' => $data['pages'] ?? [],
             'pageSize' => $data['pageSize'] ?? 0,
             'currentPage' => $data['currentPage'] ?? 1,
+            'offset' => $data['offset'] ?? 0,
             'pageCount' => $data['pageCount'] ?? 0,
             'paginationUrlParam' => $data['paginationUrlParam'] ?? '',
         ]);

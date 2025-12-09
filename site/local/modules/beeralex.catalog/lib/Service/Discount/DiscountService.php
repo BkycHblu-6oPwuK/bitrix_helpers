@@ -17,7 +17,6 @@ class DiscountService
         protected readonly BasketBase $basket
     )
     {
-        $this->basket = $basket;
         $this->order = $basket->getOrder();
     }
 

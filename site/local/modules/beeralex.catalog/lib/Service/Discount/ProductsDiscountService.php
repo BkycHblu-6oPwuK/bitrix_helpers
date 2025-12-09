@@ -8,9 +8,8 @@ class ProductsDiscountService extends DiscountService
 {
     public function __construct(
         BasketBase $basket, 
-        protected readonly array $basketCodes = [])
+        protected array $basketCodes = [])
     {
-        $this->basketCodes = $basketCodes;
         parent::__construct($basket);
     }
 

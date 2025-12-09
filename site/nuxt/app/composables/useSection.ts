@@ -23,8 +23,11 @@ export function useSection<T extends SectionData>(initialData?: T) {
   if (process.client) {
     onMounted(() => {
       const handlePopState = async () => {
-        const url = new URL(window.location.href)
-        await store.loadPage<T>(url)
+        if(!apiUrl.value) {
+          throw new Error('API URL is not set in section store');
+        }
+        apiUrl.value.search = window.location.search;
+        await store.loadPage<T>(apiUrl.value)
       }
       
       window.addEventListener('popstate', handlePopState)
@@ -36,7 +39,7 @@ export function useSection<T extends SectionData>(initialData?: T) {
   }
 
   // Получаем реактивные ссылки на данные из store
-  const { items, pagination, selectedFilters, sectionList, path,  filterData, isLoading, error } = storeToRefs(store)
+  const { items, pagination, selectedFilters, sectionList, path, filterData, isLoading, error, apiUrl } = storeToRefs(store)
 
   // Объединяем данные в единую структуру для удобного использования в компонентах
   const catalogData = computed<SectionData>(() => {
@@ -58,5 +61,6 @@ export function useSection<T extends SectionData>(initialData?: T) {
     selectedFilters, // Выбранные фильтры
     loadCatalogPage: store.loadPage, // Метод загрузки страницы
     setAppendMode: store.setAppendMode, // Установка режима дозагрузки
+    setApiUrl: store.setApiUrl, // Установка API URL
   }
 }

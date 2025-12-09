@@ -1,5 +1,5 @@
 <?php
-namespace Beeralex\Api\Domain\Menu;
+namespace Beeralex\Api\Domain\Favourite;
 
 use Beeralex\Api\Domain\Iblock\Catalog\CatalogItemDTO;
 use Beeralex\Api\Domain\Iblock\SectionItemsDTO;

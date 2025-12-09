@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Api\Domain\Menu\FavouriteDTO;
+use Beeralex\Api\Domain\Favourite\FavouriteDTO;
 
 $arResult['DTO'] = FavouriteDTO::make($arResult);
 

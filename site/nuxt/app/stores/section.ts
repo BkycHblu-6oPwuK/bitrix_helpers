@@ -49,6 +49,8 @@ export const useSectionStore = defineStore('section', {
 
     // Флаг для пропуска следующего срабатывания watch при программной навигации
     skipNextRouteWatch: false,
+
+    apiUrl: null as URL | null,
   }),
 
   getters: {
@@ -82,6 +84,13 @@ export const useSectionStore = defineStore('section', {
       this.pagination = sectionData.section.pagination
       this.sectionList = sectionData.sectionList
       this.initializeFiltersFromChecked()
+    },
+
+    setApiUrl(url: URL|string) {
+      if(typeof url === 'string') {
+        url = new URL(url, window.location.origin);
+      }
+      this.apiUrl = url;
     },
 
     /**
@@ -156,7 +165,10 @@ export const useSectionStore = defineStore('section', {
      * @returns URL объект с параметрами фильтрации
      */
     buildFilterUrl(): URL {
-      const url = new URL(window.location.href)
+      const url = this.apiUrl
+      if (!url) {
+        throw new Error('API URL is not set');
+      }
       const params = new URLSearchParams(url.search)
       const selectedFilters = Object.entries(this.selectedFilters)
 
@@ -187,8 +199,10 @@ export const useSectionStore = defineStore('section', {
      */
     getPageUrl(page: number): URL | null {
       if (!this.pagination || typeof window === 'undefined') return null
-
-      const url = new URL(window.location.href)
+      const url = this.apiUrl
+      if (!url) {
+        throw new Error('API URL is not set');
+      }
       const params = new URLSearchParams(url.search)
 
       // Для первой страницы удаляем параметр пагинации из URL
@@ -275,7 +289,12 @@ export const useSectionStore = defineStore('section', {
         if (options?.navigateFilter && response.value.data.page.filter?.filterUrl) {
           newUrl = response.value.data.page.filter.filterUrl // чпу фильтра
         } else {
-          newUrl = url.pathname + url.search // полная ссылка с параметрами
+         if(url === this.apiUrl) {
+          newUrl = window.location.pathname + url.search // текущий URL с параметрами
+         } else {
+          newUrl = url.pathname + url.search
+         }
+           // полная ссылка с параметрами
         }
 
         // Добавляем в историю только если URL изменился

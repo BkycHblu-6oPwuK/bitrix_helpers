@@ -5,59 +5,19 @@
 -->
 <script setup lang="ts">
 import type { CatalogDTO } from '~/types/iblock/catalog.ts';
-import CatalogFilter from './CatalogFilter.vue'
 import CatalogSection from './CatalogSection.vue'
 import Sections from './Sections.vue'
+import type { FavouritePageDTO } from '~/types/favourite';
 
 // Пропсы: начальные данные каталога с сервера
 const props = defineProps<{
-  catalog: CatalogDTO,
+  favourite: FavouritePageDTO
   apiUrl: string
 }>()
 
 // Инициализируем store с данными и получаем методы управления
-const { catalogData, isLoading, setAppendMode, loadCatalogPage, setApiUrl, selectedFilters } = useSection<CatalogDTO>(props.catalog)
-const { buildFilterUrl, setSorting } = useSectionFilter()
+const { catalogData, isLoading, setAppendMode, setApiUrl, loadCatalogPage } = useSection<FavouritePageDTO>(props.favourite)
 const { getPageUrl } = usePagination()
-
-/**
- * Обработчик применения фильтров
- * Строит URL с выбранными фильтрами и загружает новые данные
- */
-const handleApplyFilter = async () => {
-  if (Object.keys(selectedFilters.value).length === 0) {
-    handleClearFilter()
-    return
-  }
-  if (!catalogData.value?.filter) return
-  const url = buildFilterUrl()
-  await loadCatalogPage<CatalogDTO>(url, { navigateFilter: true })
-}
-
-/**
- * Обработчик сброса всех фильтров
- * Переходит на URL без фильтров и обновляет данные
- */
-const handleClearFilter = async () => {
-  if (!catalogData.value?.filter) return
-
-  // Сначала очищаем выбранные фильтры в store
-  const store = useSectionStore()
-  store.clearFilters()
-
-  const clearUrl = catalogData.value.filter.clearUrl
-  loadCatalogPage<CatalogDTO>(new URL(clearUrl, window.location.origin), { navigateFilter: true })
-}
-
-/**
- * Обработчик изменения сортировки
- * Обновляет ID сортировки в store и загружает отсортированные данные
- */
-const handleUpdateSorting = async (sortId: string) => {
-  setSorting(sortId)
-  const url = buildFilterUrl()
-  await loadCatalogPage<CatalogDTO>(url)
-}
 
 /**
  * Обработчик кнопки "Показать еще"
@@ -98,18 +58,20 @@ onMounted(() => {
     </div>
 
     <div v-else-if="catalogData" class="grid gap-8">
-      <aside class="lg:col-span-1">
-        <div class="sticky top-4">
-          <CatalogFilter v-if="catalogData.filter" :filter="catalogData.filter" @apply-filter="handleApplyFilter"
-            @clear-filter="handleClearFilter" @update-sorting="handleUpdateSorting" />
-        </div>
-      </aside>
 
       <main class="lg:col-span-3">
-        <Sections v-if="catalogData.sectionList?.length" :sections="catalogData.sectionList" class="mb-8" />
+        <Sections
+          v-if="catalogData.sectionList?.length"
+          :sections="catalogData.sectionList"
+          class="mb-8"
+        />
 
-        <CatalogSection v-if="catalogData.section" :section="catalogData.section" @show-more="handleShowMore"
-          @change-page="handleChangePage" />
+        <CatalogSection
+          v-if="catalogData.section"
+          :section="catalogData.section"
+          @show-more="handleShowMore"
+          @change-page="handleChangePage"
+        />
       </main>
     </div>
   </div>

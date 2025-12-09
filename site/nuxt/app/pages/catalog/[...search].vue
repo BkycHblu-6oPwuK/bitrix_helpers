@@ -4,7 +4,8 @@ import type { CatalogPageApiResponse } from '~/types/iblock/catalog.ts'
 
 const route = useRoute()
 const search = route.params.search.join('/')
-const { data } = await useApi<CatalogPageApiResponse>(`catalog/${search}`)
+const apiUrl = `catalog/${search}`;
+const { data } = await useApi<CatalogPageApiResponse>(apiUrl)
 if (data.value?.data?.seo) {
   useSeoPage(data.value.data.seo)
 }
@@ -12,6 +13,6 @@ if (data.value?.data?.seo) {
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <Catalog v-if="data?.data?.page" :catalog="data.data.page" />
+    <Catalog v-if="data?.data?.page" :catalog="data.data.page" :api-url="apiUrl"/>
   </div>
 </template>

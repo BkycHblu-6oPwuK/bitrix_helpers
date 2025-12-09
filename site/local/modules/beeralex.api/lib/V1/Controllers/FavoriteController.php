@@ -4,6 +4,7 @@ namespace Beeralex\Api\V1\Controllers;
 
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
+use Beeralex\Core\Service\FileService;
 use Beeralex\Favorite\FavouriteService;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Error;
@@ -146,7 +147,8 @@ class FavoriteController extends Controller
     {
         return $this->process(function () {
             $apiResult = service(ApiResult::class);
-            
+            $fileService = service(FileService::class);
+            $fileService->includeFile('v1.favourite.index');
             
             return $apiResult;
         });

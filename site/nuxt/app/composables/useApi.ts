@@ -1,6 +1,16 @@
 import { createError } from 'h3'
 import type { ApiResponse } from '~/types/api'
 
+function getBaseUrl() {
+  return process.server
+    ? useRuntimeConfig().apiBaseServer
+    : useRuntimeConfig().public.apiBaseClient
+}
+
+function getCleanPath(path: string) {
+  return path.replace(/^\/+/, '')
+}
+
 /**
  * Универсальный композабл для API запросов с кешированием
  * Использует useAsyncData для SSR и автоматического кеширования
@@ -26,11 +36,9 @@ export function useApi<T = unknown>(
     lazy?: boolean
   } = {}
 ) {
-  const config = useRuntimeConfig()
 
-  // Используем разные URL для сервера (внутренний) и клиента (внешний)
-  const baseURL = process.server ? config.apiBaseServer : config.public.apiBaseClient
-  const cleanPath = path.replace(/^\/+/, '') // Убираем начальные слеши
+  const baseURL = getBaseUrl()
+  const cleanPath = getCleanPath(path)
 
   // Генерируем уникальный ключ для кеширования на основе пути и параметров
   const requestKey = options.key ?? `${cleanPath}-${JSON.stringify(options.query || {})}`
@@ -86,9 +94,8 @@ export async function useApiFetch<T = unknown>(
     method?: 'get' | 'post'
   } = {}
 ) {
-  const config = useRuntimeConfig()
-  const baseURL = process.server ? config.apiBaseServer : config.public.apiBaseClient
-  const cleanPath = path.replace(/^\/+/, '')
+  const baseURL = getBaseUrl()
+  const cleanPath = getCleanPath(path)
 
   try {
     const res = await $fetch<ApiResponse<T>>(cleanPath, {
