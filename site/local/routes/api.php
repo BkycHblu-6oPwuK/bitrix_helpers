@@ -8,6 +8,7 @@ use Beeralex\Api\V1\Controllers\FormController;
 use Beeralex\Api\V1\Controllers\MainController;
 use Beeralex\Api\V1\Controllers\ReviewController;
 use Beeralex\Api\V1\Controllers\AuthController;
+use Beeralex\Api\V1\Controllers\FavoriteController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
@@ -72,23 +73,27 @@ return function (RoutingConfigurator $routes): void {
             $routes->prefix('favorite')->group(function (RoutingConfigurator $routes) {
                 $routes->post(
                     'add/{productID}',
-                    [\Beeralex\Api\V1\Controllers\FavoriteController::class, 'store']
+                    [FavoriteController::class, 'store']
                 );
                 $routes->delete(
                     'delete/{productID}',
-                    [\Beeralex\Api\V1\Controllers\FavoriteController::class, 'delete']
+                    [FavoriteController::class, 'delete']
                 );
                 $routes->post(
                     'toggle/{productID}',
-                    [\Beeralex\Api\V1\Controllers\FavoriteController::class, 'toggle']
+                    [FavoriteController::class, 'toggle']
                 );
                 $routes->delete(
                     'clear',
-                    [\Beeralex\Api\V1\Controllers\FavoriteController::class, 'clear']
+                    [FavoriteController::class, 'clear']
                 );
                 $routes->get(
                     'get',
-                    [\Beeralex\Api\V1\Controllers\FavoriteController::class, 'get']
+                    [FavoriteController::class, 'get']
+                );
+                $routes->get(
+                    'page',
+                    [FavoriteController::class, 'page']
                 );
             });
         });

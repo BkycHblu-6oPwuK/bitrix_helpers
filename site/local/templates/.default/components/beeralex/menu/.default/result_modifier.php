@@ -1,5 +1,7 @@
 <?php
 
-$arResult['DTO'] = \Beeralex\Api\Domain\Menu\MenuDTO::make($arResult);
+use Beeralex\Api\Domain\Menu\MenuDTO;
+
+$arResult['DTO'] = MenuDTO::make($arResult);
 
 $this->getComponent()->setResultCacheKeys(['DTO']);

@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { CatalogItemDTO } from '~/types/iblock/catalog';
 import Price from './Price.vue';
+import Favourite from './Favourite.vue';
 
 const props = defineProps<{
     item: CatalogItemDTO
@@ -16,7 +17,8 @@ const { isAvailable, images, price } = useCatalogItem(item);
 
 <template>
     <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-transform hover:scale-105">
-        <NuxtLink :to="item.detailPageUrl" class="block">
+        <NuxtLink :to="item.detailPageUrl" class="block relative">
+            <Favourite :productId="item.id" :absolute="true"/>
             <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md mb-4 overflow-hidden">
                 <img v-if="images && images.length > 0" :src="images[0]" :alt="item.name" class="w-full h-full object-cover" />
                 <div v-else class="w-full h-full flex items-center justify-center text-gray-400">

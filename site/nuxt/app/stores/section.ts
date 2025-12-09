@@ -5,7 +5,6 @@ import type { FilterDTO, SectionData } from '~/types/iblock/page';
 import type { PaginationDTO } from '~/types/pagination'
 
 const getSelectedFilterHash = (selectedFilters: Record<string, string>) => {
-  console.log(selectedFilters)
   return JSON.stringify(JSON.parse(JSON.stringify(selectedFilters)));
 }
 
@@ -220,7 +219,6 @@ export const useSectionStore = defineStore('section', {
     async loadPage<T extends SectionData>(url: URL, options?: { append?: boolean; navigateFilter?: boolean }) {
       this.isLoading = true
       this.error = null
-      console.log('Loading page:', url.href)
 
       try {
         const path = url.pathname

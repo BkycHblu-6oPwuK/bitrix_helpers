@@ -19,7 +19,6 @@ const emit = defineEmits<{
 
 // Обработчик клика по чекбоксу
 const handleToggle = (controlId: string, value: string) => {
-  console.log('toggle', controlId, value)
   emit('toggle', controlId, value)
 }
 </script>

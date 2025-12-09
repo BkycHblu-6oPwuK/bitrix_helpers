@@ -23,7 +23,6 @@ export function useSection<T extends SectionData>(initialData?: T) {
   if (process.client) {
     onMounted(() => {
       const handlePopState = async () => {
-        console.log('Browser back/forward navigation detected')
         const url = new URL(window.location.href)
         await store.loadPage<T>(url)
       }

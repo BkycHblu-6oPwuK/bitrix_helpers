@@ -3,6 +3,7 @@
   Количество, кнопки добавления в корзину и избранное
 -->
 <script setup lang="ts">
+import Favourite from '../Favourite.vue';
 const catalogDetail = useCatalogDetailStore()
 </script>
 
@@ -40,15 +41,7 @@ const catalogDetail = useCatalogDetailStore()
         В корзину
       </button>
       
-      <button
-        @click="catalogDetail.addToFavorite()"
-        class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        title="Добавить в избранное"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-      </button>
+      <Favourite :productId="catalogDetail.item?.id" :absolute="false" />
     </div>
   </div>
 </template>

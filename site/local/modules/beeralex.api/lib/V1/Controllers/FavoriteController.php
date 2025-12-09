@@ -41,6 +41,9 @@ class FavoriteController extends Controller
             'get' => [
                 'prefilters' => [],
             ],
+            'page' => [
+                'prefilters' => [],
+            ],
         ];
     }
 
@@ -135,6 +138,16 @@ class FavoriteController extends Controller
                 'items' => $this->favouriteService->getByUser(),
                 'count' => $this->favouriteService->getCountByUser(),
             ]);
+            return $apiResult;
+        });
+    }
+
+    public function pageAction()
+    {
+        return $this->process(function () {
+            $apiResult = service(ApiResult::class);
+            
+            
             return $apiResult;
         });
     }
