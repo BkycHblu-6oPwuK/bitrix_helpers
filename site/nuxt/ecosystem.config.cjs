@@ -6,7 +6,6 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 5174,
-        API_BASE_URL: 'https://example.com/api',
       },
     },
   ],

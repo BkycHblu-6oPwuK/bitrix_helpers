@@ -10,6 +10,10 @@ export default defineNuxtConfig({
     },
   },
 
+  ui: {
+    fonts: false
+  },
+
   devtools: {
     enabled: true
   },

@@ -30,6 +30,7 @@ class CatalogElementService
             return [];
         }
         $offers = $this->offersRepository->getOffersByProductIds([$elementId]);
+
         $product['OFFERS'] = $offers[$elementId] ?? [];
         $propertiesIds = $this->getPropertiesIds($product);
         $properties = $this->propertyRepository->getByIds($propertiesIds, ['ID', 'CODE', 'NAME', 'USER_TYPE_SETTINGS_LIST', 'USER_TYPE', 'PROPERTY_TYPE']);
@@ -37,12 +38,10 @@ class CatalogElementService
         $tableNames = $this->getTableNames($properties);
         $highloadClasses = $this->hlblockService->getHlBlocksByTableNames($tableNames);
         $this->buildPropertiesForProduct($product, $properties, $propertyTreeFeatures, $highloadClasses);
-        
         $product['OFFER_TREE'] = $this->buildOfferTree($product['OFFERS']);
         $preselectedOffer = $this->getPreselectedOffer($product, $offerId);
         $product['PRESELECTED_OFFER'] = $preselectedOffer;
         $product['SELECTED_OFFER_ID'] = $preselectedOffer['ID'] ?? null;
-
         return $product;
     }
 
