@@ -12,9 +12,6 @@ use Bitrix\Main\Result;
 
 /**
  * Менеджер аутентификации для Bitrix:
- * - Координирует работу различных аутентификаторов (local, OAuth и т.д.)
- * - Единая ответственность: управление процессом аутентификации
- * - Не занимается JWT токенами (это делегировано AuthService)
  */
 class AuthManager
 {
@@ -99,17 +96,23 @@ class AuthManager
 
         $validator = $this->validators[$type];
         $validationResult = $validator->validateForRegistration($userDto);
+
         if (!$validationResult->isSuccess()) {
             $result->addErrors($validationResult->getErrors());
+            return $result;
         }
+        $result = $authenticator->register($userDto);
 
-        $authenticator->register($userDto);
-
-        $userId = $this->bitrixCurrentUserId();
+        if (!$result->isSuccess()) {
+            return $result;
+        }
+        $userId = $result->getData()['userId'];
         if (!$userId) {
             $result->addError(new \Bitrix\Main\Error("Registered userId cannot be determined", 'authentificator'));
             return $result;
         }
+
+        $authenticator->authorizeByUserId($userId);
 
         $result->setData([
             'userId' => $userId,

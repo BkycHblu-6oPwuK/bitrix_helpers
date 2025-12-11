@@ -66,16 +66,14 @@ abstract class AbstractSocServAuthService extends \CSocServAuth
         return (new Uri("/bitrix/services/main/ajax.php?action=beeralex:user.AuthController.callback&provider={$id}"))->toAbsolute()->__toString();
     }
 
-    protected function finalRedirect(string $authError): void
+    protected function finalRedirect(string|int $authError): void
     {
         global $APPLICATION;
         $url = $APPLICATION->GetCurDir() . '?auth_service_id=' . $this->getId();
 
         if ($authError) {
-            $url .= '&auth_service_error=' . $authError;
+            $url .= '&auth_service_error=' . (string)$authError;
         }
-
-        echo '<script>window.close(); if (window.opener) window.opener.location.reload();</script>';
-        \CMain::FinalActions();
+        $GLOBALS['AUTH_SOCSERV_RESULT'] = $authError !== 1;
     }
 }

@@ -23,7 +23,8 @@ abstract class AbstractAuthentificator implements AuthenticatorContract
     {
         $result = new Result();
         try {
-            $this->userRepository->add(UserBuilder::fromDto($credentials)->build());
+            $id = $this->userRepository->add(UserBuilder::fromDto($credentials)->build());
+            $result->setData(['userId' => $id]);
         } catch (\Exception $e) {
             $result->addError(new \Bitrix\Main\Error($e->getMessage()));
         }

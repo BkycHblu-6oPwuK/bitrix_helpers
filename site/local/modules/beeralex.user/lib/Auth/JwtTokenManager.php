@@ -70,7 +70,8 @@ class JwtTokenManager
         $payload = array_merge($payload, $additionalClaims);
 
         $result->setData([
-            'accessToken' => JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm)
+            'accessToken' => JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm),
+            'accessTokenExpired' => $payload['exp'],
         ]);
 
         return $result;
@@ -107,7 +108,8 @@ class JwtTokenManager
         ];
 
         $result->setData([
-            'refreshToken' => JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm)
+            'refreshToken' => JWT::encode($payload, $this->options->jwtSecretKey, $this->options->jwtAlgorithm),
+            'refreshTokenExpired' => $payload['exp'],
         ]);
 
         return $result;
@@ -118,7 +120,7 @@ class JwtTokenManager
      *
      * @param int $userId ID пользователя
      * @param array $additionalClaims Дополнительные данные для access токена
-     * @return Result<array<{accessToken: string, refreshToken: string}>>
+     * @return Result<array<{accessToken: string, refreshToken: string, accessTokenExpired: int, refreshTokenExpired: int}>>
      */
     public function generateTokenPair(int $userId, array $additionalClaims = []): Result
     {
@@ -146,9 +148,14 @@ class JwtTokenManager
             return $result;
         }
 
+        $accessTokenResultData = $accessTokenResult->getData();
+        $refreshTokenResultData = $refreshTokenResult->getData();
+
         $result->setData([
-            'accessToken' => $accessTokenResult->getData()['accessToken'],
-            'refreshToken' => $refreshTokenResult->getData()['refreshToken'],
+            'accessToken' => $accessTokenResultData['accessToken'],
+            'refreshToken' => $refreshTokenResultData['refreshToken'],
+            'accessTokenExpired' => $accessTokenResultData['accessTokenExpired'],
+            'refreshTokenExpired' => $refreshTokenResultData['refreshTokenExpired'],
         ]);
 
         return $result;

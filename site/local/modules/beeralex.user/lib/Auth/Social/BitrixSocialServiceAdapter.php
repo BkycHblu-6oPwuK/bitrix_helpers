@@ -102,6 +102,7 @@ class BitrixSocialServiceAdapter implements SocialServiceProviderContract
         if (!method_exists($this->service, 'Authorize')) {
             throw new \RuntimeException("Service {$this->key} does not support Authorize()");
         }
-        return $this->service->Authorize();
+        $this->service->Authorize(); // в битриксе это просто вызывает редирект на страницу авторизации, у нас это будет обработано в контроллере
+        return $GLOBALS['AUTH_SOCSERV_RESULT'] ?? false;
     }
 }

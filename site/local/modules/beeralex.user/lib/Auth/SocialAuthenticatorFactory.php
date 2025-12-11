@@ -29,17 +29,12 @@ class SocialAuthenticatorFactory
             if(!$adapter->isEnable) continue;
             try {
                 $authenticator = $this->factory->create($adapter);
-                $result[static::formatKey($authenticator->getKey())] = $authenticator;
+                $result[$authenticator->getKey()] = $authenticator;
             } catch (\Throwable $e) {
                 // можно залогировать ошибку, но не падать  
             }
         }
 
         return $result;
-    }
-
-    public static function formatKey(string $key): string
-    {
-        return mb_strtolower($key);
     }
 }

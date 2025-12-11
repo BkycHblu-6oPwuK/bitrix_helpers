@@ -26,6 +26,12 @@ use Beeralex\User\Options;
 use Beeralex\User\Auth\AuthService;
 
 return [
+    'controllers' => [
+        'value' => [
+            'defaultNamespace' => '\\Beeralex\\User\\Controllers',
+        ],
+        'readonly' => true,
+    ],
     'services' => [
         'value' => [
             UserRepositoryContract::class => [
@@ -80,7 +86,7 @@ return [
             ],
             AuthPhoneValidator::class => [
                 'className' => AuthPhoneValidator::class
-            ],  
+            ],
             AuthManager::class => [
                 'constructor' => static function () {
                     $emailAuth = service(EmailAuthenticatorContract::class);
@@ -106,7 +112,8 @@ return [
             AuthService::class => [
                 'constructor' => static function () {
                     return new AuthService(
-                        service(AuthManager::class), service(JwtTokenManager::class)
+                        service(AuthManager::class),
+                        service(JwtTokenManager::class)
                     );
                 }
             ],

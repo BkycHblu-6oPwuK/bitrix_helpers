@@ -57,7 +57,7 @@ class AuthController extends ApiController
      * 
      * POST /api/auth/login
      * Body: {
-     *   "type": "local",
+     *   "type": "email",
      *   "email": "user@example.com",
      *   "password": "password"
      * }

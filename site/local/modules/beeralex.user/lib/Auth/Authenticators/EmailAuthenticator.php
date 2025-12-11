@@ -4,7 +4,6 @@ namespace Beeralex\User\Auth\Authenticators;
 
 use Beeralex\User\Auth\Contracts\EmailAuthenticatorContract;
 use Beeralex\User\Auth\AuthCredentialsDto;
-use Beeralex\User\Validation\Validator\EmailRegisterValidator;
 use Bitrix\Main\Result;
 use Bitrix\Main\Security\Password;
 

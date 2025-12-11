@@ -102,6 +102,6 @@ const openAuthModal = () => {
     </div>
 
     <!-- Модальное окно авторизации -->
-    <AuthModal v-if="false" v-model="isAuthModalOpen" />
+    <AuthModal v-model="isAuthModalOpen" @close="isAuthModalOpen = false" />
   </header>
 </template>

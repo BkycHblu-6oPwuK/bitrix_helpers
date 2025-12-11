@@ -1,212 +1,118 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { AuthMode } from '~/types/auth'
 
-const props = defineProps<{
-  modelValue: boolean
-}>()
+const modelValue = defineModel<boolean>()
+const emit = defineEmits<{ close: [] }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+const authStore = useAuthStore()
 
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+const mode = ref<AuthMode>('login')
+const loginFormRef = ref()
+const registerFormRef = ref()
+const phoneFormRef = ref()
+
+const handleSuccess = () => {
+  modelValue.value = false
+  emit('close')
+}
+
+const switchMode = (newMode: AuthMode) => {
+  mode.value = newMode
+  loginFormRef.value?.clearErrors()
+  registerFormRef.value?.clearErrors()
+  phoneFormRef.value?.clearErrors()
+}
+
+watch(modelValue, async (value) => {
+  if (value) {
+    await authStore.loadAuthMethods()
+    mode.value = authStore.defaultAuthMode
+  } else {
+    mode.value = 'login'
+    loginFormRef.value?.reset()
+    registerFormRef.value?.reset()
+    phoneFormRef.value?.reset()
+  }
 })
-
-const authType = ref<'login' | 'register'>('login')
-const email = ref('')
-const password = ref('')
-const name = ref('')
-const phone = ref('')
-const loading = ref(false)
-
-const switchToLogin = () => {
-  authType.value = 'login'
-}
-
-const switchToRegister = () => {
-  authType.value = 'register'
-}
-
-const onLogin = async () => {
-  loading.value = true
-  try {
-    // TODO: Реализовать логику авторизации
-    console.log('Login:', { email: email.value, password: password.value })
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    // После успешной авторизации закрыть модальное окно
-    isOpen.value = false
-  } catch (error) {
-    console.error('Login error:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const onRegister = async () => {
-  loading.value = true
-  try {
-    // TODO: Реализовать логику регистрации
-    console.log('Register:', { 
-      name: name.value, 
-      email: email.value, 
-      phone: phone.value,
-      password: password.value 
-    })
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    // После успешной регистрации закрыть модальное окно
-    isOpen.value = false
-  } catch (error) {
-    console.error('Register error:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const onSocialAuth = (provider: string) => {
-  console.log('Social auth:', provider)
-  // TODO: Реализовать социальную авторизацию
-}
 </script>
 
 <template>
-  <UModal v-model="isOpen">
-    <UCard>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="text-xl font-semibold">
-            {{ authType === 'login' ? 'Вход' : 'Регистрация' }}
-          </h3>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            icon="i-heroicons-x-mark"
-            @click="isOpen = false"
-          />
-        </div>
-      </template>
+    <UModal v-model:open="modelValue">
+        <template #header>
+            <div class="w-full flex items-center justify-between mb-2">
+                <h3 class="text-xl font-semibold">
+                    {{ mode === 'register' ? 'Регистрация' : 'Вход' }}
+                </h3>
 
-      <!-- Вход -->
-      <div v-if="authType === 'login'" class="space-y-4">
-        <UFormGroup label="Email" required>
-          <UInput
-            v-model="email"
-            type="email"
-            placeholder="your@email.com"
-            icon="i-heroicons-envelope"
-          />
-        </UFormGroup>
+                <UButton icon="i-heroicons-x-mark" color="info" variant="ghost" class="!p-2"
+                    @click="modelValue = false; emit('close')" />
+            </div>
+        </template>
+        <template #body>
+            <div v-if="authStore.isLoadingMethods" class="flex justify-center items-center py-8">
+                <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+            </div>
 
-        <UFormGroup label="Пароль" required>
-          <UInput
-            v-model="password"
-            type="password"
-            placeholder="••••••••"
-            icon="i-heroicons-lock-closed"
-          />
-        </UFormGroup>
+            <div v-else>
+                <div v-if="mode !== 'register' && (authStore.hasEmailAuth || authStore.hasPhoneAuth)" 
+                     class="grid gap-3 mb-6" 
+                     :class="authStore.hasEmailAuth && authStore.hasPhoneAuth ? 'grid-cols-2' : 'grid-cols-1'">
+                    <UButton 
+                      v-if="authStore.hasEmailAuth"
+                      :variant="mode === 'login' ? 'solid' : 'outline'" 
+                      block 
+                      size="lg" 
+                      @click="switchMode('login')"
+                    >
+                        Email
+                    </UButton>
 
-        <div class="flex justify-between items-center text-sm">
-          <UCheckbox label="Запомнить меня" />
-          <UButton variant="link" size="xs" :padded="false">
-            Забыли пароль?
-          </UButton>
-        </div>
+                    <UButton 
+                      v-if="authStore.hasPhoneAuth"
+                      :variant="mode === 'phone' ? 'solid' : 'outline'" 
+                      block 
+                      size="lg" 
+                      @click="switchMode('phone')"
+                    >
+                        Телефон
+                    </UButton>
+                </div>
 
-        <UButton
-          block
-          size="lg"
-          :loading="loading"
-          @click="onLogin"
-        >
-          Войти
-        </UButton>
+                <AuthLoginForm
+                  v-if="mode === 'login' && authStore.hasEmailAuth"
+                  ref="loginFormRef"
+                  @success="handleSuccess"
+                  @switch-to-register="switchMode('register')"
+                />
 
-        <UDivider label="или" />
+                <AuthRegisterForm
+                  v-if="mode === 'register' && authStore.hasEmailAuth"
+                  ref="registerFormRef"
+                  @success="handleSuccess"
+                  @switch-to-login="switchMode('login')"
+                />
 
-        <div class="space-y-2">
-          <UButton
-            block
-            color="neutral"
-            variant="outline"
-            icon="i-simple-icons-google"
-            @click="onSocialAuth('google')"
-          >
-            Войти через Google
-          </UButton>
-          <UButton
-            block
-            color="neutral"
-            variant="outline"
-            icon="i-simple-icons-vk"
-            @click="onSocialAuth('vk')"
-          >
-            Войти через VK
-          </UButton>
-        </div>
+                <AuthPhoneLoginForm
+                  v-if="mode === 'phone' && authStore.hasPhoneAuth"
+                  ref="phoneFormRef"
+                  @success="handleSuccess"
+                  @switch-to-email="switchMode('login')"
+                />
 
-        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
-          Нет аккаунта?
-          <UButton variant="link" size="xs" :padded="false" @click="switchToRegister">
-            Зарегистрироваться
-          </UButton>
-        </div>
-      </div>
+                <AuthSocialAuth
+                  v-if="mode === 'login'"
+                  :methods="authStore.socialAuthMethods"
+                />
 
-      <!-- Регистрация -->
-      <div v-else class="space-y-4">
-        <UFormGroup label="Имя" required>
-          <UInput
-            v-model="name"
-            placeholder="Иван Иванов"
-            icon="i-heroicons-user"
-          />
-        </UFormGroup>
+                <UAlert 
+                  v-if="!authStore.hasAnyAuthMethod"
+                  color="error"
+                  variant="soft"
+                  title="Методы авторизации не настроены"
+                  class="mb-4"
+                />
+            </div>
+        </template>
+    </UModal>
 
-        <UFormGroup label="Email" required>
-          <UInput
-            v-model="email"
-            type="email"
-            placeholder="your@email.com"
-            icon="i-heroicons-envelope"
-          />
-        </UFormGroup>
-
-        <UFormGroup label="Телефон">
-          <UInput
-            v-model="phone"
-            type="tel"
-            placeholder="+7 (999) 999-99-99"
-            icon="i-heroicons-phone"
-          />
-        </UFormGroup>
-
-        <UFormGroup label="Пароль" required>
-          <UInput
-            v-model="password"
-            type="password"
-            placeholder="••••••••"
-            icon="i-heroicons-lock-closed"
-          />
-        </UFormGroup>
-
-        <UButton
-          block
-          size="lg"
-          :loading="loading"
-          @click="onRegister"
-        >
-          Зарегистрироваться
-        </UButton>
-
-        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
-          Уже есть аккаунт?
-          <UButton variant="link" size="xs" :padded="false" @click="switchToLogin">
-            Войти
-          </UButton>
-        </div>
-      </div>
-    </UCard>
-  </UModal>
 </template>

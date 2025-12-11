@@ -41,7 +41,7 @@ const catalogDetail = useCatalogDetailStore()
         В корзину
       </button>
       
-      <Favourite :productId="catalogDetail.item?.id" :absolute="false" />
+      <Favourite v-if="catalogDetail.item?.id" :productId="catalogDetail.item?.id" :absolute="false" />
     </div>
   </div>
 </template>

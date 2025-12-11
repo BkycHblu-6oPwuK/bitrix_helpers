@@ -28,6 +28,13 @@ class PhoneAuthentificator extends AbstractAuthentificator implements PhoneAuthe
         return 'Авторизация по номеру телефона';
     }
 
+    public function register(AuthCredentialsDto $credentials): Result
+    {
+        $result = new Result();
+        $result->addError(new \Bitrix\Main\Error('Registration via phone authenticator is not supported'));
+        return $result;
+    }
+
     public function authenticate(AuthCredentialsDto $credentials): Result
     {
         if ($credentials === null || !$credentials->getPhone()) {
@@ -35,7 +42,6 @@ class PhoneAuthentificator extends AbstractAuthentificator implements PhoneAuthe
             $result->addError(new \Bitrix\Main\Error('Phone number must be provided'));
             return $result;
         }
-
         return $this->authenticateByPhone(
             Phone::fromString($credentials->getPhone()),
             $credentials->getCodeVerify()
@@ -47,8 +53,8 @@ class PhoneAuthentificator extends AbstractAuthentificator implements PhoneAuthe
         $result = new Result();
         if ($code === null) {
             $resultSendCode = $this->codeService->sendCode($phone);
-            if ($resultSendCode) {
-                return $result;
+            if (!$resultSendCode->isSuccess()) {
+                return $resultSendCode;
             }
 
             $result->addError(new \Bitrix\Main\Error('Verification code sent to your phone'));

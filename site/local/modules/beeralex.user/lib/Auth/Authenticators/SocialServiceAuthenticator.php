@@ -40,7 +40,9 @@ class SocialServiceAuthenticator implements AuthenticatorContract
 
     public function register(AuthCredentialsDto $credentials): Result
     {
-        throw new \LogicException("Registration handled internally by Bitrix socialservices");
+        $result = new Result();
+        $result->addError(new \Bitrix\Main\Error('Registration via social service authenticator is not supported'));
+        return $result;
     }
 
     /**
@@ -55,15 +57,6 @@ class SocialServiceAuthenticator implements AuthenticatorContract
             return $result;
         }
 
-        // После успешной авторизации Bitrix уже выполнил login.
-        // $profile = $this->provider->getProfile();
-
-        // if ($profile) {
-        //     $data->id = $profile['id'] ?? null;
-        //     $data->email = $profile['email'] ?? null;
-        //     $data->first_name = $profile['first_name'] ?? '';
-        //     $data->last_name = $profile['last_name'] ?? '';
-        // }
         return $result;
     }
 

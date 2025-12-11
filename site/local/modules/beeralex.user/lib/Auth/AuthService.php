@@ -25,7 +25,7 @@ class AuthService
      * 
      * @param AuthCredentialsDto $credentials DTO с данными для входа
      * @param array $metadata Дополнительные данные (ip, user_agent)
-     * @return Result{userId: int, authType: string, accessToken: string, refreshToken: string|null}
+     * @return Result{userId: int, authType: string, accessToken: string, refreshToken: string|null, accessTokenExpired: int|null, refreshTokenExpired: int|null}
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
@@ -46,16 +46,18 @@ class AuthService
 
         // Если JWT включен, генерируем и добавляем токены
         if ($this->jwtManager->isEnabled()) {
-            $tokens = $this->jwtManager->generateTokenPair(
+            $tokensResult = $this->jwtManager->generateTokenPair(
                 $authData['userId'],
                 array_merge([
                     'auth_type' => $authData['authType'],
                     'email' => $authData['email'],
                 ], $metadata)
             );
-
-            $resultData['accessToken'] = $tokens['access'];
-            $resultData['refreshToken'] = $tokens['refresh'];
+            $tokens = $tokensResult->getData();
+            $resultData['accessToken'] = $tokens['accessToken'];
+            $resultData['refreshToken'] = $tokens['refreshToken'];
+            $resultData['accessTokenExpired'] = $tokens['accessTokenExpired'];
+            $resultData['refreshTokenExpired'] = $tokens['refreshTokenExpired'];
         }
 
         $result->setData($resultData);
@@ -92,15 +94,16 @@ class AuthService
         ];
 
         if ($this->jwtManager->isEnabled()) {
-            $tokens = $this->jwtManager->generateTokenPair(
+            $tokensResult = $this->jwtManager->generateTokenPair(
                 $authData['userId'],
                 [
                     'auth_type' => $authData['authType'],
                     'email' => $authData['email'],
                 ]
             );
-            $resultData['accessToken'] = $tokens['access'];
-            $resultData['refreshToken'] = $tokens['refresh'];
+            $tokens = $tokensResult->getData();
+            $resultData['accessToken'] = $tokens['accessToken'];
+            $resultData['refreshToken'] = $tokens['refreshToken'];
         }
 
         $result->setData($resultData);

@@ -16,7 +16,7 @@ class BitrixTelegramService extends AbstractSocServAuthService
 {
     public function getId(): string
     {
-        return 'Telegram';
+        return 'telegram';
     }
 
     public function getLoginPrefix(): string
