@@ -22,5 +22,5 @@ interface UserRepositoryContract extends RepositoryContract
     ];
     public function getByEmail(string $email, array $select = []): ?UserEntityContract;
     public function getByPhone(Phone $phone, array $select = []): ?UserEntityContract;
-    public function getCurrentUser(): UserEntityContract;
+    public function getCurrentUser(bool $refresh): UserEntityContract;
 }

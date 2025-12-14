@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import type { UserRegisterEmailState } from '~/types/user';
+
 const emit = defineEmits<{
   success: []
   switchToLogin: []
 }>()
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
-const form = useForm({
+const form = useForm<UserRegisterEmailState>({
   initialValues: {
     name: '',
     email: '',
@@ -23,17 +25,8 @@ const form = useForm({
     return Object.keys(errors).length ? errors : null
   },
   onSubmit: async (values) => {
-    const { useApiFetch } = await import('~/composables/useApi')
-    const response = await useApiFetch('user/register', {
-      method: 'post',
-      body: { type: 'email', ...values }
-    })
-    if (response.status === 'success' && response.data) {
-      authStore.setAuthData({
-        ...response.data,
-      })
-      emit('success')
-    }
+    await userStore.register('email', values)
+    emit('success')
   }
 })
 

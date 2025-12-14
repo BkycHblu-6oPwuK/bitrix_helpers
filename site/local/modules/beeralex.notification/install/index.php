@@ -47,7 +47,7 @@ class beeralex_notification extends CModule
             $this->InstallEvents();
             $this->InstallFiles();
         } else {
-            $APPLICATION->ThrowException('Нет поддержки d7 в главном модуле');
+            $APPLICATION->ThrowException('Нет поддержки d7 в главном модуле, а так же не установлены необходимые модули beeralex.core и beeralex.user');
         }
         $APPLICATION->IncludeAdminFile(
             'Установка модуля',
@@ -57,7 +57,7 @@ class beeralex_notification extends CModule
 
     public function checkRequirements(): bool
     {
-        return version_compare(ModuleManager::getVersion('main'), '14.00.00') >= 0;
+        return version_compare(ModuleManager::getVersion('main'), '14.00.00') >= 0 && Loader::includeModule('beeralex.core') && Loader::includeModule('beeralex.user');
     }
 
     public function InstallFiles()

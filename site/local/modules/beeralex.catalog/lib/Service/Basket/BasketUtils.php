@@ -36,7 +36,7 @@ class BasketUtils
 
         // Получаем идентификаторы товаров и объединяем с offersIds - запишутся только те, что в корзине не офферы
         $productsIds = $this->offersRepository->getProductsIdsByOffersIds($offersIds) + $offersIds;
-
+        
         // Получаем информацию о товарах
         $products = $this->productsRepository->getProducts(array_values($productsIds));
 

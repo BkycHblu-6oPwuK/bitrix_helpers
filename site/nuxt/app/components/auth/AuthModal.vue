@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { AuthMode } from '~/types/auth'
+import type { AuthMode } from '~/types/user'
 
 const modelValue = defineModel<boolean>()
 const emit = defineEmits<{ close: [] }>()
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
 const mode = ref<AuthMode>('login')
 const loginFormRef = ref()
@@ -25,8 +25,8 @@ const switchMode = (newMode: AuthMode) => {
 
 watch(modelValue, async (value) => {
   if (value) {
-    await authStore.loadAuthMethods()
-    mode.value = authStore.defaultAuthMode
+    await userStore.loadAuthMethods()
+    mode.value = userStore.defaultAuthMode
   } else {
     mode.value = 'login'
     loginFormRef.value?.reset()
@@ -49,16 +49,16 @@ watch(modelValue, async (value) => {
             </div>
         </template>
         <template #body>
-            <div v-if="authStore.isLoadingMethods" class="flex justify-center items-center py-8">
+            <div v-if="userStore.isLoadingMethods" class="flex justify-center items-center py-8">
                 <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
             </div>
 
             <div v-else>
-                <div v-if="mode !== 'register' && (authStore.hasEmailAuth || authStore.hasPhoneAuth)" 
+                <div v-if="mode !== 'register' && (userStore.hasEmailAuth || userStore.hasPhoneAuth)" 
                      class="grid gap-3 mb-6" 
-                     :class="authStore.hasEmailAuth && authStore.hasPhoneAuth ? 'grid-cols-2' : 'grid-cols-1'">
+                     :class="userStore.hasEmailAuth && userStore.hasPhoneAuth ? 'grid-cols-2' : 'grid-cols-1'">
                     <UButton 
-                      v-if="authStore.hasEmailAuth"
+                      v-if="userStore.hasEmailAuth"
                       :variant="mode === 'login' ? 'solid' : 'outline'" 
                       block 
                       size="lg" 
@@ -68,7 +68,7 @@ watch(modelValue, async (value) => {
                     </UButton>
 
                     <UButton 
-                      v-if="authStore.hasPhoneAuth"
+                      v-if="userStore.hasPhoneAuth"
                       :variant="mode === 'phone' ? 'solid' : 'outline'" 
                       block 
                       size="lg" 
@@ -79,21 +79,21 @@ watch(modelValue, async (value) => {
                 </div>
 
                 <AuthLoginForm
-                  v-if="mode === 'login' && authStore.hasEmailAuth"
+                  v-if="mode === 'login' && userStore.hasEmailAuth"
                   ref="loginFormRef"
                   @success="handleSuccess"
                   @switch-to-register="switchMode('register')"
                 />
 
                 <AuthRegisterForm
-                  v-if="mode === 'register' && authStore.hasEmailAuth"
+                  v-if="mode === 'register' && userStore.hasEmailAuth"
                   ref="registerFormRef"
                   @success="handleSuccess"
                   @switch-to-login="switchMode('login')"
                 />
 
                 <AuthPhoneLoginForm
-                  v-if="mode === 'phone' && authStore.hasPhoneAuth"
+                  v-if="mode === 'phone' && userStore.hasPhoneAuth"
                   ref="phoneFormRef"
                   @success="handleSuccess"
                   @switch-to-email="switchMode('login')"
@@ -101,11 +101,11 @@ watch(modelValue, async (value) => {
 
                 <AuthSocialAuth
                   v-if="mode === 'login'"
-                  :methods="authStore.socialAuthMethods"
+                  :methods="userStore.socialAuthMethods"
                 />
 
                 <UAlert 
-                  v-if="!authStore.hasAnyAuthMethod"
+                  v-if="!userStore.hasAnyAuthMethod"
                   color="error"
                   variant="soft"
                   title="Методы авторизации не настроены"

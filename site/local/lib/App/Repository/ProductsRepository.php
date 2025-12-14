@@ -65,7 +65,7 @@ class ProductsRepository extends CatalogProductsRepository
         $result = [];
         foreach ($productIds as $id) {
             if (isset($products[$id])) {
-                $result[] = $products[$id];
+                $result[$id] = $products[$id];
             }
         }
 

@@ -24,7 +24,7 @@ return Schema::make()
                 null,
                 null,
                 false,
-                '' // J3p6o4VwJkqU3yX7J2JQ0vS8Z0jvJmJjzqJjCj7y7v4jS2WlDgYj6Q==
+                ''
             );
 
             $tab->input(
@@ -33,7 +33,7 @@ return Schema::make()
                 null,
                 null,
                 false,
-                '3600'
+                '1200' // 20 минут, этого достаточно для большинства случаев. Если нужно больше - всегда можно обновить токен через refresh токен
             );
 
             $tab->input(

@@ -13,11 +13,15 @@ const props = defineProps<{
 const item = toRef(props, 'item');
 const { isAvailable, images, price } = useCatalogItem(item);
 
+// ID предложения для корзины (либо preselectedOffer, либо сам товар)
+const offerId = computed(() => 
+    item.value.preselectedOffer?.id || item.value.id
+)
 </script>
 
 <template>
-    <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-transform hover:scale-105">
-        <NuxtLink :to="item.detailPageUrl" class="block relative">
+    <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
+        <NuxtLink :to="item.detailPageUrl" class="block relative mb-auto">
             <Favourite :productId="item.id" :absolute="true"/>
             <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md mb-4 overflow-hidden">
                 <img v-if="images && images.length > 0" :src="images[0]" :alt="item.name" class="w-full h-full object-cover" />
@@ -44,5 +48,15 @@ const { isAvailable, images, price } = useCatalogItem(item);
                 </span>
             </div>
         </NuxtLink>
+
+        <!-- Кнопка добавления в корзину -->
+        <div class="mt-4" @click.stop>
+            <BasketAddToBasket
+                :offer-id="offerId"
+                :disabled="!isAvailable"
+                size="sm"
+                variant="compact"
+            />
+        </div>
     </div>
 </template>

@@ -2,9 +2,10 @@ import { createError } from 'h3'
 import type { ApiResponse } from '~/types/api'
 
 function getBaseUrl() {
+  const config = useRuntimeConfig()
   return process.server
-    ? useRuntimeConfig().apiBaseServer
-    : useRuntimeConfig().public.apiBaseClient
+    ? config.apiBaseServer
+    : config.public.apiBaseClient
 }
 
 function getCleanPath(path: string) {
@@ -31,7 +32,7 @@ export function useApi<T = unknown>(
   options: {
     key?: string
     query?: Record<string, any>
-    body?: Record<string, any> | FormData
+    body?: Record<string, any> | FormData | URLSearchParams
     method?: 'get' | 'post'
     lazy?: boolean
   } = {}
@@ -39,25 +40,27 @@ export function useApi<T = unknown>(
 
   const baseURL = getBaseUrl()
   const cleanPath = getCleanPath(path)
-
-  // Генерируем уникальный ключ для кеширования на основе пути и параметров
   const requestKey = options.key ?? `${cleanPath}-${JSON.stringify(options.query || {})}`
-
   const asyncDataFn = options.lazy ? useLazyAsyncData : useAsyncData
 
   return asyncDataFn<ApiResponse<T>>(requestKey, async () => {
     try {
+      if(options.body instanceof Object && !(options.body instanceof FormData)) {
+        options.body = new URLSearchParams(Object.entries(options.body).map(([key, value]) => [key, String(value)]))
+      }
+      const { $fetch } = useNuxtApp()
+
       const res = await $fetch<ApiResponse<T>>(cleanPath, {
         baseURL,
         method: options.method || 'get',
         query: options.query,
         body: options.body,
+        credentials: 'include',
         headers: {
           Accept: 'application/json',
         },
       })
 
-      // Проверяем статус ответа от API (формат ApiResponse)
       if (res.status === 'error') {
         throw createError({
           statusCode: 500,
@@ -68,7 +71,6 @@ export function useApi<T = unknown>(
 
       return res
     } catch (error: any) {
-      // Обрабатываем сетевые ошибки и ошибки сервера
       throw createError({
         statusCode: error?.statusCode || 500,
         statusMessage: 'Network or server error',
@@ -96,13 +98,18 @@ export async function useApiFetch<T = unknown>(
 ) {
   const baseURL = getBaseUrl()
   const cleanPath = getCleanPath(path)
-
   try {
+    if(options.body instanceof Object && !(options.body instanceof FormData)) {
+      options.body = new URLSearchParams(Object.entries(options.body).map(([key, value]) => [key, String(value)]))
+    }
+    const { $fetch } = useNuxtApp()
+
     const res = await $fetch<ApiResponse<T>>(cleanPath, {
       baseURL,
       method: options.method || 'get',
       query: options.query,
       body: options.body,
+      credentials: 'include',
       headers: {
         Accept: 'application/json',
       },

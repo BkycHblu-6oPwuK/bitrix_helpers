@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\ActionFilter;
 
-use Beeralex\User\Auth\ActionFilter\JwtAuthFilter;
+use Beeralex\Api\Domain\User\UserService;
+use Beeralex\Api\Options as ApiOptions;
 use Beeralex\User\Options;
+use Bitrix\Main\Context;
 use Bitrix\Main\Engine\ActionFilter\Base;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
 use Bitrix\Main\Loader;
 
-class JwtOrCsrfFilter extends Base
+/**
+ * Проверит JWT токен, если аутентификация по нему включена, либо проверит CSRF токен и авторизацию по сессии Bitrix
+ */
+class AuthFilter extends Base
 {
     protected readonly bool $isUserModuleLoaded;
     protected readonly array $params;
@@ -28,6 +33,7 @@ class JwtOrCsrfFilter extends Base
     {
         $this->isUserModuleLoaded = Loader::includeModule('beeralex.user');
         $this->params = $params;
+        parent::__construct();
     }
 
     protected function getJwtAuthFilter(): ?JwtAuthFilter
@@ -48,21 +54,30 @@ class JwtOrCsrfFilter extends Base
         );
     }
 
+    protected function getAuthenticationFilter(): Authentication
+    {
+        return new Authentication();
+    }
+
     public function onBeforeAction(Event $event)
     {
         $jwtFilter = $this->getJwtAuthFilter();
-        $csrfFilter = $this->getCsrfFilter();
-
         if ($jwtFilter !== null) {
-            $options = service(Options::class);
-            if (!$options->enableJwtAuth) {
-                $jwtResult = $jwtFilter->onBeforeAction($event);
-                if ($jwtResult?->getType() === EventResult::SUCCESS) {
-                    return $jwtResult;
-                }
+            $optionsUser = service(Options::class);
+            $optionsApi = service(ApiOptions::class);
+            if ($optionsUser->enableJwtAuth && $optionsApi->spaApiEnabled) {
+                return $jwtFilter->onBeforeAction($event);
             }
         }
 
+        $authFilter = $this->getAuthenticationFilter();
+        $authResult = $authFilter->onBeforeAction($event);
+
+        if ($authResult?->getType() === EventResult::ERROR) {
+            return $authResult;
+        }
+
+        $csrfFilter = $this->getCsrfFilter();
         return $csrfFilter->onBeforeAction($event);
     }
 }

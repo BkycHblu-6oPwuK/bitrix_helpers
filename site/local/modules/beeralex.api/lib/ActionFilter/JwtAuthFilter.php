@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Beeralex\User\Auth\ActionFilter;
+namespace Beeralex\Api\ActionFilter;
 
-use Beeralex\User\Auth\Authenticators\EmptyAuthentificator;
+use Beeralex\Api\Domain\User\UserService;
 use Beeralex\User\Auth\JwtTokenManager;
 use Bitrix\Main\Engine\ActionFilter\Base;
 use Bitrix\Main\Error;
@@ -72,17 +73,15 @@ class JwtAuthFilter extends Base
                 $this->addError(new Error('JWT authentication is disabled', self::ERROR_JWT_DISABLED));
                 return new EventResult(EventResult::ERROR, null, null, $this);
             }
-            return null;
+            return new EventResult(EventResult::SUCCESS, null, null, $this);
         }
 
-        $request = Context::getCurrent()->getRequest();
-        $token = $this->extractToken($request);
-
+        $token = \service(UserService::class)->extractJwtToken(Context::getCurrent()->getRequest());
         if (!$token) {
             if ($this->getOptional()) {
-                return null;
+                return new EventResult(EventResult::SUCCESS, null, null, $this);
             }
-            
+
             Context::getCurrent()->getResponse()->setStatus(401);
             $this->addError(new Error('JWT token is missing', self::ERROR_TOKEN_MISSING));
             return new EventResult(EventResult::ERROR, null, null, $this);
@@ -92,100 +91,36 @@ class JwtAuthFilter extends Base
             // Валидируем токен
             $decoded = $this->jwtManager->verifyToken($token);
 
-            if(!$decoded->isSuccess()) {
+            if (!$decoded->isSuccess()) {
                 $this->addErrors($decoded->getErrors());
                 return new EventResult(EventResult::ERROR, null, null, $this);
             }
 
             $decoded = $decoded->getData();
-            
+
             // Проверяем, что это access токен
             if (!$this->jwtManager->isAccessToken($token)) {
                 throw new \InvalidArgumentException('Invalid token type. Access token required.');
             }
 
-            // Сохраняем данные токена в request для использования в контроллере
-            $request->set('jwt_user_id', (int)$decoded['sub']);
-            $request->set('jwt_payload', $decoded);
-            $request->set('jwt_token', $token);
-
-            return null;
-
+            return new EventResult(EventResult::SUCCESS, null, null, $this);
         } catch (ExpiredException $e) {
             Context::getCurrent()->getResponse()->setStatus(401);
             $this->addError(new Error('Token has expired', self::ERROR_TOKEN_EXPIRED));
             return new EventResult(EventResult::ERROR, null, null, $this);
-            
         } catch (SignatureInvalidException $e) {
             Context::getCurrent()->getResponse()->setStatus(401);
             $this->addError(new Error('Invalid token signature', self::ERROR_INVALID_TOKEN));
             return new EventResult(EventResult::ERROR, null, null, $this);
-            
         } catch (\InvalidArgumentException $e) {
             Context::getCurrent()->getResponse()->setStatus(401);
             $this->addError(new Error($e->getMessage(), self::ERROR_INVALID_TOKEN));
             return new EventResult(EventResult::ERROR, null, null, $this);
-            
         } catch (\Exception $e) {
             Context::getCurrent()->getResponse()->setStatus(500);
             $this->addError(new Error('Internal server error: ' . $e->getMessage(), self::ERROR_INVALID_TOKEN));
             return new EventResult(EventResult::ERROR, null, null, $this);
         }
-    }
-
-    /**
-     * Извлечение JWT токена из запроса
-     * 
-     * @param \Bitrix\Main\HttpRequest $request
-     * @return string|null
-     */
-    private function extractToken($request): ?string
-    {
-        // Способ 1: Заголовок Authorization
-        $authHeader = $this->getAuthorizationHeader($request);
-        if ($authHeader) {
-            $token = $this->jwtManager->extractTokenFromHeader($authHeader);
-            if ($token) {
-                return $token;
-            }
-        }
-
-        // Способ 2: Параметр запроса (не рекомендуется для production)
-        $token = $request->get('access_token') ?? $request->get('token');
-        if ($token) {
-            return $token;
-        }
-
-        return null;
-    }
-
-    /**
-     * Получение заголовка Authorization из запроса
-     * 
-     * @param \Bitrix\Main\HttpRequest $request
-     * @return string|null
-     */
-    private function getAuthorizationHeader($request): ?string
-    {
-        // Способ 1: через $_SERVER
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            return $_SERVER['HTTP_AUTHORIZATION'];
-        }
-        
-        // Способ 2: через Apache headers
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            if (isset($headers['Authorization'])) {
-                return $headers['Authorization'];
-            }
-        }
-        
-        // Способ 3: альтернативные заголовки
-        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-        }
-        
-        return null;
     }
 
     /**

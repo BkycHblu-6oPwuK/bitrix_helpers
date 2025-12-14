@@ -24,6 +24,7 @@ use Beeralex\User\Auth\Validator\AuthEmailValidator;
 use Beeralex\User\Auth\Validator\AuthPhoneValidator;
 use Beeralex\User\Options;
 use Beeralex\User\Auth\AuthService;
+use Beeralex\User\Auth\Session\UserSessionRepository;
 
 return [
     'controllers' => [
@@ -39,6 +40,9 @@ return [
                     return new UserRepository(service(UserFactoryContract::class), service(\Beeralex\Core\Service\FileService::class));
                 }
             ],
+            UserSessionRepository::class => [
+                'className' => UserSessionRepository::class,
+            ],
             UserFactoryContract::class => [
                 'className' => UserFactory::class,
             ],
@@ -48,7 +52,9 @@ return [
                 }
             ],
             EmptyAuthentificator::class => [
-                'className' => EmptyAuthentificator::class,
+                'constructor' => static function () {
+                    return new EmptyAuthentificator(service(UserRepositoryContract::class));
+                }
             ],
             EmailAuthenticatorContract::class => [
                 'constructor' => static function () {
@@ -70,7 +76,7 @@ return [
             ],
             JwtTokenManager::class => [
                 'constructor' => static function () {
-                    return new JwtTokenManager(service(Options::class));
+                    return new JwtTokenManager(service(Options::class), service(UserSessionRepository::class));
                 }
             ],
             SocialAuthenticatorFactory::class => [

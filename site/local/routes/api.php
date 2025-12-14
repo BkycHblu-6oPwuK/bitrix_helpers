@@ -7,16 +7,18 @@ use Beeralex\Api\V1\Controllers\CatalogController;
 use Beeralex\Api\V1\Controllers\FormController;
 use Beeralex\Api\V1\Controllers\MainController;
 use Beeralex\Api\V1\Controllers\ReviewController;
+use Beeralex\Api\V1\Controllers\UserController;
 use Beeralex\Api\V1\Controllers\AuthController;
 use Beeralex\Api\V1\Controllers\FavoriteController;
+use Beeralex\Api\V1\Controllers\BasketController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
     $routes->prefix('api')->group(function (RoutingConfigurator $routes) {
         $routes->prefix('v1')->group(function (RoutingConfigurator $routes) {
             $routes->prefix('user')->group(function (RoutingConfigurator $routes) {
+                $routes->get('me', [UserController::class, 'me']);
                 $routes->post('login', [AuthController::class, 'login']);
-                $routes->post('login-fuser', [AuthController::class, 'loginFuser']);
                 $routes->post('refresh', [AuthController::class, 'refresh']);
                 $routes->post('register', [AuthController::class, 'register']);
                 $routes->post('logout', [AuthController::class, 'logout']);
@@ -94,6 +96,37 @@ return function (RoutingConfigurator $routes): void {
                 $routes->get(
                     'page',
                     [FavoriteController::class, 'page']
+                );
+            });
+
+            $routes->prefix('basket')->group(function (RoutingConfigurator $routes) {
+                $routes->get(
+                    'get-ids',
+                    [BasketController::class, 'getIds']
+                );
+                $routes->get(
+                    'get',
+                    [BasketController::class, 'get']
+                );
+                $routes->post(
+                    'add/{offerId}',
+                    [BasketController::class, 'add']
+                );
+                $routes->post(
+                    'update/{offerId}',
+                    [BasketController::class, 'update']
+                );
+                $routes->delete(
+                    'delete/{offerId}',
+                    [BasketController::class, 'delete']
+                );
+                $routes->delete(
+                    'clear',
+                    [BasketController::class, 'clear']
+                );
+                $routes->post(
+                    'apply-coupon',
+                    [BasketController::class, 'applyCoupon']
                 );
             });
         });

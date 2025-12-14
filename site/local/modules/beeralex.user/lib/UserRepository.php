@@ -47,11 +47,11 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
     /**
      * Получает текущего авторизованного пользователя
      */
-    public function getCurrentUser(): UserEntityContract
+    public function getCurrentUser(bool $refresh = false): UserEntityContract
     {
         global $USER;
         static $currentUser;
-        if ($currentUser === null) {
+        if ($currentUser === null || $refresh) {
             if ($userId = $USER->GetID()) {
                 $currentUser = $this->getById((int)$userId) ?? $this->factory->create([]);
             } else {

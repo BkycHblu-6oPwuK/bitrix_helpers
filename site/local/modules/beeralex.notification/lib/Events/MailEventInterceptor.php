@@ -7,6 +7,7 @@ use Beeralex\Notification\NotificationManager;
 use Beeralex\Notification\NotificationLock;
 use Beeralex\Notification\Enum\Channel;
 use Beeralex\User\User;
+use Beeralex\User\UserRepository;
 
 use function Beeralex\Notification\log;
 
@@ -29,7 +30,7 @@ class MailEventInterceptor
                 return true;
             }
 
-            $userId = User::current()->getId();
+            $userId = \service(UserRepository::class)->getCurrentUser()->getId();
             if (!$userId) {
                 return true;
             }

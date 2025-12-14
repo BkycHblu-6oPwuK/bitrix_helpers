@@ -3,12 +3,11 @@
 namespace Beeralex\Api\Domain\EventHandlers;
 
 use Beeralex\Catalog\Service\Discount\CouponsService;
-use Bitrix\Main\Context;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\Loader;
 
 /**
- * Обработчик для сохранения купона из заголовка запроса
+ * Обработчик для применения купона из куки
  */
 class CouponHandler
 {
@@ -18,8 +17,8 @@ class CouponHandler
             return;
         }
 
-        $headers = $request->getHeaders();
-        $coupon = trim((string)$headers->get('X-Cart-Coupon'));
+        // Читаем купон из куки
+        $coupon = trim((string)$request->getCookie('cart_coupon'));
 
         if ($coupon === '') {
             return;
@@ -32,13 +31,6 @@ class CouponHandler
             return;
         }
 
-        $result = $service->applyCoupon($coupon);
-        $response = Context::getCurrent()->getResponse();
-
-        if ($result->isSuccess()) {
-            $response->addHeader('X-Coupon-Status', 'applied');
-        } else {
-            $response->addHeader('X-Coupon-Status', 'error');
-        }
+        $service->applyCoupon($coupon);
     }
 }

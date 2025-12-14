@@ -115,18 +115,12 @@ class AuthService
      * Обновление пары токенов по refresh токену
      * 
      * @param string $refreshToken Refresh токен
-     * @return array{accessToken: string, refreshToken: string|null}
+     * @return Result{accessToken: string, refreshToken: string, accessTokenExpired: int, refreshTokenExpired: int}
      * @throws \InvalidArgumentException
      */
-    public function refreshTokens(string $refreshToken): array
+    public function refreshTokens(string $refreshToken): Result
     {
-        $tokens = $this->jwtManager->refreshTokens($refreshToken);
-
-        $result = [
-            'accessToken' => $tokens['access'],
-            'refreshToken' => $tokens['refresh'],
-        ];
-        return $result;
+        return $this->jwtManager->refreshTokens($refreshToken);
     }
 
     /**

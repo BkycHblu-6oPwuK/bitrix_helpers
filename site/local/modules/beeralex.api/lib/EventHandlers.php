@@ -19,7 +19,6 @@ class EventHandlers
         $request = Context::getCurrent()->getRequest();
 
         JwtTokenHandler::handle($request); // авторизация по JWT токену
-        FUserHandler::handle($request); // обработка Fuser токена, если авторизован то проверять заголовки не надо, в таблице fuser есть связь с пользователем
         CouponHandler::handle($request); // обработка купона из заголовка
     }
 }

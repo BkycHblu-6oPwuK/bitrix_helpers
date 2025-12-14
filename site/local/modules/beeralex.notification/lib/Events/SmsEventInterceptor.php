@@ -7,6 +7,7 @@ use Beeralex\Notification\NotificationLock;
 use Beeralex\Notification\Dto\NotificationMessage;
 use Beeralex\Notification\Enum\Channel;
 use Beeralex\User\User;
+use Beeralex\User\UserRepository;
 
 use function Beeralex\Notification\log;
 
@@ -27,7 +28,7 @@ class SmsEventInterceptor
                 return $result;
             }
 
-            $userId = User::current()->getId();
+            $userId = \service(UserRepository::class)->getCurrentUser()->getId();
             if (!$userId) {
                 return $result;
             }

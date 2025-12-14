@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Beeralex\Api\V1\Controllers;
 
 use Beeralex\Api\ApiProcessResultTrait;
+use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Basket\BasketDataDTO;
 use Beeralex\Catalog\Service\Basket\BasketFactory;
 use Beeralex\Catalog\Service\Basket\BasketService;
 use Bitrix\Main\Engine\Controller;
@@ -30,7 +32,10 @@ class BasketController extends Controller
     public function configureActions()
     {
         return [
-            'getBasket' => [
+            'getIds' => [
+                'prefilters' => [],
+            ],
+            'get' => [
                 'prefilters' => [],
             ],
             'add' => [
@@ -51,10 +56,23 @@ class BasketController extends Controller
         ];
     }
 
-    public function getBasketAction()
+    public function getIdsAction()
     {
         return $this->process(function () {
-            return $this->basketService->getBasketData();
+            $ids = $this->basketService->getIds();
+            $result = \service(ApiResult::class);
+            $result->setData(['ids' => $ids]);
+            return $result;
+        });
+    }
+
+    public function getAction()
+    {
+        return $this->process(function () {
+            $basketData = $this->basketService->getBasketData();
+            $result = \service(ApiResult::class);
+            $result->addPageData(BasketDataDTO::make($basketData), 'basket');
+            return $result;
         });
     }
 
@@ -63,18 +81,24 @@ class BasketController extends Controller
         return $this->process(function () use ($offerId, $quantity) {
             $result = $this->basketService->increment($offerId, $quantity);
             if ($result->isSuccess()) {
-                return $this->basketService->getBasketData();
+                $basketData = $this->basketService->getBasketData();
+                $result = \service(ApiResult::class);
+                $result->addPageData(BasketDataDTO::make($basketData), 'basket');
+                return $result;
             }
             return $result;
         });
     }
 
-    public function updateAction(int $offerId, int $quantity)
+    public function updateAction(int $offerId, int $quantity = 1)
     {
         return $this->process(function () use ($offerId, $quantity) {
             $result = $this->basketService->changeProductQuantityInBasket($offerId, $quantity);
             if ($result->isSuccess()) {
-                return $this->basketService->getBasketData();
+                $basketData = $this->basketService->getBasketData();
+                $result = \service(ApiResult::class);
+                $result->addPageData(BasketDataDTO::make($basketData), 'basket');
+                return $result;
             }
             return $result;
         });
@@ -85,7 +109,10 @@ class BasketController extends Controller
         return $this->process(function () use ($offerId) {
             $result = $this->basketService->remove($offerId);
             if ($result->isSuccess()) {
-                return $this->basketService->getBasketData();
+                $basketData = $this->basketService->getBasketData();
+                $result = \service(ApiResult::class);
+                $result->addPageData(BasketDataDTO::make($basketData), 'basket');
+                return $result;
             }
             return $result;
         });
@@ -96,7 +123,12 @@ class BasketController extends Controller
         return $this->process(function () {
             $result = $this->basketService->removeAll();
             if ($result->isSuccess()) {
-                return $this->basketService->getBasketData();
+                $this->setCookie('cart_coupon', '', time() - 3600);
+                
+                $basketData = $this->basketService->getBasketData();
+                $result = \service(ApiResult::class);
+                $result->addPageData(BasketDataDTO::make($basketData), 'basket');
+                return $result;
             }
             return $result;
         });
@@ -107,9 +139,38 @@ class BasketController extends Controller
         return $this->process(function () use ($coupon) {
             $result = $this->basketService->applyCoupon($coupon);
             if ($result->isSuccess()) {
-                return $this->basketService->getBasketData();
+                $this->setCookie('cart_coupon', $coupon, time() + 60 * 60 * 24 * 30);
+                
+                $basketData = $this->basketService->getBasketData();
+                $result = \service(ApiResult::class);
+                $result->addPageData(BasketDataDTO::make($basketData), 'basket');
+                return $result;
             }
             return $result;
         });
+    }
+
+    /**
+     * Установка куки для SPA режима
+     */
+    private function setCookie(
+        string $name,
+        string $value,
+        int $expires,
+        string $path = '/'
+    ): void {
+        global $APPLICATION;
+
+        $APPLICATION->set_cookie(
+            $name,
+            $value,
+            $expires,
+            $path,
+            false,
+            false, // httpOnly = false для доступа из JS
+            true,  // secure в production
+            false,
+            true   // samesite = strict
+        );
     }
 }

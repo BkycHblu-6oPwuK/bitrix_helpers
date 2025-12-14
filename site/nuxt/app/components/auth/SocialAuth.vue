@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AuthMethod } from '~/types/auth';
+import type { AuthMethod } from '~/types/user';
 
 const props = defineProps<{
     methods: AuthMethod[]

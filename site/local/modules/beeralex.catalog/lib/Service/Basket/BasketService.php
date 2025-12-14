@@ -110,19 +110,34 @@ class BasketService
         return $this->basket->save();
     }
 
+    public function getIds()
+    {
+        return array_values($this->basketUtils->getOffersIds());
+    }
+
     public function getItems(): array
     {
         if ($this->basket->count() > 0) {
             $basketItems = $this->basketUtils->getItems($this->basket);
-
             foreach ($basketItems as &$basketItem) {
+                $originalPrice = $basketItem['PRICE'];
                 $finalPrice = 0;
                 $discountPrice = $this->discountService->getPrice($basketItem['CODE']);
-                if ($discountPrice) {
+                
+                if ($discountPrice && $discountPrice < $originalPrice) {
                     $finalPrice = $discountPrice;
-                    $basketItem['DISCOUNT_PERCENT'] = $this->priceService->getSalePercent($basketItem['PRICE'], $finalPrice);
+                    $basketItem['OLD_PRICE'] = $originalPrice;
+                    $basketItem['OLD_PRICE_FORMATTED'] = $this->priceService->format($originalPrice);
+                    $basketItem['FULL_OLD_PRICE'] = $originalPrice * $basketItem['QUANTITY'];
+                    $basketItem['FULL_OLD_PRICE_FORMATTED'] = $this->priceService->format($basketItem['FULL_OLD_PRICE']);
+                    $basketItem['DISCOUNT_PERCENT'] = $this->priceService->getSalePercent($originalPrice, $finalPrice);
                 } else {
-                    $finalPrice = $basketItem['PRICE'];
+                    $finalPrice = $originalPrice;
+                    $basketItem['OLD_PRICE'] = null;
+                    $basketItem['OLD_PRICE_FORMATTED'] = null;
+                    $basketItem['FULL_OLD_PRICE'] = null;
+                    $basketItem['FULL_OLD_PRICE_FORMATTED'] = null;
+                    $basketItem['DISCOUNT_PERCENT'] = null;
                 }
 
                 $basketItem['PRICE'] = $finalPrice;
@@ -147,7 +162,9 @@ class BasketService
         $coupon = $this->couponsService->getApplyedCoupon();
         foreach ($items as $item) {
             $totalPrice += $item['FULL_PRICE'];
-            $totalDiscount += $item['FULL_OLD_PRICE'] - $item['FULL_PRICE'];
+            if ($item['FULL_OLD_PRICE'] !== null) {
+                $totalDiscount += $item['FULL_OLD_PRICE'] - $item['FULL_PRICE'];
+            }
         }
 
         return [
@@ -163,18 +180,24 @@ class BasketService
         ];
     }
 
-    public function changeProductQuantityInBasket(int $productId, int $quantity): Result
+    public function changeProductQuantityInBasket(int $offerId, int $quantity): Result
     {
-        $checkQuantityResult = $this->checkQuantity($productId, $quantity);
+        $checkQuantityResult = $this->checkQuantity($offerId, $quantity);
         if (!$checkQuantityResult->isSuccess()) {
             return $checkQuantityResult;
         }
+        
         $result = new Result();
-        if ($basketItem = $this->getExistBasketItems($this->basketModuleId, $productId)[0] ?? null) {
-            $basketItem->setField('QUANTITY', $quantity);
+        $basketItem = $this->getExistBasketItems($offerId)[0] ?? null;
+        
+        if ($basketItem) {
+            $setFieldResult = $basketItem->setField('QUANTITY', $quantity);
+            if (!$setFieldResult->isSuccess()) {
+                return $setFieldResult;
+            }
             return $this->basket->save();
         } else {
-            $result->addError(new \Bitrix\Main\Error("Basket item with productId {$productId} not found", 'basket'));
+            $result->addError(new \Bitrix\Main\Error("Basket item with offerId {$offerId} not found", 'basket'));
         }
         return $result;
     }

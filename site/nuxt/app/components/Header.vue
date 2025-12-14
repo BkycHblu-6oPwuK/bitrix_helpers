@@ -15,6 +15,8 @@ import AuthModal from '~/components/auth/AuthModal.vue'
 // Управление цветовой темой (dark/light)
 const colorMode = useColorMode()
 
+// Stores
+const userStore = useUserStore()
 // Строка поиска
 const query = ref('')
 
@@ -92,16 +94,36 @@ const openAuthModal = () => {
             <span>Избранное</span>
           </NuxtLink>
 
-          <NuxtLink to="/cart" class="flex items-center gap-2 px-2 py-1 rounded text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <NuxtLink to="/basket" class="flex items-center gap-2 px-2 py-1 rounded text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
             <UIcon name="i-heroicons-shopping-cart" class="w-5 h-5" />
             <span>Корзина</span>
           </NuxtLink>
-          <UButton variant="ghost" icon="i-heroicons-user" label="Профиль" size="sm" @click="openAuthModal" />
+          
+          <UButton 
+            v-if="!userStore.isAuthenticated"
+            variant="ghost" 
+            icon="i-heroicons-user" 
+            label="Войти" 
+            size="sm" 
+            @click="openAuthModal" 
+          />
+          
+          <UDropdownMenu v-else :items="[
+            [{ label: 'Профиль', icon: 'i-heroicons-user', onSelect: () => navigateTo('/profile') }],
+            [{ label: 'Заказы', icon: 'i-heroicons-shopping-bag', onSelect: () => navigateTo('/orders') }],
+            [{ label: 'Выйти', icon: 'i-heroicons-arrow-right-on-rectangle', onSelect: () => userStore.logout() }]
+          ]">
+            <UButton variant="ghost" size="sm">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-user" class="w-5 h-5" />
+                <span>{{ userStore.fullName || 'Профиль' }}</span>
+              </div>
+            </UButton>
+          </UDropdownMenu>
         </div>
       </UContainer>
     </div>
 
-    <!-- Модальное окно авторизации -->
     <AuthModal v-model="isAuthModalOpen" @close="isAuthModalOpen = false" />
   </header>
 </template>

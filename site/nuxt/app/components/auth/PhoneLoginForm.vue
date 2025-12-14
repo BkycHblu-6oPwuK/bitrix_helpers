@@ -1,45 +1,35 @@
 <script setup lang="ts">
+import type { UserLoginPhoneCodeState, UserLoginPhoneState } from '~/types/user';
+
 const emit = defineEmits<{
   success: []
   switchToEmail: []
 }>()
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
 type Step = 'phone' | 'verification'
 
 const step = ref<Step>('phone')
 
-const phoneForm = useForm({
+const phoneForm = useForm<UserLoginPhoneState>({
   initialValues: { phone: '' },
   validate: (values) => (!values.phone ? { phone: 'Введите номер телефона' } : null),
   onSubmit: async (values) => {
-    const { useApiFetch } = await import('~/composables/useApi')
-    await useApiFetch('user/login', {
-      method: 'post',
-      body: { type: 'phone', phone: values.phone }
-    })
+    await userStore.login<UserLoginPhoneState>('phone', values)
     step.value = 'verification'
   }
 })
 
-const codeForm = useForm({
+const codeForm = useForm<UserLoginPhoneCodeState>({
   initialValues: { code: '' },
   validate: (values) => (!values.code ? { code: 'Код обязателен' } : null),
   onSubmit: async (values) => {
-    const { useApiFetch } = await import('~/composables/useApi')
-    const response = await useApiFetch('user/login', {
-      method: 'post',
-      body: {
-        type: 'phone',
-        phone: phoneForm.values.phone,
-        codeVerify: values.code,
-      }
+    await userStore.login('phone', {
+      phone: phoneForm.values.phone,
+      codeVerify: values.code,
     })
-    if (response.status === 'success' && response.data) {
-      authStore.setAuthData(response.data)
-      emit('success')
-    }
+    emit('success')
   }
 })
 
@@ -60,16 +50,12 @@ defineExpose({ reset, clearErrors })
 <template>
   <div>
     <form v-if="step === 'phone'" @submit="phoneForm.handleSubmit" class="space-y-5">
-      <UAlert v-if="phoneForm.errors.value._general" color="error" variant="soft" :title="phoneForm.errors.value._general" class="mb-4" />
+      <UAlert v-if="phoneForm.errors.value._general" color="error" variant="soft"
+        :title="phoneForm.errors.value._general" class="mb-4" />
 
       <UFormField label="Телефон" :error="phoneForm.errors.value.phone">
-        <UInput 
-          placeholder="+7 (999) 999-99-99" 
-          class="w-full" 
-          size="lg" 
-          :model-value="phoneForm.values.phone"
-          @update:model-value="phoneForm.setFieldValue('phone', $event)" 
-        />
+        <UInput placeholder="+7 (999) 999-99-99" class="w-full" size="lg" :model-value="phoneForm.values.phone"
+          @update:model-value="phoneForm.setFieldValue('phone', $event)" />
       </UFormField>
 
       <UButton type="submit" block size="lg" :loading="phoneForm.isLoading.value" class="!py-3">
@@ -84,21 +70,16 @@ defineExpose({ reset, clearErrors })
     </form>
 
     <form v-if="step === 'verification'" @submit="codeForm.handleSubmit" class="space-y-5">
-      <UAlert v-if="codeForm.errors.value._general" color="error" variant="soft" :title="codeForm.errors.value._general" class="mb-4" />
+      <UAlert v-if="codeForm.errors.value._general" color="error" variant="soft" :title="codeForm.errors.value._general"
+        class="mb-4" />
 
       <div class="text-sm text-gray-400 mb-4">
         Код отправлен на номер <span class="font-medium text-white">{{ phoneForm.values.phone }}</span>
       </div>
 
       <UFormField label="Код подтверждения" :error="codeForm.errors.value.code">
-        <UInput 
-          placeholder="Введите код из SMS" 
-          class="w-full" 
-          size="lg" 
-          maxlength="6"
-          :model-value="codeForm.values.code"
-          @update:model-value="codeForm.setFieldValue('code', $event)" 
-        />
+        <UInput placeholder="Введите код из SMS" class="w-full" size="lg" maxlength="6"
+          :model-value="codeForm.values.code" @update:model-value="codeForm.setFieldValue('code', $event)" />
       </UFormField>
 
       <UButton type="submit" block size="lg" :loading="codeForm.isLoading.value" class="!py-3">

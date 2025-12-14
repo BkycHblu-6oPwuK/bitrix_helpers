@@ -2,8 +2,10 @@
 
 namespace Beeralex\Api\Domain\EventHandlers;
 
+use Beeralex\Api\Domain\User\UserService;
 use Beeralex\User\Auth\Authenticators\EmptyAuthentificator;
 use Beeralex\User\Auth\JwtTokenManager;
+use Beeralex\User\Auth\Session\UserSessionRepository;
 use Bitrix\Main\Loader;
 use Bitrix\Main\HttpRequest;
 
@@ -17,6 +19,7 @@ class JwtTokenHandler
         if (!Loader::includeModule('beeralex.user')) {
             return;
         }
+
         try {
             $jwtManager = service(JwtTokenManager::class);
 
@@ -24,7 +27,7 @@ class JwtTokenHandler
                 return;
             }
 
-            $token = static::extractJwtToken($request);
+            $token = service(UserService::class)->extractJwtToken($request);
             if (!$token) {
                 return;
             }
@@ -43,52 +46,30 @@ class JwtTokenHandler
             $userId = (int)$decoded['sub'];
             if ($userId > 0) {
                 global $USER;
-                if ($USER instanceof \CUser && (!$USER->IsAuthorized() || $USER->GetID() != $userId)) {
+                if (!($USER instanceof \CUser) || (!$USER->IsAuthorized() || $USER->GetID() != $userId)) {
                     service(EmptyAuthentificator::class)->authorizeByUserId($userId);
                 }
+                static::updateLastActivity($request);
             }
         } catch (\Exception $e) {
         }
     }
 
-    /**
-     * Извлечение JWT токена из запроса
-     */
-    private static function extractJwtToken(\Bitrix\Main\HttpRequest $request): ?string
+    public static function updateLastActivity(HttpRequest $request): void
     {
-        $authHeader = static::getAuthorizationHeader();
-        if ($authHeader && preg_match('/Bearer\s+(\S+)/', $authHeader, $matches)) {
-            return $matches[1];
+        $refreshToken = service(UserService::class)->extractRefreshToken($request);
+        $jwt = service(JwtTokenManager::class);
+        if (!$refreshToken || !$jwt->isRefreshToken($refreshToken)) {
+            return;
         }
-
-        $token = $request->get('access_token') ?? $request->get('token');
-        if ($token) {
-            return $token;
+        $sessions = service(UserSessionRepository::class);
+        $session = $sessions->findByToken($refreshToken);
+        if (!$session) {
+            return;
         }
-
-        return null;
-    }
-
-    /**
-     * Получение заголовка Authorization
-     */
-    private static function getAuthorizationHeader(): ?string
-    {
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            return $_SERVER['HTTP_AUTHORIZATION'];
+        $lastTs = $session['LAST_ACTIVITY']->getTimestamp();
+        if (time() - $lastTs >= 300) {
+            $sessions->touchSession((int)$session['ID']);
         }
-
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            if (isset($headers['Authorization'])) {
-                return $headers['Authorization'];
-            }
-        }
-
-        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-        }
-
-        return null;
     }
 }

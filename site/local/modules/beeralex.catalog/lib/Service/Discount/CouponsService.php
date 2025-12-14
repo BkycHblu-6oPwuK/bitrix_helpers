@@ -24,8 +24,8 @@ class CouponsService
 
     public function clearCoupons(): void
     {
-        $this->couponManager->init();
-        $this->couponManager->clear(true);
+        $this->couponManager::init();
+        $this->couponManager::clear(true);
     }
 
     /**
@@ -35,11 +35,11 @@ class CouponsService
     {
         $result = new Result();
         $this->clearCoupons();
-        $coupon = $this->couponManager->getData($couponCode, true);
+        $coupon = $this->couponManager::getData($couponCode, true);
         $resultApply = false;
 
         if ($coupon['ACTIVE'] == "Y") {
-            $resultApply = $this->couponManager->add($couponCode);
+            $resultApply = $this->couponManager::add($couponCode);
         }
 
         if (!$resultApply) {

@@ -1,5 +1,6 @@
 <?php
 use Beeralex\Core\Service\FileService;
+use Beeralex\User\Auth\Session\UserSessionTable;
 use Beeralex\User\EventHandlers;
 use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;
@@ -62,9 +63,15 @@ class beeralex_user extends CModule
         service(FileService::class)->copyRecursive($sourceDir, $targetDir);
     }
 
-    public function InstallDB() {}
+    public function InstallDB() 
+    {
+        UserSessionTable::createTable();
+    }
 
-    public function UnInstallDB() {}
+    public function UnInstallDB() 
+    {
+        UserSessionTable::dropTable();
+    }
 
     public function InstallEvents()
     {

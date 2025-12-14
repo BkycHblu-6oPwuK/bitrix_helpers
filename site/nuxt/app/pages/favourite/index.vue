@@ -2,12 +2,12 @@
 import type { FavouritePageApiResponse, FavouritePageDTO } from '~/types/favourite';
 import FavouritePage from '~/components/catalog/FavouritePage.vue'
 
-const apiUrl = 'favorite/page';
+const urlParams = useRoute().query;
+const apiUrl = `favorite/page?${new URLSearchParams(urlParams as Record<string, string>).toString()}`;
 const page = ref<FavouritePageDTO>()
 onMounted(() => {
     useApiFetch<FavouritePageApiResponse>(apiUrl).then(({data}) => {
-        console.log(data)
-        if(data?.page ) {
+        if(data?.page) {
             page.value = data.page;
         }
         if (data?.seo) {

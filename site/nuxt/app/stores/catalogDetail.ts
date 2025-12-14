@@ -11,14 +11,6 @@ export const useCatalogDetailStore = defineStore('catalogDetail', () => {
     const { selectedOffer, selectedValues, initializeSelectedValues, selectOfferValue, getAvailableValuesForProp } = useCatalogOffersTree(item)
     const { quantity, incrementQuantity, decrementQuantity, setQuantity } = useQuantity()
 
-    const addToBasket = async () => {
-
-    }
-
-    const addToFavorite = async () => {
-
-    }
-
     /**
      * Устанавливает новый элемент каталога и инициализирует связанные данные
      */
@@ -57,7 +49,5 @@ export const useCatalogDetailStore = defineStore('catalogDetail', () => {
         incrementQuantity,
         decrementQuantity,
         setQuantity,
-        addToBasket,
-        addToFavorite
     }
 })
