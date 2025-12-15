@@ -9,7 +9,9 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property int $id
  * @property string $url
  * @property string $title
+ * @property string $imageSrc
  * @property string $description
+ * @property string $dateFormat
  * @property FormNewFieldDTO[] $fields
  * @property array $formIdsMap
  * @property string $error
@@ -23,7 +25,9 @@ class FormNewDTO extends Resource
             'id' => (int)($data['id'] ?? 0),
             'url' => $data['url'] ?? '',
             'title' => $data['title'] ?? '',
+            'imageSrc' => $data['imageSrc'] ?? '',
             'description' => $data['description'] ?? '',
+            'dateFormat' => $data['dateFormat'] ?? '',
             'error' => $data['error'] ?? '',
             'successAdded' => (bool)($data['successAdded'] ?? false),
             'fields' => $data['fields'] ?? [],

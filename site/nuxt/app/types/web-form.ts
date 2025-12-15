@@ -3,6 +3,8 @@
  * Используются для отображения и обработки форм на сайте
  */
 
+import type { PageData } from "./iblock/content"
+
 /**
  * Поле web-формы
  * Описывает одно поле ввода (текст, email, select и т.д.)
@@ -26,7 +28,9 @@ export interface FormNewFieldDTO {
 export interface FormDTO {
   id: number                           // ID формы в Bitrix
   title: string                        // Заголовок формы
+  imageSrc: string                     // URL изображения формы
   description: string                  // Описание формы
+  dateFormat: string               // Формат даты для полей типа date
   fields: FormNewFieldDTO[]            // Массив полей формы
   formIdsMap: Record<string, string>   // Маппинг ID полей для обработки
   error: string                        // Общая ошибка формы
@@ -34,9 +38,8 @@ export interface FormDTO {
 }
 
 /**
- * Запрос на сохранение формы
- * Используется при отправке формы на сервер
+ * Ответ при отправке web-формы
  */
-export interface FormStoreRequest {
-  form: FormDTO // Данные формы для отправки
-}
+export type FormStoreResponse = PageData<{
+  form: FormDTO
+}>

@@ -22,6 +22,8 @@ class FormNewBuilder
         return FormNewDTO::make([
             'id' => (int)($this->arResult['arForm']['ID'] ?? 0),
             'title' => $this->arResult['FORM_TITLE'] ?? '',
+            'imageSrc' => $this->arResult['FORM_IMAGE']['URL'] ?? '',
+            'dateFormat' => $this->arResult['DATE_FORMAT'] ?? FORMAT_DATE,
             'description' => $this->arResult['FORM_DESCRIPTION'] ?? '',
             'error' => ($this->arResult['FORM_ERRORS'] && !is_array($this->arResult['FORM_ERRORS'])) ? $this->arResult['FORM_ERRORS'] : '',
             'successAdded' => ($this->arResult['SUCCESS'] ?? null) === true,
@@ -99,7 +101,9 @@ class FormNewBuilder
         $fieldsMap = [];
 
         foreach ($fields as $field) {
-            if (in_array($field->type, ['dropdown', 'multiselect', 'checkbox', 'radio'], true)) {
+            if (in_array($field->type, ['multiselect', 'checkbox'], true)) {
+                $fieldsMap[$field->name] = "form_{$field->type}_{$field->name}[]";
+            } elseif(in_array($field->type, ['dropdown', 'radio'], true)) {
                 $fieldsMap[$field->name] = "form_{$field->type}_{$field->name}";
             } else {
                 $fieldsMap[$field->name] = "form_{$field->type}_{$field->id}";

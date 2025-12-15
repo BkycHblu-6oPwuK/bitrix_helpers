@@ -13,10 +13,9 @@
  */
 
 import type { CatalogItemDTO } from './catalog'
-import type { FormDTO } from '../webForm'
-import type { ElementDTO } from './element'
 import type { SeoData } from '../seo'
-import type { SectionDTO } from '.'
+import type { ElementDTO, SectionDTO } from '.'
+import type { FormDTO } from '../web-form'
 
 /**
  * Доступные типы блоков контента
@@ -66,7 +65,7 @@ export interface SliderContent {
 }
 
 /**
- * Блок с web-формой (структура определяется типами форм в `webForm/form`)
+ * Блок с web-формой (структура определяется типами форм в `../web-form.ts`)
  */
 export interface FormContent {
   type: 'form'

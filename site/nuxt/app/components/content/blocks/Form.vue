@@ -4,7 +4,7 @@
   Используется для отображения форм на страницах сайта
 -->
 <script setup lang="ts">
-import FormView from '~/components/webForm/FormView.vue';
+import FormView from '~/components/web-form/FormView.vue';
 import type { FormContent } from '~/types/iblock/content'
 
 // Пропсы: данные формы с сервера

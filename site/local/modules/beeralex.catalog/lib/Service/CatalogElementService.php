@@ -25,7 +25,8 @@ class CatalogElementService
 
     public function getElementData(int $elementId, ?int $offerId = null): array
     {
-        $product = $this->productRepository->getProducts([$elementId])[0] ?? null;
+        $products = $this->productRepository->getProducts([$elementId]);
+        $product = $products[array_key_first($products)] ?? null;
         if (!$product) {
             return [];
         }

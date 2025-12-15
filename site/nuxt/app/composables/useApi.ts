@@ -1,6 +1,8 @@
 import { createError } from 'h3'
 import type { ApiResponse } from '~/types/api'
 
+type ContentType = 'json' | 'form' | 'multipart' | 'auto'
+
 function getBaseUrl() {
   const config = useRuntimeConfig()
   return process.server
@@ -32,40 +34,42 @@ export function useApi<T = unknown>(
   options: {
     key?: string
     query?: Record<string, any>
-    body?: Record<string, any> | FormData | URLSearchParams
+    body?: any
     method?: 'get' | 'post'
     lazy?: boolean
+    contentType?: ContentType
   } = {}
 ) {
-
   const baseURL = getBaseUrl()
   const cleanPath = getCleanPath(path)
-  const requestKey = options.key ?? `${cleanPath}-${JSON.stringify(options.query || {})}`
+  const requestKey =
+    options.key ?? `${cleanPath}-${JSON.stringify(options.query || {})}`
+
   const asyncDataFn = options.lazy ? useLazyAsyncData : useAsyncData
 
   return asyncDataFn<ApiResponse<T>>(requestKey, async () => {
     try {
-      if(options.body instanceof Object && !(options.body instanceof FormData)) {
-        options.body = new URLSearchParams(Object.entries(options.body).map(([key, value]) => [key, String(value)]))
-      }
+      const { body, headers } = prepareRequest(
+        options.body,
+        options.contentType
+      )
+
       const { $fetch } = useNuxtApp()
 
       const res = await $fetch<ApiResponse<T>>(cleanPath, {
         baseURL,
         method: options.method || 'get',
         query: options.query,
-        body: options.body,
+        body,
         credentials: 'include',
-        headers: {
-          Accept: 'application/json',
-        },
+        headers
       })
 
       if (res.status === 'error') {
         throw createError({
           statusCode: 500,
-          statusMessage: res.errors?.[0]?.message || 'API returned error',
-          data: res.errors,
+          statusMessage: res.errors?.[0]?.message || 'API error',
+          data: res.errors
         })
       }
 
@@ -73,7 +77,7 @@ export function useApi<T = unknown>(
     } catch (error: any) {
       throw createError({
         statusCode: error?.statusCode || 500,
-        statusMessage: 'Network or server error',
+        statusMessage: error?.message || 'Network error'
       })
     }
   })
@@ -92,35 +96,81 @@ export async function useApiFetch<T = unknown>(
   path: string,
   options: {
     query?: Record<string, any>
-    body?: Record<string, any> | FormData
+    body?: any
     method?: 'get' | 'post'
+    contentType?: ContentType
   } = {}
 ) {
   const baseURL = getBaseUrl()
   const cleanPath = getCleanPath(path)
+
   try {
-    if(options.body instanceof Object && !(options.body instanceof FormData)) {
-      options.body = new URLSearchParams(Object.entries(options.body).map(([key, value]) => [key, String(value)]))
-    }
+    const { body, headers } = prepareRequest(
+      options.body,
+      options.contentType
+    )
+
     const { $fetch } = useNuxtApp()
 
     const res = await $fetch<ApiResponse<T>>(cleanPath, {
       baseURL,
       method: options.method || 'get',
       query: options.query,
-      body: options.body,
+      body,
       credentials: 'include',
-      headers: {
-        Accept: 'application/json',
-      },
+      headers
     })
 
     if (res.status === 'error') {
-      throw new Error(res.errors?.[0]?.message || 'API returned error')
+      throw new Error(res.errors?.[0]?.message || 'API error')
     }
 
     return res
   } catch (error: any) {
-    throw new Error(error?.message || 'Network or server error')
+    throw new Error(error?.message || 'Network error')
   }
+}
+
+export function prepareRequest(
+  body: any,
+  contentType: ContentType = 'auto'
+): {
+  body?: BodyInit
+  headers: Record<string, string>
+} {
+  const headers: Record<string, string> = {
+    Accept: 'application/json'
+  }
+
+  if (!body) {
+    return { headers }
+  }
+
+  if (
+    contentType === 'multipart' ||
+    (contentType === 'auto' && body instanceof FormData)
+  ) {
+    return { body, headers }
+  }
+
+  if (contentType === 'json') {
+    headers['Content-Type'] = 'application/json'
+    return {
+      body: JSON.stringify(body),
+      headers
+    }
+  }
+
+  if (contentType === 'form' || contentType === 'auto') {
+    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+    return {
+      body: new URLSearchParams(
+        Object.entries(body).map(([k, v]) => [k, String(v)])
+      ),
+      headers
+    }
+  }
+
+  return { headers }
 }
