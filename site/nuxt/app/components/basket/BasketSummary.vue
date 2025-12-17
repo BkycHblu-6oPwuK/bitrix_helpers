@@ -39,6 +39,7 @@ const basketStore = useBasketStore()
         <template #footer>
             <UButton
                 block
+                to="/checkout"
                 size="lg"
                 color="primary"
                 label="Оформить заказ"

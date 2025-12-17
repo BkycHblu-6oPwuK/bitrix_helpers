@@ -1,7 +1,7 @@
 <?php
-namespace Beeralex\Catalog\Checkout;
+namespace Beeralex\Api\Domain\Checkout;
 
-use Beeralex\Catalog\Checkout\Dto\PersonTypeDTO;
+use Beeralex\Api\Domain\Checkout\DTO\PersonTypeDTO;
 
 class PersonTypeBuilder
 {
@@ -26,35 +26,37 @@ class PersonTypeBuilder
         $this->selectedPersonType = $this->getPersonDTOKey($selectedPersonType);
     }
 
-    public function build(): array
+    public function build(): PersonTypeDTO
     {
-        $result = [
-            'fields' => $this->personType->mapWithKeys(function ($person) {
-                $name = match($person['CODE']) {
-                    'physical' => [
-                        'default' => 'Я, Физическое лицо',
-                        'mobile' => 'Я, Физическое лицо',
-                    ],
-                    'legal' => [
-                        'default' => 'Я, Юридическое лицо / ИП',
-                        'mobile' => 'Я, Юр.лицо/ИП',
-                    ],
-                    default => [
-                        'default' => $person['NAME'],
-                        'mobile' => $person['NAME'],
-                    ]
-                };
-                $dto = new PersonTypeDTO;
-                $dto->name = $name;
-                $dto->checked = $person['CHECKED'] === 'Y';
-                return [
-                    $this->personTypeMap[$person['CODE']] => $dto
-                ];
-            }),
+        $types = $this->personType->mapWithKeys(function ($person) {
+            $name = match($person['CODE']) {
+                'physical' => [
+                    'default' => 'Я, Физическое лицо',
+                    'mobile' => 'Я, Физическое лицо',
+                ],
+                'legal' => [
+                    'default' => 'Я, Юридическое лицо / ИП',
+                    'mobile' => 'Я, Юр.лицо/ИП',
+                ],
+                default => [
+                    'default' => $person['NAME'],
+                    'mobile' => $person['NAME'],
+                ]
+            };
+            
+            return [
+                $this->personTypeMap[$person['CODE']] => [
+                    'name' => $name,
+                    'checked' => $person['CHECKED'] === 'Y',
+                ]
+            ];
+        })->toArray();
+
+        return PersonTypeDTO::make([
             'selected' => $this->selectedPersonType,
-            'oldPersonType' => $this->selectedPersonType
-        ];
-        return $result;
+            'oldPersonType' => $this->selectedPersonType,
+            'types' => $types,
+        ]);
     }
 
     /**

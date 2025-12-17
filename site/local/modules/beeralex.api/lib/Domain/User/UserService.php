@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\User;
 
-use Beeralex\User\UserRepository;
+use Beeralex\User\Contracts\UserRepositoryContract;
 use Bitrix\Main\HttpRequest;
 
 /**
@@ -39,7 +39,7 @@ class UserService
 
     public function getCurrentUserDTO(): UserDTO
     {
-        $user = \service(UserRepository::class)->getCurrentUser();
+        $user = \service(UserRepositoryContract::class)->getCurrentUser();
         return UserDTO::make([
             'id' => $user->getId(),
             'name' => $user->getName(),

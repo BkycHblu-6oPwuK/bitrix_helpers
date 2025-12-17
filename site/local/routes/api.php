@@ -11,6 +11,7 @@ use Beeralex\Api\V1\Controllers\UserController;
 use Beeralex\Api\V1\Controllers\AuthController;
 use Beeralex\Api\V1\Controllers\FavoriteController;
 use Beeralex\Api\V1\Controllers\BasketController;
+use Beeralex\Api\V1\Controllers\CheckoutController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
@@ -127,6 +128,21 @@ return function (RoutingConfigurator $routes): void {
                 $routes->post(
                     'apply-coupon',
                     [BasketController::class, 'applyCoupon']
+                );
+            });
+
+            $routes->prefix('checkout')->group(function (RoutingConfigurator $routes) {
+                $routes->get(
+                    'get',
+                    [CheckoutController::class, 'get']
+                );
+                $routes->post(
+                    'refresh',
+                    [CheckoutController::class, 'refresh']
+                );
+                $routes->post(
+                    'create',
+                    [CheckoutController::class, 'store']
                 );
             });
         });

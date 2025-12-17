@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "beeralex/beeralex.core": "~1.0"
+        "beeralex/beeralex.core": "~1.0",
+        "illuminate/collections": "^12.3"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

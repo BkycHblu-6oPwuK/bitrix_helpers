@@ -1,5 +1,5 @@
 <?php
-namespace Beeralex\Catalog\Checkout\Delivery;
+namespace Beeralex\Api\Domain\Checkout\Delivery;
 
 use Bitrix\Sale\Delivery\Services\Base;
 

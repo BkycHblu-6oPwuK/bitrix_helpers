@@ -1,5 +1,5 @@
 <?php
-namespace Beeralex\Catalog\Helper;
+namespace Beeralex\Catalog\Service;
 
 use Beeralex\Catalog\Repository\PersonTypeRepository;
 use Bitrix\Main\Type\DateTime;

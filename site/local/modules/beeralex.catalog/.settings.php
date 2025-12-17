@@ -149,7 +149,13 @@ return [
                 }
             ],
             LocationApiClientContract::class => [
-                'className' => DadataService::class,
+                'constructor' => static function () {
+                    $options = \service(Options::class);
+                    return new DadataService(
+                        apiKey: $options->apiKey,
+                        secretKey: $options->secretKey
+                    );
+                },
             ],
             BitrixLocationResolverContract::class => [
                 'constructor' => static function () {

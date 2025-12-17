@@ -1,6 +1,8 @@
 <?php
 
-namespace Beeralex\Catalog\Checkout;
+namespace Beeralex\Api\Domain\Checkout;
+
+use Beeralex\Api\Domain\Checkout\DTO\PaymentDTO;
 
 class PaymentsBuilder
 {
@@ -28,17 +30,20 @@ class PaymentsBuilder
     }
 
     /**
-     * @return array доступные службы оплаты
+     * @return array<string, PaymentDTO> доступные службы оплаты
      */
     public function buildPayments(): array
     {
         return $this->paySystems->mapWithKeys(function ($payment) {
+            $code = $this->paySystemMap[$payment['CODE']];
             return [
-                $this->paySystemMap[$payment['CODE']] => [
+                $code => PaymentDTO::make([
+                    'id' => $payment['ID'],
+                    'code' => $code,
                     'name' => $payment['NAME'],
                     'logotip' => $payment['LOGOTIP'] ? \CFile::GetPath($payment['LOGOTIP']) : null,
                     'description' => $payment['DESCRIPTION'],
-                ]
+                ])
             ];
         })->toArray();
     }

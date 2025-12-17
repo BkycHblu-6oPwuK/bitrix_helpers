@@ -13,7 +13,7 @@ use Beeralex\Api\Options;
 use Beeralex\Core\Http\Controllers\ApiController;
 use Beeralex\User\Auth\AuthService;
 use Beeralex\User\Auth\AuthCredentialsDto;
-use Beeralex\User\UserRepository;
+use Beeralex\User\Contracts\UserRepositoryContract;
 
 class AuthController extends ApiController
 {
@@ -165,7 +165,7 @@ class AuthController extends ApiController
     public function meAction(): array
     {
         return $this->process(function () {
-            $user = \service(UserRepository::class)->getCurrentUser();
+            $user = \service(UserRepositoryContract::class)->getCurrentUser();
             $result = \service(ApiResult::class);
             $result->setData([
                 'user' => UserDTO::make([

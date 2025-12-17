@@ -27,7 +27,7 @@ class BitrixLocationResolver implements BitrixLocationResolverContract
     public function getBitrixLocationByAddress(string|LocationDTO $location): ?array
     {
         $cacheKey = is_string($location) ? $location : Json::encode($location);
-        $cacheSettings = new CacheSettingsDTO(BitrixLocationResolverContract::CACHE_TIME, md5($cacheKey), 'dadata/location');
+        $cacheSettings = new CacheSettingsDTO(3600000, md5($cacheKey), 'beeralex.catalog/location');
         try {
             return $this->getCached($cacheSettings, function () use ($location) {
                 $variants = $this->getVariantsFromLocation($location);

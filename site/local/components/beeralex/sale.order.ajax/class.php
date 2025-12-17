@@ -1,17 +1,19 @@
 <?php
 
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Sale\Order as SaleOrder;
+use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Checkout\CheckoutDTOBuilder;
+use Beeralex\Api\Domain\Checkout\DeliveriesBuilder;
+use Beeralex\Api\Domain\Checkout\PaymentsBuilder;
+use Beeralex\Api\Domain\Checkout\PersonTypeBuilder;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
-use Beeralex\Catalog\Checkout\CheckoutDTOBuilder;
-use Beeralex\Catalog\Checkout\DeliveriesBuilder;
-use Beeralex\Catalog\Helper\OrderHelper;
-use Beeralex\Catalog\Checkout\PaymentsBuilder;
-use Beeralex\Catalog\Checkout\PersonTypeBuilder;
+use Beeralex\Catalog\Service\OrderService;
 use Beeralex\Core\Service\LocationService;
-use Beeralex\User\Phone;
-use Beeralex\User\User;
-use Beeralex\User\UserBuilder;
+use Beeralex\User\Auth\AuthCredentialsDto;
+use Beeralex\User\Auth\Contracts\EmailAuthenticatorContract;
+use Beeralex\User\Contracts\UserRepositoryContract;
+use Bitrix\Main\Loader;
+use Bitrix\Main\Security\Sign\Signer;
+use Bitrix\Sale\Order;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
@@ -27,33 +29,51 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
     protected $deliveriesBuilder;
 
     protected ?BitrixLocationResolverContract $locationResolver = null;
+    protected ApiResult $apiResult;
+    protected OrderService $orderService;
 
     public function executeComponent()
     {
+        Loader::requireModule('beeralex.catalog');
+        Loader::requireModule('beeralex.user');
         $this->locationResolver = service(BitrixLocationResolverContract::class);
+        $this->apiResult = service(ApiResult::class);
+        $this->orderService = service(OrderService::class);
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         $eventManager->addEventHandler('sale', 'OnSaleComponentOrderProperties', [$this, 'modifyOrderPropsBeforeDelivery']);
         parent::executeComponent();
     }
 
+    /**
+     * Переопределяем чтобы возвращать результат в api формате в виде объекта ApiResult
+     */
+    protected function showAjaxAnswer($result)
+    {
+        foreach (GetModuleEvents("sale", 'OnSaleComponentOrderShowAjaxAnswer', true) as $arEvent)
+            ExecuteModuleEventEx($arEvent, [&$result]);
+
+        if($result['error']) {
+            $this->apiResult->addError(new \Bitrix\Main\Error($result['error']));
+        } else {
+            $this->apiResult->addPageData($result);
+        }
+    }
+
     protected function prepareResultArray()
     {
-        $this->arResult['JS_DATA']['checkoutDTO'] = (new CheckoutDTOBuilder())
+        $this->arResult['JS_DATA'] = (new CheckoutDTOBuilder())
             ->setOrder($this->order)
             ->setPaymentsBuilder($this->getPaymentsBuilder($this->order))
             ->setDeliveriesBuilder($this->deliveriesBuilder)
             ->setPersonTypeBuilder($this->getPersonTypeBuilder())
             ->setRules($this->getRequestedRules())
             ->setProfileId($this->arUserResult['PROFILE_ID'] ?? '')
+            ->setSignedParameters((new Signer())->sign(base64_encode(serialize($this->arParams)), 'sale.order.ajax'))
+            ->setSiteId($this->order->getSiteId())
             ->build();
     }
 
-    /**
-     * @param \Bitrix\Sale\Order $order
-     *
-     * @return PaymentsBuilder
-     */
-    private function getPaymentsBuilder(\Bitrix\Sale\Order $order): PaymentsBuilder
+    private function getPaymentsBuilder(Order $order): PaymentsBuilder
     {
         $paySystemList = $this->arParams['DELIVERY_TO_PAYSYSTEM'] === 'p2d' ? $this->arActivePaySystems : $this->arPaySystemServiceAll;
         $selectedPayment = $this->getExternalPayment($order);
@@ -113,17 +133,11 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
     protected function refreshOrderAjaxAction()
     {
         global $USER;
-        $error = false;
-        if ($this->checkSession) {
-            $this->order = $this->createOrder($USER->GetID() ? $USER->GetID() : CSaleUser::GetAnonymousUserID());
-            $this->prepareResultArray();
-        } else {
-            $error = Loc::getMessage('SESSID_ERROR');
-        }
+        $this->order = $this->createOrder($USER->GetID() ? $USER->GetID() : CSaleUser::GetAnonymousUserID());
+        $this->prepareResultArray();
 
         $this->showAjaxAnswer([
             'order' => $this->arResult['JS_DATA'],
-            'error' => $error,
         ]);
     }
 
@@ -160,14 +174,14 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
                 return [$prop['CODE'] => $prop];
             });
         $requestProperties = $this->getPropertyValuesFromRequest();
-        $user = User::current();
+        $user = \service(UserRepositoryContract::class)->getCurrentUser();
 
         if ($this->locationResolver) {
             $variants = [];
             $oldLocation = $this->request->get('OLD_LOCATION');
             $requestAddress = $requestProperties[$props->get('ADDRESS')['ID']];
             if (empty($requestAddress) && !empty($oldLocation)) {
-                $location = service(LocationService::class)->getNearestCityByLocationCode($oldLocation, BitrixLocationResolverContract::CACHE_TIME);
+                $location = service(LocationService::class)->getNearestCityByLocationCode($oldLocation, 3600000);
                 if (!empty($location)) {
                     $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['LOCATION_NAME_NAME'];
                     $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['CODE'];
@@ -231,7 +245,7 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
     protected function getOrderProperties()
     {
         $propValues = $this->getPropertyValuesFromRequest();
-        $orderProps = collect(OrderHelper::getPropertyList($this->order->getPersonTypeId()))
+        $orderProps = collect($this->orderService->getPropertyList($this->order->getPersonTypeId()))
             ->map(function ($prop) use ($propValues) {
                 return array_merge($prop, ['VALUE' => $propValues[(int)$prop['ID']]]);
             });
@@ -252,24 +266,23 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
         if (!$userProps['GROUP_ID']) {
             $userProps['GROUP_ID'] = $userData['GROUP_ID'];
         }
-        $orderProps = $this->getOrderProperties();
         try {
-            $phone = Phone::fromString($orderProps['PHONE']['VALUE']);
-            $user = (new UserBuilder())
-                ->setEmail($orderProps['EMAIL']['VALUE'])
-                ->setName($orderProps['NAME']['VALUE'])
-                ->setLastName($orderProps['LAST_NAME']['VALUE'])
-                ->setPassword($userProps['NEW_PASSWORD'])
-                ->setPhone($phone)
-                ->setGroup($userProps['GROUP_ID'])
-                ->build();
-            //(new AuthService())->register($user);
-            $userId = $user->getId();
+            $authCredentialsDto = $this->makeAuthCredentialsDto($userProps);
+            $emailAuthentificator = service(EmailAuthenticatorContract::class);
+            $result = $emailAuthentificator->register($authCredentialsDto);
+            if (!$result->isSuccess()) {
+                $errors = $result->getErrors();
+                $message = 'При регистрации пользователя произошла ошибка';
+                if (!empty($errors)) {
+                    $message = $errors[0]->getMessage();
+                }
+                $this->showAjaxAnswer([
+                    'error' => $message,
+                ]);
+            }
+            $userId = $result->getData()['userId'];
         } catch (Exception $e) {
             $message = 'При регистрации пользователя произошла ошибка';
-            // if ($e instanceof ValidationException) {
-            //     $message = $e->getMessage();
-            // }
             $this->showAjaxAnswer([
                 'error' => $message,
             ]);
@@ -277,8 +290,22 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
         return $userId;
     }
 
+    protected function makeAuthCredentialsDto(array $userProps): AuthCredentialsDto
+    {
+        $orderProps = $this->getOrderProperties();
+        return new AuthCredentialsDto([
+            'email' => $orderProps['EMAIL']['VALUE'],
+            'phone' => $orderProps['PHONE']['VALUE'],
+            'password' => $userProps['NEW_PASSWORD'],
+            'name' => $orderProps['NAME']['VALUE'],
+            'last_name' => $orderProps['LAST_NAME']['VALUE'],
+            'group' => $userProps['GROUP_ID'],
+        ]);
+    }
+
     /**
      * здесь bitrix сносит свойство из альтернативного поля ввода локации, нам это не надо
      */
-    protected function checkAltLocationProperty(SaleOrder $order, $useProfileProperties, array $profileProperties) {}
+    protected function checkAltLocationProperty(Order $order, $useProfileProperties, array $profileProperties) {}
+    protected function showEmptyBasket() {}
 }

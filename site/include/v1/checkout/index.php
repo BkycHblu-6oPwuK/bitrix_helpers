@@ -1,9 +1,6 @@
 <?
+global $APPLICATION;
 
-use App\Main\PageHelper;
-
-require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
-$APPLICATION->SetTitle("Оформление заказа");
 $APPLICATION->IncludeComponent(
 	"beeralex:sale.order.ajax",
 	".default",
@@ -17,10 +14,10 @@ $APPLICATION->IncludeComponent(
 		"DELIVERY_NO_AJAX" => "N",
 		"TEMPLATE_LOCATION" => "popup",
 		"PROP_1" => array(),
-		"PATH_TO_BASKET" => PageHelper::getBasketUrl(),
-		"PATH_TO_PERSONAL" => "/personal/order/",
-		"PATH_TO_PAYMENT" => "/personal/order/payment/",
-		"PATH_TO_ORDER" => PageHelper::getCheckoutPageUrl(),
+		"PATH_TO_BASKET" => '',
+		"PATH_TO_PERSONAL" => '',
+		"PATH_TO_PAYMENT" => '',
+		"PATH_TO_ORDER" => '',
 		"SET_TITLE" => "Y",
 		"SHOW_ACCOUNT_NUMBER" => "Y",
 		"DELIVERY_NO_SESSION" => "Y",
@@ -35,4 +32,3 @@ $APPLICATION->IncludeComponent(
 	),
 	false
 );
-require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/footer.php");
