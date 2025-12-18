@@ -6,9 +6,10 @@ use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
 use Beeralex\Catalog\Cashbox\CashboxAtolFarm;
 use Beeralex\Catalog\Cashbox\PrepaymentCheck;
-use Beeralex\Catalog\ExtraServices\MyPriceExtraService;
 use Beeralex\Catalog\Enum\OrderStatuses;
-use App\Restriction\UserRestriction;
+use Beeralex\Catalog\ExtraService\MyPriceExtraService;
+use Beeralex\Catalog\Restriction\UserRestriction;
+use Beeralex\Core\Service\PathService;
 use Bitrix\Main\EventResult;
 
 class Sale
@@ -35,59 +36,15 @@ class Sale
         $order = $event->getParameter('ENTITY');
     }
 
-    // public static function onSaleDeliveryExtraServicesClassNamesBuildList()
-    // {
-    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(MyPriceExtraService::class));
-    //     return new EventResult(
-    //         EventResult::SUCCESS,
-    //         [
-    //             MyPriceExtraService::class => $filepath
-    //         ]
-    //     );
-    // }
-
-    // public static function onSalePaySystemRestrictionsClassNamesBuildList()
-    // {
-    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
-    //     return new EventResult(
-    //         EventResult::SUCCESS,
-    //         [
-    //             UserRestriction::class => $filepath,
-    //         ]
-    //     );
-    // }
-
-    // public static function onSaleCashboxRestrictionsClassNamesBuildList()
-    // {
-    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(UserRestriction::class));
-    //     return new EventResult(
-    //         EventResult::SUCCESS,
-    //         [
-    //             UserRestriction::class => $filepath,
-    //         ]
-    //     );
-    // }
-
-    /*
-    public static function onGetCustomCashboxHandlers()
+    public static function onSaleDeliveryExtraServicesClassNamesBuildList()
     {
-        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(YourCashboxClass::class);
+        $pathService = \service(PathService::class);
+        $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', $pathService->classFile(MyPriceExtraService::class));
         return new EventResult(
             EventResult::SUCCESS,
             [
-                CashboxAtolFarm::class => $filepath,
+                MyPriceExtraService::class => $filepath
             ]
         );
-    }*/
-
-    // public static function onGetCustomCheckList()
-    // {
-    //     $filepath = str_replace($_SERVER['DOCUMENT_ROOT'], '', \Beeralex\Core\Helpers\PathHelper::classFile(PrepaymentCheck::class));
-    //     return new EventResult(
-    //         EventResult::SUCCESS,
-    //         [
-    //             PrepaymentCheck::class => $filepath,
-    //         ]
-    //     );
-    // }
+    }
 }

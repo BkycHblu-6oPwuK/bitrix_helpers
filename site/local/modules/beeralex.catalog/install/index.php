@@ -1,5 +1,7 @@
 <?php
 
+use Beeralex\Catalog\EventHandlers;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 
 class beeralex_catalog extends CModule
@@ -19,11 +21,83 @@ class beeralex_catalog extends CModule
     {
         \Bitrix\Main\ModuleManager::registerModule($this->MODULE_ID);
         Loader::includeModule($this->MODULE_ID);
+        $this->InstallEvents();
+    }
+
+    public function InstallEvents()
+    {
+        EventManager::getInstance()->registerEventHandler(
+            'sale',
+            'onSalePaySystemRestrictionsClassNamesBuildList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSalePaySystemRestrictionsClassNamesBuildList'
+        );
+
+        EventManager::getInstance()->registerEventHandler(
+            'sale',
+            'onSaleCashboxRestrictionsClassNamesBuildList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSaleCashboxRestrictionsClassNamesBuildList'
+        );
+
+        EventManager::getInstance()->registerEventHandler(
+            'sale',
+            'OnGetCustomCheckList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onGetCustomCheckList'
+        );
+        
+        EventManager::getInstance()->registerEventHandler(
+            'sale',
+            'onSaleDeliveryExtraServicesClassNamesBuildList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSaleDeliveryExtraServicesClassNamesBuildList'
+        );
+    }
+
+    public function UnInstallEvents()
+    {
+        EventManager::getInstance()->unRegisterEventHandler(
+            'sale',
+            'OnSalePaySystemRestrictionsClassNamesBuildList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSalePaySystemRestrictionsClassNamesBuildList'
+        );
+
+        EventManager::getInstance()->unRegisterEventHandler(
+            'sale',
+            'OnSaleCashboxRestrictionsClassNamesBuildList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSaleCashboxRestrictionsClassNamesBuildList'
+        );
+
+        EventManager::getInstance()->unRegisterEventHandler(
+            'sale',
+            'OnGetCustomCheckList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onGetCustomCheckList'
+        );
+
+        EventManager::getInstance()->unRegisterEventHandler(
+            'sale',
+            'onSaleDeliveryExtraServicesClassNamesBuildList',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSaleDeliveryExtraServicesClassNamesBuildList'
+        );
     }
 
     public function DoUninstall()
     {
         Loader::includeModule($this->MODULE_ID);
+        $this->UnInstallEvents();
         \Bitrix\Main\ModuleManager::unRegisterModule($this->MODULE_ID);
     }
 }
