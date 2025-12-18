@@ -3,11 +3,11 @@
 namespace Sprint\Migration;
 
 
-class Version20251111174827 extends Version
+class Version20251218112537 extends Version
 {
     protected $author = "admin";
 
-    protected $description = "инфоблок страницы";
+    protected $description = "инфоблок видео";
 
     protected $moduleVersion = "5.4.1";
 
@@ -47,10 +47,10 @@ class Version20251111174827 extends Version
   array (
     0 => 's1',
   ),
-  'CODE' => 'pages',
-  'API_CODE' => 'PagesApi',
+  'CODE' => 'video',
+  'API_CODE' => 'VideoApi',
   'REST_ON' => 'N',
-  'NAME' => 'Страницы',
+  'NAME' => 'Видео',
   'ACTIVE' => 'Y',
   'SORT' => '500',
   'LIST_PAGE_URL' => '',
@@ -74,7 +74,7 @@ class Version20251111174827 extends Version
   'SECTION_CHOOSER' => 'L',
   'LIST_MODE' => '',
   'RIGHTS_MODE' => 'S',
-  'SECTION_PROPERTY' => 'N',
+  'SECTION_PROPERTY' => 'Y',
   'PROPERTY_INDEX' => 'N',
   'VERSION' => '1',
   'LAST_CONV_ELEMENT' => '0',
@@ -405,12 +405,12 @@ class Version20251111174827 extends Version
   'administrators' => 'X',
 ));
         $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Шапка',
+  'NAME' => 'Заголовок',
   'ACTIVE' => 'Y',
   'SORT' => '500',
-  'CODE' => 'HEADER',
+  'CODE' => 'TITLE',
   'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'E',
+  'PROPERTY_TYPE' => 'S',
   'ROW_COUNT' => '1',
   'COL_COUNT' => '30',
   'LIST_TYPE' => 'L',
@@ -418,97 +418,35 @@ class Version20251111174827 extends Version
   'XML_ID' => NULL,
   'FILE_TYPE' => '',
   'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => 'content:header',
+  'LINK_IBLOCK_ID' => '0',
   'WITH_DESCRIPTION' => 'N',
   'SEARCHABLE' => 'N',
   'FILTRABLE' => 'N',
   'IS_REQUIRED' => 'N',
   'VERSION' => '1',
   'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => 'a:0:{}',
+  'USER_TYPE_SETTINGS' => NULL,
   'HINT' => '',
-  'FEATURES' => 
-  array (
-    0 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'DETAIL_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    1 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'LIST_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    2 => 
-    array (
-      'MODULE_ID' => 'yandex.market',
-      'FEATURE_ID' => 'YAMARKET_COMMON',
-      'IS_ENABLED' => 'N',
-    ),
-  ),
+  'SMART_FILTER' => NULL,
+  'DISPLAY_TYPE' => NULL,
+  'DISPLAY_EXPANDED' => NULL,
+  'FILTER_HINT' => NULL,
 ));
             $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Контент',
+  'NAME' => 'Видео',
   'ACTIVE' => 'Y',
   'SORT' => '500',
-  'CODE' => 'CONTENT',
+  'CODE' => 'VIDEO',
   'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'G',
+  'PROPERTY_TYPE' => 'F',
   'ROW_COUNT' => '1',
   'COL_COUNT' => '30',
   'LIST_TYPE' => 'L',
   'MULTIPLE' => 'N',
   'XML_ID' => NULL,
-  'FILE_TYPE' => '',
+  'FILE_TYPE' => 'mpg, avi, wmv, mpeg, mpe, flv',
   'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => 'content:content',
-  'WITH_DESCRIPTION' => 'N',
-  'SEARCHABLE' => 'N',
-  'FILTRABLE' => 'N',
-  'IS_REQUIRED' => 'N',
-  'VERSION' => '1',
-  'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => 'a:0:{}',
-  'HINT' => '',
-  'FEATURES' => 
-  array (
-    0 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'DETAIL_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    1 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'LIST_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    2 => 
-    array (
-      'MODULE_ID' => 'yandex.market',
-      'FEATURE_ID' => 'YAMARKET_COMMON',
-      'IS_ENABLED' => 'N',
-    ),
-  ),
-));
-            $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Футер',
-  'ACTIVE' => 'Y',
-  'SORT' => '500',
-  'CODE' => 'FOOTER',
-  'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'E',
-  'ROW_COUNT' => '1',
-  'COL_COUNT' => '30',
-  'LIST_TYPE' => 'L',
-  'MULTIPLE' => 'N',
-  'XML_ID' => NULL,
-  'FILE_TYPE' => '',
-  'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => 'content:footer',
+  'LINK_IBLOCK_ID' => '0',
   'WITH_DESCRIPTION' => 'N',
   'SEARCHABLE' => 'N',
   'FILTRABLE' => 'N',
@@ -538,30 +476,10 @@ class Version20251111174827 extends Version
       'IS_ENABLED' => 'N',
     ),
   ),
-));
-            $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Url страницы',
-  'ACTIVE' => 'Y',
-  'SORT' => '500',
-  'CODE' => 'URL',
-  'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'S',
-  'ROW_COUNT' => '1',
-  'COL_COUNT' => '30',
-  'LIST_TYPE' => 'L',
-  'MULTIPLE' => 'N',
-  'XML_ID' => NULL,
-  'FILE_TYPE' => '',
-  'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => '0',
-  'WITH_DESCRIPTION' => 'N',
-  'SEARCHABLE' => 'N',
-  'FILTRABLE' => 'N',
-  'IS_REQUIRED' => 'N',
-  'VERSION' => '1',
-  'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => 'a:0:{}',
-  'HINT' => '',
+  'SMART_FILTER' => NULL,
+  'DISPLAY_TYPE' => NULL,
+  'DISPLAY_EXPANDED' => NULL,
+  'FILTER_HINT' => NULL,
 ));
         $helper->UserOptions()->saveElementGrid($iblockId, array (
   'views' => 

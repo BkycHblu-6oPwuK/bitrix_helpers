@@ -3,11 +3,11 @@
 namespace Sprint\Migration;
 
 
-class Version20251111174719 extends Version
+class Version20251218103334 extends Version
 {
     protected $author = "admin";
 
-    protected $description = "инфоблок меню";
+    protected $description = "инфоблок вопросы и ответы";
 
     protected $moduleVersion = "5.4.1";
 
@@ -47,10 +47,10 @@ class Version20251111174719 extends Version
   array (
     0 => 's1',
   ),
-  'CODE' => 'menu',
-  'API_CODE' => 'MenuApi',
+  'CODE' => 'questions',
+  'API_CODE' => 'QuestionsApi',
   'REST_ON' => 'N',
-  'NAME' => 'Меню',
+  'NAME' => 'Вопросы и ответы',
   'ACTIVE' => 'Y',
   'SORT' => '500',
   'LIST_PAGE_URL' => '',
@@ -66,7 +66,7 @@ class Version20251111174719 extends Version
   'RSS_FILE_LIMIT' => NULL,
   'RSS_FILE_DAYS' => NULL,
   'RSS_YANDEX_ACTIVE' => 'N',
-  'XML_ID' => NULL,
+  'XML_ID' => '',
   'INDEX_ELEMENT' => 'Y',
   'INDEX_SECTION' => 'Y',
   'WORKFLOW' => 'N',
@@ -74,7 +74,7 @@ class Version20251111174719 extends Version
   'SECTION_CHOOSER' => 'L',
   'LIST_MODE' => '',
   'RIGHTS_MODE' => 'S',
-  'SECTION_PROPERTY' => 'N',
+  'SECTION_PROPERTY' => 'Y',
   'PROPERTY_INDEX' => 'N',
   'VERSION' => '1',
   'LAST_CONV_ELEMENT' => '0',
@@ -86,7 +86,7 @@ class Version20251111174719 extends Version
   'ELEMENTS_NAME' => 'Элементы',
   'ELEMENT_NAME' => 'Элемент',
   'FULLTEXT_INDEX' => 'N',
-  'EXTERNAL_ID' => NULL,
+  'EXTERNAL_ID' => '',
   'LANG_DIR' => '/',
   'IPROPERTY_TEMPLATES' => 
   array (
@@ -237,11 +237,11 @@ class Version20251111174719 extends Version
   'CODE' => 
   array (
     'NAME' => 'Символьный код',
-    'IS_REQUIRED' => 'Y',
+    'IS_REQUIRED' => 'N',
     'DEFAULT_VALUE' => 
     array (
-      'UNIQUE' => 'Y',
-      'TRANSLITERATION' => 'Y',
+      'UNIQUE' => 'N',
+      'TRANSLITERATION' => 'N',
       'TRANS_LEN' => 100,
       'TRANS_CASE' => 'L',
       'TRANS_SPACE' => '-',
@@ -344,11 +344,11 @@ class Version20251111174719 extends Version
   'SECTION_CODE' => 
   array (
     'NAME' => 'Символьный код',
-    'IS_REQUIRED' => 'Y',
+    'IS_REQUIRED' => 'N',
     'DEFAULT_VALUE' => 
     array (
-      'UNIQUE' => 'Y',
-      'TRANSLITERATION' => 'Y',
+      'UNIQUE' => 'N',
+      'TRANSLITERATION' => 'N',
       'TRANS_LEN' => 100,
       'TRANS_CASE' => 'L',
       'TRANS_SPACE' => '-',
@@ -403,129 +403,6 @@ class Version20251111174719 extends Version
 ));
     $helper->Iblock()->saveGroupPermissions($iblockId, array (
   'administrators' => 'X',
-));
-        $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Инфоблок',
-  'ACTIVE' => 'Y',
-  'SORT' => '500',
-  'CODE' => 'IBLOCK_ID_LINK',
-  'DEFAULT_VALUE' => NULL,
-  'PROPERTY_TYPE' => 'S',
-  'ROW_COUNT' => '1',
-  'COL_COUNT' => '30',
-  'LIST_TYPE' => 'L',
-  'MULTIPLE' => 'N',
-  'XML_ID' => NULL,
-  'FILE_TYPE' => '',
-  'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => '0',
-  'WITH_DESCRIPTION' => 'N',
-  'SEARCHABLE' => 'N',
-  'FILTRABLE' => 'N',
-  'IS_REQUIRED' => 'N',
-  'VERSION' => '1',
-  'USER_TYPE' => 'IBLOCK_LINK',
-  'USER_TYPE_SETTINGS' => NULL,
-  'HINT' => 'Разделы выбранного инфоблока будут сформированы в меню',
-  'FEATURES' => 
-  array (
-    0 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'DETAIL_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    1 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'LIST_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    2 => 
-    array (
-      'MODULE_ID' => 'yandex.market',
-      'FEATURE_ID' => 'YAMARKET_COMMON',
-      'IS_ENABLED' => 'N',
-    ),
-  ),
-));
-            $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Ссылка',
-  'ACTIVE' => 'Y',
-  'SORT' => '500',
-  'CODE' => 'LINK',
-  'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'S',
-  'ROW_COUNT' => '1',
-  'COL_COUNT' => '30',
-  'LIST_TYPE' => 'L',
-  'MULTIPLE' => 'N',
-  'XML_ID' => NULL,
-  'FILE_TYPE' => '',
-  'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => '0',
-  'WITH_DESCRIPTION' => 'N',
-  'SEARCHABLE' => 'N',
-  'FILTRABLE' => 'N',
-  'IS_REQUIRED' => 'N',
-  'VERSION' => '1',
-  'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => 'a:0:{}',
-  'HINT' => '',
-));
-            $helper->UserOptions()->saveSectionForm($iblockId, array (
-  'Раздел|edit1' => 
-  array (
-    'ID' => 'ID',
-    'DATE_CREATE' => 'Создан',
-    'TIMESTAMP_X' => 'Изменен',
-    'ACTIVE' => 'Раздел активен',
-    'IBLOCK_SECTION_ID' => 'Родительский раздел',
-    'NAME' => 'Название',
-    'CODE' => 'Символьный код',
-    'PICTURE' => 'Изображение',
-    'DESCRIPTION' => 'Описание',
-  ),
-  'SEO|edit5' => 
-  array (
-    'IPROPERTY_TEMPLATES_SECTION' => 'Настройки для разделов',
-    'IPROPERTY_TEMPLATES_SECTION_META_TITLE' => 'Шаблон META TITLE',
-    'IPROPERTY_TEMPLATES_SECTION_META_KEYWORDS' => 'Шаблон META KEYWORDS',
-    'IPROPERTY_TEMPLATES_SECTION_META_DESCRIPTION' => 'Шаблон META DESCRIPTION',
-    'IPROPERTY_TEMPLATES_SECTION_PAGE_TITLE' => 'Заголовок раздела',
-    'IPROPERTY_TEMPLATES_ELEMENT' => 'Настройки для элементов',
-    'IPROPERTY_TEMPLATES_ELEMENT_META_TITLE' => 'Шаблон META TITLE',
-    'IPROPERTY_TEMPLATES_ELEMENT_META_KEYWORDS' => 'Шаблон META KEYWORDS',
-    'IPROPERTY_TEMPLATES_ELEMENT_META_DESCRIPTION' => 'Шаблон META DESCRIPTION',
-    'IPROPERTY_TEMPLATES_ELEMENT_PAGE_TITLE' => 'Заголовок товара',
-    'IPROPERTY_TEMPLATES_SECTIONS_PICTURE' => 'Настройки для изображений разделов',
-    'IPROPERTY_TEMPLATES_SECTION_PICTURE_FILE_ALT' => 'Шаблон ALT',
-    'IPROPERTY_TEMPLATES_SECTION_PICTURE_FILE_TITLE' => 'Шаблон TITLE',
-    'IPROPERTY_TEMPLATES_SECTION_PICTURE_FILE_NAME' => 'Шаблон имени файла',
-    'IPROPERTY_TEMPLATES_SECTIONS_DETAIL_PICTURE' => 'Настройки для детальных картинок разделов',
-    'IPROPERTY_TEMPLATES_SECTION_DETAIL_PICTURE_FILE_ALT' => 'Шаблон ALT',
-    'IPROPERTY_TEMPLATES_SECTION_DETAIL_PICTURE_FILE_TITLE' => 'Шаблон TITLE',
-    'IPROPERTY_TEMPLATES_SECTION_DETAIL_PICTURE_FILE_NAME' => 'Шаблон имени файла',
-    'IPROPERTY_TEMPLATES_ELEMENTS_PREVIEW_PICTURE' => 'Настройки для картинок анонса элементов',
-    'IPROPERTY_TEMPLATES_ELEMENT_PREVIEW_PICTURE_FILE_ALT' => 'Шаблон ALT',
-    'IPROPERTY_TEMPLATES_ELEMENT_PREVIEW_PICTURE_FILE_TITLE' => 'Шаблон TITLE',
-    'IPROPERTY_TEMPLATES_ELEMENT_PREVIEW_PICTURE_FILE_NAME' => 'Шаблон имени файла',
-    'IPROPERTY_TEMPLATES_ELEMENTS_DETAIL_PICTURE' => 'Настройки для детальных картинок элементов',
-    'IPROPERTY_TEMPLATES_ELEMENT_DETAIL_PICTURE_FILE_ALT' => 'Шаблон ALT',
-    'IPROPERTY_TEMPLATES_ELEMENT_DETAIL_PICTURE_FILE_TITLE' => 'Шаблон TITLE',
-    'IPROPERTY_TEMPLATES_ELEMENT_DETAIL_PICTURE_FILE_NAME' => 'Шаблон имени файла',
-    'IPROPERTY_TEMPLATES_MANAGEMENT' => 'Управление',
-    'IPROPERTY_CLEAR_VALUES' => 'Очистить кеш вычисленных значений',
-  ),
-  'Дополнительно|edit2' => 
-  array (
-    'SORT' => 'Сортировка',
-    'DETAIL_PICTURE' => 'Детальная картинка',
-  ),
-  'Доп. поля|user_fields_tab_IBLOCK_11_SECTION' => 
-  array (
-    'USER_FIELDS_ADD' => 'Добавить пользовательское свойство',
-  ),
 ));
     $helper->UserOptions()->saveElementGrid($iblockId, array (
   'views' => 

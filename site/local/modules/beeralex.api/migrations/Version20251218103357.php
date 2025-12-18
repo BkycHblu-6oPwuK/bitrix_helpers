@@ -3,11 +3,11 @@
 namespace Sprint\Migration;
 
 
-class Version20251111174812 extends Version
+class Version20251218103357 extends Version
 {
     protected $author = "admin";
 
-    protected $description = "инфоблок футер";
+    protected $description = "инфоблок главный баннер";
 
     protected $moduleVersion = "5.4.1";
 
@@ -47,10 +47,10 @@ class Version20251111174812 extends Version
   array (
     0 => 's1',
   ),
-  'CODE' => 'footer',
-  'API_CODE' => 'FooterApi',
+  'CODE' => 'mainBanner',
+  'API_CODE' => 'MainBannerApi',
   'REST_ON' => 'N',
-  'NAME' => 'Футер',
+  'NAME' => 'Главный баннер',
   'ACTIVE' => 'Y',
   'SORT' => '500',
   'LIST_PAGE_URL' => '',
@@ -74,7 +74,7 @@ class Version20251111174812 extends Version
   'SECTION_CHOOSER' => 'L',
   'LIST_MODE' => '',
   'RIGHTS_MODE' => 'S',
-  'SECTION_PROPERTY' => 'N',
+  'SECTION_PROPERTY' => 'Y',
   'PROPERTY_INDEX' => 'N',
   'VERSION' => '1',
   'LAST_CONV_ELEMENT' => '0',
@@ -403,14 +403,15 @@ class Version20251111174812 extends Version
 ));
     $helper->Iblock()->saveGroupPermissions($iblockId, array (
   'administrators' => 'X',
+  'everyone' => 'R',
 ));
         $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Меню',
+  'NAME' => 'Ссылка',
   'ACTIVE' => 'Y',
   'SORT' => '500',
-  'CODE' => 'MENU',
+  'CODE' => 'LINK',
   'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'G',
+  'PROPERTY_TYPE' => 'S',
   'ROW_COUNT' => '1',
   'COL_COUNT' => '30',
   'LIST_TYPE' => 'L',
@@ -418,36 +419,19 @@ class Version20251111174812 extends Version
   'XML_ID' => NULL,
   'FILE_TYPE' => '',
   'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => 'content:menu',
+  'LINK_IBLOCK_ID' => '0',
   'WITH_DESCRIPTION' => 'N',
   'SEARCHABLE' => 'N',
   'FILTRABLE' => 'N',
   'IS_REQUIRED' => 'N',
   'VERSION' => '1',
   'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => 'a:0:{}',
+  'USER_TYPE_SETTINGS' => NULL,
   'HINT' => '',
-  'FEATURES' => 
-  array (
-    0 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'DETAIL_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    1 => 
-    array (
-      'MODULE_ID' => 'iblock',
-      'FEATURE_ID' => 'LIST_PAGE_SHOW',
-      'IS_ENABLED' => 'N',
-    ),
-    2 => 
-    array (
-      'MODULE_ID' => 'yandex.market',
-      'FEATURE_ID' => 'YAMARKET_COMMON',
-      'IS_ENABLED' => 'N',
-    ),
-  ),
+  'SMART_FILTER' => NULL,
+  'DISPLAY_TYPE' => NULL,
+  'DISPLAY_EXPANDED' => NULL,
+  'FILTER_HINT' => NULL,
 ));
         $helper->UserOptions()->saveElementGrid($iblockId, array (
   'views' => 

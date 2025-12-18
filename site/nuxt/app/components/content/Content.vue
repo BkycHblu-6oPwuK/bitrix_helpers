@@ -16,13 +16,13 @@ import UnknownBlock from './blocks/UnknownBlock.vue'
 
 // Пропсы: путь к странице для загрузки контента
 const props = defineProps<{
-  pathName: string
+  code: string
 }>()
 
 // Загрузка данных страницы с сервера
 const page = await useApi<PageData>('get-content', {
   query: {
-    pathName: props.pathName
+    code: props.code
   },
 })
 

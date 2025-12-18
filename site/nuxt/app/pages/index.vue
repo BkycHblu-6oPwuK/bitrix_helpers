@@ -6,7 +6,7 @@
 <template>
   <div>
     <!-- Динамические блоки контента с сервера -->
-    <Content path-name="/"></Content>
+    <Content code="main"></Content>
     
     <!-- Тестовый блок со ссылками -->
     <section class="text-center py-20">

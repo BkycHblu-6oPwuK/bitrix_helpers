@@ -15,11 +15,11 @@ class ContentRepository extends IblockRepository
         return parent::__construct($iblockCodeOrId);
     }
 
-    public function getContentByPath(string $path): array
+    public function getContentByCode(string $code): array
     {
         $query = service(IblockService::class)->addSectionModelToQuery($this->entityId, $this->query())
             ->where('ACTIVE', 'Y')
-            ->where('IBLOCK_MODEL_SECTION.UF_URL', $path)
+            ->where('IBLOCK_MODEL_SECTION.CODE', $code)
             ->setSelect(
                 [
                     'ID',
@@ -32,7 +32,7 @@ class ContentRepository extends IblockRepository
                     'ARTICLES_IDS.VALUE',
                     'ARTICLES_TITLE.VALUE',
                     'MAIN_BANNER.VALUE',
-                    'IBLOCK_MODEL_SECTION.UF_URL',
+                    'IBLOCK_MODEL_SECTION.CODE',
                     'FORM_ID.VALUE',
                     'HTML.VALUE',
                     'VIDEO_IDS.VALUE'

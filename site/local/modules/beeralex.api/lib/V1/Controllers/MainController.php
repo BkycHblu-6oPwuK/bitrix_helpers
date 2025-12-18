@@ -26,12 +26,11 @@ class MainController extends Controller
         ];
     }
 
-    public function getContentAction(string $pathName)
+    public function getContentAction(string $code)
     {
-        return $this->process(function () use ($pathName) {
-            $pathName = $this->normalizePath($pathName);
+        return $this->process(function () use ($code) {
             service(FileService::class)->includeFile('v1.index', [
-                'pathName' => $pathName,
+                'code' => $code,
             ]);
             $result = service(ApiResult::class);
             $result->setSeo();
@@ -62,30 +61,5 @@ class MainController extends Controller
 
             return $result;
         });
-    }
-
-    /**
-     * Приводит путь к виду:
-     * - всегда начинается со слеша (/)
-     * - не заканчивается слешем (/), кроме корня
-     */
-    protected function normalizePath(string $path): string
-    {
-        $path = mb_trim($path);
-        $path = preg_replace('#/+#', '/', $path);
-
-        if ($path === '') {
-            return '/';
-        }
-
-        if ($path[0] !== '/') {
-            $path = '/' . $path;
-        }
-
-        if (mb_strlen($path) > 1) {
-            $path = mb_rtrim($path, '/');
-        }
-
-        return $path;
     }
 }

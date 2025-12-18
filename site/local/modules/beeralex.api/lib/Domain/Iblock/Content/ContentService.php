@@ -14,7 +14,7 @@ class ContentService
         protected readonly ProductRepositoryContract $productsRepository
     ) {}
 
-    public function getContentByPath(string $path): array
+    public function getContentByCode(string $code): array
     {
         return array_map(function ($item) {
             $type = $item['TYPE']['ITEM']['XML_ID'];
@@ -62,7 +62,7 @@ class ContentService
                 default:
                     return [];
             };
-        }, $this->contentRepository->getContentByPath($path));
+        }, $this->contentRepository->getContentByCode($code));
     }
 
     protected function getNewProductsIds(): array

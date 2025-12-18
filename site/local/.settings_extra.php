@@ -46,12 +46,4 @@ return [
             ],
         ]
     ]
-    // 'beeralex.api' => [
-    //     'value' => [
-    //         'remove_parts' => [
-    //             '/api/',
-    //             '/v1/',
-    //         ]
-    //     ]
-    // ],
 ];

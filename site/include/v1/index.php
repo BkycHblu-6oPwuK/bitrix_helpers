@@ -7,6 +7,6 @@ $APPLICATION->IncludeComponent(
     [
         "CACHE_TYPE" => "A",
         "CACHE_TIME" => "86400",
-        "PATH" => $pathName
+        "CODE" => $code
     ]
 );
