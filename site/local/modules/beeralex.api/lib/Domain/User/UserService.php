@@ -14,11 +14,6 @@ class UserService
 {
     public function extractJwtToken(HttpRequest $request): ?string
     {
-        $auth = $request->getHeader('Authorization');
-        if ($auth && preg_match('/Bearer\s+(\S+)/', $auth, $m)) {
-            return $m[1];
-        }
-
         $cookie = $request->getCookie("access");
         if ($cookie) {
             return $cookie;

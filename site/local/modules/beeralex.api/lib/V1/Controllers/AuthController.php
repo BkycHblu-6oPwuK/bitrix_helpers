@@ -14,6 +14,7 @@ use Beeralex\Core\Http\Controllers\ApiController;
 use Beeralex\User\Auth\AuthService;
 use Beeralex\User\Auth\AuthCredentialsDto;
 use Beeralex\User\Contracts\UserRepositoryContract;
+use Bitrix\Main\Error;
 
 class AuthController extends ApiController
 {
@@ -27,7 +28,7 @@ class AuthController extends ApiController
         $this->authService = \service(AuthService::class);
         $this->options = \service(Options::class);
     }
-    
+
     public function configureActions(): array
     {
         return [
@@ -118,18 +119,22 @@ class AuthController extends ApiController
     {
         return $this->process(function () {
             $refreshToken = service(UserService::class)->extractRefreshToken($this->getRequest());
-            toFile(['1' => $this->getRequest()]);
+            $apiResult = service(ApiResult::class);
             if (!$refreshToken) {
-                throw new \Exception("No refresh token");
+                $apiResult->addError(new Error('Refresh token is missing', 'refresh_token_missing'));
+                return $apiResult;
             }
 
             $result = $this->authService->refreshTokens($refreshToken);
+            if (!$result->isSuccess()) {
+                return $result;
+            }
             $data = $result->getData();
 
             $this->setCookie('access', $data['accessToken'], $data['accessTokenExpired']);
             $this->setCookie('refresh', $data['refreshToken'], $data['refreshTokenExpired']);
 
-            return [];
+            return $apiResult;
         });
     }
 
