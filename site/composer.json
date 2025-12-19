@@ -5,6 +5,11 @@
       "local/modules/{$name}/": [
         "type:bitrix-module"
       ]
+    },
+    "merge-plugin": {
+      "require": [
+        "bitrix/composer-bx.json"
+      ]
     }
   },
   "require": {

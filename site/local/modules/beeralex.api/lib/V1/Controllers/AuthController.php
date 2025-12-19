@@ -119,7 +119,10 @@ class AuthController extends ApiController
     {
         return $this->process(function () {
             $refreshToken = service(UserService::class)->extractRefreshToken($this->getRequest());
+<<<<<<< Updated upstream
             $apiResult = service(ApiResult::class);
+=======
+>>>>>>> Stashed changes
             if (!$refreshToken) {
                 $apiResult->addError(new Error('Refresh token is missing', 'refresh_token_missing'));
                 return $apiResult;
