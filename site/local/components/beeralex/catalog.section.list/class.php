@@ -102,6 +102,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
             ->setOrder(['SORT' => 'ASC'])
             ->exec()->fetchAll();
         foreach ($sections as &$item) {
+            $item['SELECTED'] = $this->arParams['SELECTED_SECTION_ID'] == $item['ID'];
             $this->replaceUrl($item);
         }
         return $sections;
@@ -121,6 +122,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                 ->setOrder(['LEFT_MARGIN' => 'ASC'])
                 ->exec()->fetchAll();
             foreach ($sections as &$item) {
+                $item['SELECTED'] = $this->arParams['SELECTED_SECTION_ID'] == $item['ID'];
                 $this->replaceUrl($item);
             }
         }

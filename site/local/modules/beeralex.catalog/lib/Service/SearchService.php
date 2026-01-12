@@ -5,6 +5,9 @@ namespace Beeralex\Catalog\Service;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Core\Service\LanguageService;
 
+/**
+ * @todo реализовать поиск не по CAllSearch, а можно использовать подключение компонента поиска
+ */
 class SearchService
 {
     public const REQUEST_PARAM = 'q';
@@ -32,7 +35,7 @@ class SearchService
                     'CUSTOM_RANK' => 'DESC',
                 ],
                 [
-                    'STEMMING' => false
+                    'STEMMING' => true
                 ]
             );
             $productsIds = [];

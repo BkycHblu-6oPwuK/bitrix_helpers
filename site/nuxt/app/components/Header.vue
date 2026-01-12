@@ -8,9 +8,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useColorMode } from '#imports'
-import Menu from '~/components/menu/Menu.vue'
-import CatalogMenu from '~/components/menu/CatalogMenu.vue'
-import AuthModal from '~/components/auth/AuthModal.vue'
 
 // Управление цветовой темой (dark/light)
 const colorMode = useColorMode()
@@ -81,7 +78,7 @@ const openAuthModal = () => {
           </div>
         </NuxtLink>
 
-        <CatalogMenu />
+        <MenuCatalog />
 
         <div class="flex-1 max-w-xl">
           <UInput v-model="query" placeholder="Поиск по сайту" icon="i-heroicons-magnifying-glass" size="lg"

@@ -99,7 +99,7 @@ watch(modelValue, async (value) => {
                   @switch-to-email="switchMode('login')"
                 />
 
-                <AuthSocialAuth
+                <AuthSocials
                   v-if="mode === 'login'"
                   :methods="userStore.socialAuthMethods"
                 />

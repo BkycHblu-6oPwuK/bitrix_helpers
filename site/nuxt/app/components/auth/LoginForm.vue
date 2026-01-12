@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { UserLoginEmailState } from '~/types/user';
 
-
 const emit = defineEmits<{
   success: []
   switchToRegister: []
@@ -21,7 +20,7 @@ const form = useForm<UserLoginEmailState>({
     return Object.keys(errors).length ? errors : null
   },
   onSubmit: async (values) => {
-    await userStore.login<UserLoginEmailState>('email', values)
+    await userStore.login('email', values)
     emit('success')
   }
 })

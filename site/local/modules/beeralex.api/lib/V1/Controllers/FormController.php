@@ -6,12 +6,20 @@ namespace Beeralex\Api\V1\Controllers;
 
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Form\FormService;
+use Beeralex\Core\Http\Controllers\ApiController;
 use Beeralex\Core\Service\FileService;
-use Bitrix\Main\Engine\Controller;
 
-class FormController extends Controller
+class FormController extends ApiController
 {
     use ApiProcessResultTrait;
+    protected readonly FormService $formService;
+
+    public function __construct($request = null)
+    {
+        parent::__construct($request);
+        $this->formService = service(FormService::class);
+    }
 
     public function configureActions()
     {
@@ -46,4 +54,11 @@ class FormController extends Controller
             return service(ApiResult::class);
         });
     }
+
+    /*public function storeQuestionAction(QuestionRequestDTO $requestDto)
+    {
+        return $this->process(function () use ($requestDto) {
+            return $this->formService->submitQuestionForm($requestDto);
+        });
+    }*/
 }

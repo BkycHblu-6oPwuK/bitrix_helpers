@@ -12,12 +12,12 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
  */
 class BeeralexProductSlider extends CBitrixComponent
 {
+    protected readonly CatalogService $catalogService;
+    
     public function onPrepareComponentParams($params)
     {
-        if ($params['CATALOG_SERVICE'] === null || !($params['CATALOG_SERVICE'] instanceof CatalogService)) {
-            Loader::requireModule('beeralex.catalog');
-            $params['CATALOG_SERVICE'] = service(CatalogService::class);
-        }
+        Loader::requireModule('beeralex.catalog');
+        $this->catalogService = service(CatalogService::class);
 
         return $params;
     }
@@ -37,7 +37,7 @@ class BeeralexProductSlider extends CBitrixComponent
     private function getProducts(array $productsIds)
     {
         if (!empty($productsIds)) {
-            return $this->arParams['CATALOG_SERVICE']->getProductsWithOffers($productsIds, true);
+            return $this->catalogService->getProductsWithOffers($productsIds, true);
         } else {
             return [];
         }

@@ -39,10 +39,10 @@ export function useSection<T extends SectionData>(initialData?: T) {
   }
 
   // Получаем реактивные ссылки на данные из store
-  const { items, pagination, selectedFilters, sectionList, path, filterData, isLoading, error, apiUrl } = storeToRefs(store)
+  const { items, pagination, selectedFilters, sectionList, path, filterData, isLoading, error, apiUrl, additionalData } = storeToRefs(store)
 
   // Объединяем данные в единую структуру для удобного использования в компонентах
-  const catalogData = computed<SectionData>(() => {
+  const sectionData = computed<T>(() => {
     return {
       filter: filterData.value,
       section: {
@@ -50,16 +50,17 @@ export function useSection<T extends SectionData>(initialData?: T) {
         pagination: pagination.value,
         path: path.value
       },
-      sectionList: sectionList.value
-    }
+      sectionList: sectionList.value,
+      ...additionalData.value
+    } as T
   })
 
   return {
-    catalogData, // Объединенные данные секции
+    sectionData, // Объединенные данные секции
     isLoading, // Флаг загрузки
     error, // Объект ошибки
     selectedFilters, // Выбранные фильтры
-    loadCatalogPage: store.loadPage, // Метод загрузки страницы
+    loadPage: store.loadPage, // Метод загрузки страницы
     setAppendMode: store.setAppendMode, // Установка режима дозагрузки
     setApiUrl: store.setApiUrl, // Установка API URL
   }

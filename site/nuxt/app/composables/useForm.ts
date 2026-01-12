@@ -18,6 +18,18 @@ interface UseFormReturn<T> {
   reset: () => void
 }
 
+function processApiErrors(errorData: any): Record<string, string> {
+  const errors: Record<string, string> = {}
+  for (const err of errorData) {
+    if (err.code) {
+      errors[err.code] = err.message
+    } else {
+      errors._general = err.message
+    }
+  }
+  return errors
+}
+
 /**
  * Универсальный композабл для работы с формами
  * Обеспечивает валидацию, обработку ошибок, состояние загрузки
@@ -115,12 +127,11 @@ export function useForm<T extends Record<string, any>>(
     try {
       await onSubmit(values)
     } catch (error: any) {
-      // Обработка ошибок API
       if (error.data?.errors) {
-        // Формат ошибок от API: { field: 'message' }
-        errors.value = error.data.errors
+        errors.value = processApiErrors(error.data.errors)
+      } else if (error.cause) {
+        errors.value = typeof error.cause === 'object' ? processApiErrors(error.cause) : { _general: String(error.cause) }
       } else {
-        // Общая ошибка
         errors.value = { _general: error.message || 'Произошла ошибка' }
       }
     } finally {

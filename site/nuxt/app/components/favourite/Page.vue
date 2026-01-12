@@ -5,8 +5,6 @@
 -->
 <script setup lang="ts">
 import type { CatalogDTO } from '~/types/iblock/catalog.ts';
-import CatalogSection from './CatalogSection.vue'
-import Sections from './Sections.vue'
 import type { FavouritePageDTO } from '~/types/favourite';
 
 // Пропсы: начальные данные каталога с сервера
@@ -16,7 +14,7 @@ const props = defineProps<{
 }>()
 
 // Инициализируем store с данными и получаем методы управления
-const { catalogData, isLoading, setAppendMode, setApiUrl, loadCatalogPage } = useSection<FavouritePageDTO>(props.favourite)
+const { sectionData, isLoading, setAppendMode, setApiUrl, loadPage } = useSection<FavouritePageDTO>(props.favourite)
 const { getPageUrl } = usePagination()
 
 /**
@@ -24,12 +22,12 @@ const { getPageUrl } = usePagination()
  * Дозагружает следующую страницу и добавляет товары к существующим
  */
 const handleShowMore = async () => {
-  if (!catalogData.value?.section.pagination) return
-  const nextPage = catalogData.value.section.pagination.currentPage + 1
+  if (!sectionData.value?.section.pagination) return
+  const nextPage = sectionData.value.section.pagination.currentPage + 1
   const pageUrl = getPageUrl(nextPage)
   if (pageUrl) {
     setAppendMode(true) // Включаем режим добавления
-    loadCatalogPage<CatalogDTO>(pageUrl, { append: true })
+    loadPage<CatalogDTO>(pageUrl, { append: true })
   }
 }
 
@@ -42,7 +40,7 @@ const handleChangePage = async (page: number) => {
   if (pageUrl) {
     setAppendMode(false) // Выключаем режим добавления
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    loadCatalogPage<CatalogDTO>(pageUrl)
+    loadPage<CatalogDTO>(pageUrl)
   }
 }
 
@@ -57,18 +55,18 @@ onMounted(() => {
       <div class="text-lg">Загрузка...</div>
     </div>
 
-    <div v-else-if="catalogData" class="grid gap-8">
+    <div v-else-if="sectionData" class="grid gap-8">
 
       <main class="lg:col-span-3">
-        <Sections
-          v-if="catalogData.sectionList?.length"
-          :sections="catalogData.sectionList"
+        <CatalogSections
+          v-if="sectionData.sectionList?.length"
+          :sections="sectionData.sectionList"
           class="mb-8"
         />
 
         <CatalogSection
-          v-if="catalogData.section"
-          :section="catalogData.section"
+          v-if="sectionData.section"
+          :section="sectionData.section"
           @show-more="handleShowMore"
           @change-page="handleChangePage"
         />

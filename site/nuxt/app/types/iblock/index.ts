@@ -3,6 +3,8 @@
  * Элементы, разделы, свойства
  */
 
+import type { FileSrc } from "../file"
+
 /**
  * Базовый элемент инфоблока
  * Содержит стандартные поля Bitrix и пользовательские свойства
@@ -55,5 +57,5 @@ export interface SectionDTO {
     name: string      // Название раздела
     code: string      // Символьный код
     url: string       // URL раздела
-    pictureSrc: string // URL картинки раздела
+    pictureSrc: FileSrc // URL картинки раздела
 }

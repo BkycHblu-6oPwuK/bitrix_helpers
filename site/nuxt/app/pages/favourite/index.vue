@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FavouritePageApiResponse, FavouritePageDTO } from '~/types/favourite';
-import FavouritePage from '~/components/catalog/FavouritePage.vue'
 
 const urlParams = useRoute().query;
 const apiUrl = `favorite/page?${new URLSearchParams(urlParams as Record<string, string>).toString()}`;

@@ -4,11 +4,6 @@
 -->
 <script setup lang="ts">
 import type { CatalogItemDTO } from '~/types/iblock/catalog';
-import ProductGallery from './ProductGallery.vue';
-import ProductInfo from './ProductInfo.vue';
-import ProductOffers from './ProductOffers.vue';
-import ProductActions from './ProductActions.vue';
-import ProductDescription from './ProductDescription.vue';
 
 const props = defineProps<{
   item: CatalogItemDTO
@@ -26,13 +21,13 @@ onUnmounted(() => {
 <template>
   <div class="product-detail">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-      <ProductGallery />
+      <CatalogElementGallery />
       
       <div class="product-info space-y-6">
-        <ProductInfo />
-        <ProductOffers v-if="item.offers.length > 0" />
-        <ProductActions />
-        <ProductDescription />
+        <CatalogElementInfo />
+        <CatalogElementOffers v-if="item.offers.length > 0" />
+        <CatalogElementActions />
+        <CatalogElementDescription />
       </div>
     </div>
   </div>

@@ -3,7 +3,6 @@
   Название, артикул, цена, наличие
 -->
 <script setup lang="ts">
-import Price from '../Price.vue';
 
 const catalogDetail = useCatalogDetailStore()
 </script>
@@ -29,7 +28,7 @@ const catalogDetail = useCatalogDetailStore()
     </div>
     
     <div class="mb-6">
-      <Price v-if="catalogDetail.price"
+      <CatalogPrice v-if="catalogDetail.price"
         :price="catalogDetail.price" 
         class="text-2xl font-bold"
       />

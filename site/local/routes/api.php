@@ -26,7 +26,7 @@ return function (RoutingConfigurator $routes): void {
                 $routes->get('methods', [AuthController::class, 'methods']);
             });
 
-            $routes->get('get-content', [MainController::class, 'getContent']);
+            $routes->get('get-main-page', [MainController::class, 'getMainPage']);
             $routes->get('get-menu', [MainController::class, 'getMenu']);
 
             $routes->get(

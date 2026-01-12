@@ -5,6 +5,7 @@ use App\Repository\ProductsRepository;
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Core\Service\CatalogService;
+use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Service\UrlService;
 use Bitrix\Main\Loader;
 
@@ -35,7 +36,7 @@ return [
             DIServiceKey::PRODUCT_REPOSITORY->value => [
                 'constructor' => static function () {
                     Loader::requireModule('beeralex.catalog');
-                    return new ProductsRepository('catalog', service(CatalogService::class), service(CatalogViewedProductRepository::class), service(UrlService::class));
+                    return new ProductsRepository('catalog', service(CatalogService::class), service(CatalogViewedProductRepository::class), service(UrlService::class), service(FileService::class));
                 }
             ],
             DIServiceKey::OFFERS_REPOSITORY->value => [

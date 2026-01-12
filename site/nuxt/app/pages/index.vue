@@ -6,7 +6,7 @@
 <template>
   <div>
     <!-- Динамические блоки контента с сервера -->
-    <Content code="main"></Content>
+    <Main></Main>
     
     <!-- Тестовый блок со ссылками -->
     <section class="text-center py-20">

@@ -6,7 +6,6 @@
 <script setup lang="ts">
 import type { FilterValueItemDTO } from '~/types/iblock/page';
 
-
 // Пропсы от родителя
 const props = defineProps<{
   values: FilterValueItemDTO[] // Массив значений фильтра

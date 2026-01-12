@@ -5,7 +5,6 @@
 -->
 <script setup lang="ts">
 import type { SectionDTO } from '~/types/iblock';
-import SectionItem from './SectionItem.vue';
 
 // Пропсы: массив дочерних разделов
 const props = defineProps<{
@@ -15,7 +14,7 @@ const props = defineProps<{
 
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <SectionItem
+        <CatalogSectionItem
             v-for="item in sections"
             :key="item.id"
             :item="item"

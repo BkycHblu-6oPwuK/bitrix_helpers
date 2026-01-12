@@ -5,9 +5,6 @@
 -->
 <script setup lang="ts">
 import type { CatalogDTO } from '~/types/iblock/catalog.ts';
-import CatalogFilter from './CatalogFilter.vue'
-import CatalogSection from './CatalogSection.vue'
-import Sections from './Sections.vue'
 
 // Пропсы: начальные данные каталога с сервера
 const props = defineProps<{
@@ -16,7 +13,7 @@ const props = defineProps<{
 }>()
 
 // Инициализируем store с данными и получаем методы управления
-const { catalogData, isLoading, setAppendMode, loadCatalogPage, setApiUrl, selectedFilters } = useSection<CatalogDTO>(props.catalog)
+const { sectionData, isLoading, setAppendMode, loadPage, setApiUrl, selectedFilters } = useSection<CatalogDTO>(props.catalog)
 const { buildFilterUrl, setSorting } = useSectionFilter()
 const { getPageUrl } = usePagination()
 
@@ -29,9 +26,9 @@ const handleApplyFilter = async () => {
     handleClearFilter()
     return
   }
-  if (!catalogData.value?.filter) return
+  if (!sectionData.value?.filter) return
   const url = buildFilterUrl()
-  await loadCatalogPage<CatalogDTO>(url, { navigateFilter: true })
+  await loadPage<CatalogDTO>(url, { navigateFilter: true })
 }
 
 /**
@@ -39,14 +36,14 @@ const handleApplyFilter = async () => {
  * Переходит на URL без фильтров и обновляет данные
  */
 const handleClearFilter = async () => {
-  if (!catalogData.value?.filter) return
+  if (!sectionData.value?.filter) return
 
   // Сначала очищаем выбранные фильтры в store
   const store = useSectionStore()
   store.clearFilters()
 
-  const clearUrl = catalogData.value.filter.clearUrl
-  loadCatalogPage<CatalogDTO>(new URL(clearUrl, window.location.origin), { navigateFilter: true })
+  const clearUrl = sectionData.value.filter.clearUrl
+  loadPage<CatalogDTO>(new URL(clearUrl, window.location.origin), { navigateFilter: true })
 }
 
 /**
@@ -56,7 +53,7 @@ const handleClearFilter = async () => {
 const handleUpdateSorting = async (sortId: string) => {
   setSorting(sortId)
   const url = buildFilterUrl()
-  await loadCatalogPage<CatalogDTO>(url)
+  await loadPage<CatalogDTO>(url)
 }
 
 /**
@@ -64,12 +61,12 @@ const handleUpdateSorting = async (sortId: string) => {
  * Дозагружает следующую страницу и добавляет товары к существующим
  */
 const handleShowMore = async () => {
-  if (!catalogData.value?.section.pagination) return
-  const nextPage = catalogData.value.section.pagination.currentPage + 1
+  if (!sectionData.value?.section.pagination) return
+  const nextPage = sectionData.value.section.pagination.currentPage + 1
   const pageUrl = getPageUrl(nextPage)
   if (pageUrl) {
     setAppendMode(true) // Включаем режим добавления
-    loadCatalogPage<CatalogDTO>(pageUrl, { append: true })
+    loadPage<CatalogDTO>(pageUrl, { append: true })
   }
 }
 
@@ -82,7 +79,7 @@ const handleChangePage = async (page: number) => {
   if (pageUrl) {
     setAppendMode(false) // Выключаем режим добавления
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    loadCatalogPage<CatalogDTO>(pageUrl)
+    loadPage<CatalogDTO>(pageUrl)
   }
 }
 
@@ -97,18 +94,18 @@ onMounted(() => {
       <div class="text-lg">Загрузка...</div>
     </div>
 
-    <div v-else-if="catalogData" class="grid gap-8">
+    <div v-else-if="sectionData" class="grid gap-8">
       <aside class="lg:col-span-1">
         <div class="sticky top-4">
-          <CatalogFilter v-if="catalogData.filter" :filter="catalogData.filter" @apply-filter="handleApplyFilter"
+          <CatalogFilter v-if="sectionData.filter" :filter="sectionData.filter" @apply-filter="handleApplyFilter"
             @clear-filter="handleClearFilter" @update-sorting="handleUpdateSorting" />
         </div>
       </aside>
 
       <main class="lg:col-span-3">
-        <Sections v-if="catalogData.sectionList?.length" :sections="catalogData.sectionList" class="mb-8" />
+        <CatalogSections v-if="sectionData.sectionList?.length" :sections="sectionData.sectionList" class="mb-8" />
 
-        <CatalogSection v-if="catalogData.section" :section="catalogData.section" @show-more="handleShowMore"
+        <CatalogSection v-if="sectionData.section" :section="sectionData.section" @show-more="handleShowMore"
           @change-page="handleChangePage" />
       </main>
     </div>

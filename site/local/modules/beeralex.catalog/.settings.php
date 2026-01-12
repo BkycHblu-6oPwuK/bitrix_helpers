@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/lib/Enum/DIServiceKey.php';
 
+use Beeralex\Catalog\Contracts\StoreRepositoryContract;
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Helper\OrderService;
 use Beeralex\Catalog\Location\BitrixLocationResolver;
@@ -78,8 +79,8 @@ return [
             CatalogViewedProductRepository::class => [
                 'className' => CatalogViewedProductRepository::class,
             ],
-            StoreRepository::class => [
-                'className' => StoreRepository::class,
+            StoreRepositoryContract::class => [
+                'className' => StoreRepositoryContract::class,
             ],
             PersonTypeRepository::class => [
                 'className' => PersonTypeRepository::class,

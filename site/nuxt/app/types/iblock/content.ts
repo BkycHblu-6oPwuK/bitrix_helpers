@@ -16,6 +16,7 @@ import type { CatalogItemDTO } from './catalog'
 import type { SeoData } from '../seo'
 import type { ElementDTO, SectionDTO } from '.'
 import type { FormDTO } from '../web-form'
+import type { FileSrc } from '../file'
 
 /**
  * Доступные типы блоков контента
@@ -28,13 +29,11 @@ import type { FormDTO } from '../web-form'
 export type PageContentType =
   | 'main_banner'
   | 'slider'
-  | 'form'
   | 'products'
   | 'slider_articles'
   | 'video'
   | 'new'
   | 'popular'
-  | 'html'
   | string
 
 /**
@@ -65,30 +64,11 @@ export interface SliderContent {
 }
 
 /**
- * Блок с web-формой (структура определяется типами форм в `../web-form.ts`)
- */
-export interface FormContent {
-  type: 'form'
-  result: FormDTO
-}
-
-/**
  * Блок: слайдер со статьями (содержит ссылку и массив элементов)
  */
 export interface SliderArticlesContent {
   type: 'slider_articles'
   result: ListArticlesDTO
-}
-
-/**
- * Блок с произвольным HTML-контентом.
- * Используйте осторожно — данные должны быть безопасны для вставки.
- */
-export interface HtmlContent {
-  type: 'html'
-  result: {
-    content: string // HTML строка для вставки
-  }
 }
 
 /**
@@ -140,9 +120,7 @@ export interface ProductSliderDTO {
 export type PageContent = (
   | MainBannerContent
   | SliderContent
-  | FormContent
   | SliderArticlesContent
-  | HtmlContent
   | VideoContent
   | ContentItemDTO
   | Record<string, any>
@@ -171,4 +149,10 @@ export interface DetailPageDTO<T = any> {
  */
 export interface PageDataWithElement<T = any> extends Omit<PageData, 'page'> {
   page: DetailPageDTO<T>
+}
+
+export interface ContentDTO {
+  title: string,
+  text: string,
+  pictureSrc: FileSrc,
 }

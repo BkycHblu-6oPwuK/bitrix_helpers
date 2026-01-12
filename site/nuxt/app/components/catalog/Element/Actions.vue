@@ -3,7 +3,6 @@
   Количество, кнопки добавления в корзину и избранное
 -->
 <script setup lang="ts">
-import Favourite from '../Favourite.vue';
 const catalogDetail = useCatalogDetailStore()
 </script>
 
@@ -11,7 +10,7 @@ const catalogDetail = useCatalogDetailStore()
   <div class="product-actions">
     <!-- Количество и кнопки -->
     <div class="flex items-center gap-4">
-      <BasketAddToBasket
+      <BasketAdd
         v-if="catalogDetail.item?.preselectedOffer"
         :offer-id="catalogDetail.item.preselectedOffer.id"
         :quantity="catalogDetail.quantity"

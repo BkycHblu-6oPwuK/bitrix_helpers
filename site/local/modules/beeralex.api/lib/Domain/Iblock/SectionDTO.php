@@ -15,6 +15,9 @@ use Beeralex\Core\Service\UrlService;
  */
 class SectionDTO extends Resource
 {
+    /**
+     * @var array{ID?:int, NAME:string, CODE:string, SECTION_PAGE_URL?:string, URL?:string, PICTURE_SRC?:string, ELEMENTS?:array} $sectionItem
+     */
     public static function make(array $sectionItem): static
     {
         $urlService = service(UrlService::class);
@@ -28,6 +31,7 @@ class SectionDTO extends Resource
             'code' => $sectionItem['CODE'] ?? '',
             'url' => $url,
             'pictureSrc' => $sectionItem['PICTURE_SRC'] ?? '',
+            'selected' => $sectionItem['SELECTED'] ?? false,
         ]);
     }
 }

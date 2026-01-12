@@ -73,10 +73,17 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
     /**
      * Получает ID похожих товаров из той же секции.
      */
-    public function getSameProductsIds(int $elementId, int $sectionId, int $limit = 15, int $cacheTtl = 0): array
+    public function getSameProductsIds(int $elementId, ?int $sectionId = null, int $limit = 15, int $cacheTtl = 0): array
     {
-        if (!$elementId || !$sectionId) {
+        if (!$elementId) {
             return [];
+        }
+        if (!$sectionId) {
+            $element = $this->one(['ID' => $elementId], ['IBLOCK_SECTION_ID'], $cacheTtl);
+            if (!$element || empty($element['IBLOCK_SECTION_ID'])) {
+                return [];
+            }
+            $sectionId = (int)$element['IBLOCK_SECTION_ID'];
         }
 
         $dbResult = $this->catalogService->addCatalogToQuery($this->query())
@@ -100,6 +107,7 @@ class ProductsRepository extends AbstractCatalogRepository implements ProductRep
 
         return $productsIds;
     }
+
 
     /**
      * Получает ID новых товаров (добавленных за последний месяц).

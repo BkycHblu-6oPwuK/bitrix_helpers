@@ -4,10 +4,8 @@
   Поддерживаемые типы: top_menu, bottom_menu, catalog_menu
 -->
 <script setup lang="ts">
+import { MenuBlocksFooterMenu, MenuBlocksTopMenu, MenuBlocksUnknownMenu } from '#components';
 import type { MenuType, MenuData } from '~/types/menu'
-import TopMenu from './blocks/TopMenu.vue'
-import FooterMenu from './blocks/FooterMenu.vue'
-import UnknownMenu from './blocks/UnknownMenu.vue'
 
 // Пропсы: тип меню для отображения
 const props = defineProps<{ menuType: MenuType }>()
@@ -24,8 +22,8 @@ const menuDataMap: Record<MenuType, MenuData | null> = {
 
 // Маппинг типов меню на компоненты Vue
 const componentsMap: Record<string, Component> = {
-  top_menu: TopMenu,
-  bottom_menu: FooterMenu,
+  top_menu: MenuBlocksTopMenu,
+  bottom_menu: MenuBlocksFooterMenu,
 }
 
 /**
@@ -33,7 +31,7 @@ const componentsMap: Record<string, Component> = {
  * Возвращает UnknownMenu если тип неизвестен
  */
 const resolveComponent = (type: MenuType) => {
-  return componentsMap[type] || UnknownMenu
+  return componentsMap[type] || MenuBlocksUnknownMenu
 }
 
 // Данные текущего меню

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Catalog from '~/components/catalog/Catalog.vue'
 import type { CatalogPageApiResponse } from '~/types/iblock/catalog.ts'
 
 const route = useRoute()

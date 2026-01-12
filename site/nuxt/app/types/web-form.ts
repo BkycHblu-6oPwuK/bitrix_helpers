@@ -3,6 +3,7 @@
  * Используются для отображения и обработки форм на сайте
  */
 
+import type { FileSrc } from "./file"
 import type { PageData } from "./iblock/content"
 
 /**
@@ -28,7 +29,7 @@ export interface FormNewFieldDTO {
 export interface FormDTO {
   id: number                           // ID формы в Bitrix
   title: string                        // Заголовок формы
-  imageSrc: string                     // URL изображения формы
+  imageSrc: FileSrc                     // URL изображения формы
   description: string                  // Описание формы
   dateFormat: string               // Формат даты для полей типа date
   fields: FormNewFieldDTO[]            // Массив полей формы

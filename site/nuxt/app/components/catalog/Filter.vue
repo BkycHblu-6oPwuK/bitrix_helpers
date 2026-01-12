@@ -4,7 +4,6 @@
 -->
 <script setup lang="ts">
 import type { FilterDTO } from '~/types/iblock/page';
-import CatalogFilterItem from './CatalogFilterItem.vue'
 
 // Пропсы: данные фильтра (поля, сортировки, типы)
 const props = defineProps<{

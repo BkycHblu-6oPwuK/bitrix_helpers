@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Iblock\Content;
 
-use Beeralex\Api\Domain\Iblock\Content\Enum\ContentTypes;
+use Beeralex\Api\Domain\Iblock\Content\Enum\MainContentTypes;
 use Beeralex\Core\Http\Resources\Resource;
 
 /**
@@ -17,10 +17,10 @@ class ContentItemDTO extends Resource
         throw new \LogicException('Use makeFrom method.');
     }
 
-    public static function makeFrom(ContentTypes $type, Resource $DTO): static
+    public static function makeFrom(MainContentTypes $type, Resource $DTO): static
     {
         return new static([
-            'type' => $type instanceof ContentTypes ? $type->value : (string)$type,
+            'type' => $type instanceof MainContentTypes ? $type->value : (string)$type,
             'result' => $DTO,
         ]);
     }

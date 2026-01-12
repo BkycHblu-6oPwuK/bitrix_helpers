@@ -7,17 +7,18 @@ namespace Beeralex\Api\V1\Controllers;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
 use Beeralex\Core\Service\FileService;
+use Beeralex\Core\Traits\Cacheable;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Error;
 
 class MainController extends Controller
 {
-    use ApiProcessResultTrait;
+    use ApiProcessResultTrait, Cacheable;
 
     public function configureActions()
     {
         return [
-            'getContent' => [
+            'getMainPage' => [
                 'prefilters' => [],
             ],
             'getMenu' => [
@@ -26,15 +27,22 @@ class MainController extends Controller
         ];
     }
 
-    public function getContentAction(string $code)
+    public function getMainPageAction()
     {
-        return $this->process(function () use ($code) {
-            service(FileService::class)->includeFile('v1.index', [
-                'code' => $code,
-            ]);
+        return $this->process(function () {
+            $cacheSettings = $this->getCacheSettingsDto(
+                time: 3600,
+                key: 'main_page',
+                public: true,
+                useEtag: true
+            );
+            $this->applyHttpCache($cacheSettings);
+
+            service(FileService::class)->includeFile('v1.index');
             $result = service(ApiResult::class);
             $result->setSeo();
             $result->setEmptyPageData();
+            $this->applyEtag($result, $cacheSettings);
             return $result;
         });
     }
@@ -42,6 +50,14 @@ class MainController extends Controller
     public function getMenuAction(string $menuType)
     {
         return $this->process(function () use ($menuType) {
+            $cacheSettings = $this->getCacheSettingsDto(
+                time: 3600,
+                key: 'menu_' . md5($menuType),
+                public: true,
+                useEtag: true
+            );
+            $this->applyHttpCache($cacheSettings);
+
             $result = service(ApiResult::class);
             $iblockId = 0;
             switch ($menuType) {
@@ -58,7 +74,7 @@ class MainController extends Controller
                     'iblockId' => $iblockId,
                 ]);
             }
-
+            $this->applyEtag($result, $cacheSettings);
             return $result;
         });
     }

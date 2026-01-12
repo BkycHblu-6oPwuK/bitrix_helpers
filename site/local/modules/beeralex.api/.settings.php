@@ -1,11 +1,15 @@
 <?
 
 use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Form\FormRepository;
+use Beeralex\Api\Domain\Form\FormService;
 use Beeralex\Api\Domain\Iblock\Content\ContentRepository;
-use Beeralex\Api\Domain\Iblock\Content\ContentService;
+use Beeralex\Api\Domain\Iblock\Content\MainRepository;
+use Beeralex\Api\Domain\Iblock\Content\MainService;
 use Beeralex\Api\Domain\User\UserService;
 use Beeralex\Api\Options;
 use Beeralex\Catalog\Enum\DIServiceKey;
+use Beeralex\Core\Service\FileService;
 use Bitrix\Main\Loader;
 
 return [
@@ -17,19 +21,32 @@ return [
             ApiResult::class => [
                 'className' => ApiResult::class,
             ],
-            ContentRepository::class => [
-                'constructor' => static function() {
-                    return new ContentRepository('content');
+            MainRepository::class => [
+                'constructor' => static function () {
+                    return new MainRepository('main');
                 },
             ],
-            ContentService::class => [
-                'constructor' => static function() {
+            FormRepository::class => [
+                'className' => FormRepository::class,
+            ],
+            ContentRepository::class => [
+                'constructor' => static function () {
+                    return new ContentRepository('content', service(FileService::class));
+                },
+            ],
+            MainService::class => [
+                'constructor' => static function () {
                     Loader::requireModule('beeralex.catalog');
-                    return new ContentService(service(ContentRepository::class), service(DIServiceKey::PRODUCT_REPOSITORY->value));
+                    return new MainService(service(MainRepository::class), service(DIServiceKey::PRODUCT_REPOSITORY->value));
                 },
             ],
             UserService::class => [
                 'className' => UserService::class,
+            ],
+            FormService::class => [
+                'constructor' => static function () {
+                    return new FormService(service(FormRepository::class));
+                },
             ],
         ]
     ]

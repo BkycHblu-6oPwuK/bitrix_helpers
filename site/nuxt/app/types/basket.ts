@@ -1,3 +1,4 @@
+import type { FileSrc } from "./file"
 import type { PageData } from "./iblock/content"
 
 /**
@@ -21,8 +22,8 @@ export interface BasketItemDTO {
     discountPercent: number | null
     url: string
     name: string
-    previewPictureSrc: string
-    detailPictureSrc: string
+    previewPictureSrc: FileSrc
+    detailPictureSrc: FileSrc
     properties: Record<string, any>
 }
 

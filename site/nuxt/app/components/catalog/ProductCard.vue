@@ -4,8 +4,6 @@
 -->
 <script setup lang="ts">
 import type { CatalogItemDTO } from '~/types/iblock/catalog';
-import Price from './Price.vue';
-import Favourite from './Favourite.vue';
 
 const props = defineProps<{
     item: CatalogItemDTO
@@ -37,7 +35,7 @@ const offerId = computed(() =>
                 {{ item.name }}
             </h3>
 
-            <Price v-if="price" :price="price"/>
+            <CatalogPrice v-if="price" :price="price"/>
 
             <div class="mt-2 text-sm">
                 <span :class="[
@@ -51,7 +49,7 @@ const offerId = computed(() =>
 
         <!-- Кнопка добавления в корзину -->
         <div class="mt-4" @click.stop>
-            <BasketAddToBasket
+            <BasketAdd
                 :offer-id="offerId"
                 :disabled="!isAvailable"
                 size="sm"

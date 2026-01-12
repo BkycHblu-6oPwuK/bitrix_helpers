@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Api\Domain\Iblock;
@@ -23,7 +24,20 @@ class ElementDTO extends AbstractIblockItemDTO
 {
     public static function make(array $data): static
     {
-        throw new \LogicException('Use fromNewsListElement or fromNewsDetailElement methods.');
+        $props = static::getFromDisplayProperties($data);
+        return new static([
+            'id' => (int)$data['ID'],
+            'name' => (string)$data['NAME'],
+            'code' => (string)$data['CODE'],
+            'previewText' => $data['PREVIEW_TEXT'] ?? '',
+            'detailText' => $data['DETAIL_TEXT'] ?? '',
+            'previewPictureSrc' => $data['PREVIEW_PICTURE']['SRC'] ?? '',
+            'detailPictureSrc' => $data['DETAIL_PICTURE']['SRC'] ?? '',
+            'detailPageUrl' => $data['DETAIL_PAGE_URL'] ? service(UrlService::class)->cleanUrl($data['DETAIL_PAGE_URL']) : '',
+            'listPageUrl' => $data['LIST_PAGE_URL'] ? service(UrlService::class)->cleanUrl($data['LIST_PAGE_URL']) : '',
+            'dateCreate' => $data['DATE_CREATE'] ?? '',
+            'properties' => $props,
+        ]);
     }
 
     public static function fromNewsListElement(array $element): static
@@ -38,7 +52,7 @@ class ElementDTO extends AbstractIblockItemDTO
             'detailText' => $element['DETAIL_TEXT'] ?? '',
             'previewPictureSrc' => $element['PREVIEW_PICTURE']['SRC'] ?? '',
             'detailPictureSrc' => $element['DETAIL_PICTURE']['SRC'] ?? '',
-            'detailPageUrl' => service(UrlService::class)->cleanUrl($element['DETAIL_PAGE_URL']) ?? '',
+            'detailPageUrl' => $element['DETAIL_PAGE_URL'] ? service(UrlService::class)->cleanUrl($element['DETAIL_PAGE_URL']) : '',
             'dateCreate' => $element['DATE_CREATE'] ?? '',
             'properties' => $props,
         ]);
@@ -56,8 +70,26 @@ class ElementDTO extends AbstractIblockItemDTO
             'previewText' => $element['PREVIEW_TEXT'] ?? '',
             'detailPictureSrc' => $element['DETAIL_PICTURE']['SRC'] ?? '',
             'previewPictureSrc' => $element['PREVIEW_PICTURE']['SRC'] ?? '',
-            'listPageUrl' => service(UrlService::class)->cleanUrl($element['LIST_PAGE_URL']) ?? '',
+            'listPageUrl' => $element['LIST_PAGE_URL'] ? service(UrlService::class)->cleanUrl($element['LIST_PAGE_URL']) : '',
             'dateCreate' => $element['DATE_CREATE'] ?? '',
+            'properties' => $props,
+        ]);
+    }
+
+    public static function fromDecomposeData(array $data): static
+    {
+        $props = static::getFromDecomposeProperties($data);
+        return new static([
+            'id' => (int)$data['ID'],
+            'name' => (string)$data['NAME'],
+            'code' => (string)$data['CODE'],
+            'previewText' => $data['PREVIEW_TEXT'] ?? '',
+            'detailText' => $data['DETAIL_TEXT'] ?? '',
+            'previewPictureSrc' => $data['PREVIEW_PICTURE']['SRC'] ?? '',
+            'detailPictureSrc' => $data['DETAIL_PICTURE']['SRC'] ?? '',
+            'detailPageUrl' => $data['DETAIL_PAGE_URL'] ? service(UrlService::class)->cleanUrl($data['DETAIL_PAGE_URL']) : '',
+            'listPageUrl' => $data['LIST_PAGE_URL'] ? service(UrlService::class)->cleanUrl($data['LIST_PAGE_URL']) : '',
+            'dateCreate' => $data['DATE_CREATE'] ?? '',
             'properties' => $props,
         ]);
     }

@@ -24,7 +24,7 @@ class BeeralexMenu extends CBitrixComponent
         $this->iblockSectionRepository = $iblockRepository->getIblockSectionRepository();
         return $params;
     }
-    /** @inheritDoc */
+
     public function executeComponent()
     {
         if ($this->startResultCache()) {
@@ -53,7 +53,7 @@ class BeeralexMenu extends CBitrixComponent
             'filter' => ['IBLOCK_ID' => $iblockId, 'ACTIVE' => 'Y'],
             'order' => ['LEFT_MARGIN' => 'ASC'],
         ])->fetchAll();
-
+        
         if (!$sections) {
             return [];
         }

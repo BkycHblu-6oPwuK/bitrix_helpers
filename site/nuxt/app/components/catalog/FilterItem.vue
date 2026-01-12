@@ -5,7 +5,6 @@
 -->
 <script setup lang="ts">
 import type { FilterDTO, FilterItemDTO } from '~/types/iblock/page';
-import CatalogFilterCheckboxField from './CatalogFilterCheckboxField.vue'
 
 // Пропсы от родительского компонента
 const props = defineProps<{

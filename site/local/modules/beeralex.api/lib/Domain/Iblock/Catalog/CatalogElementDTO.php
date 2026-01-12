@@ -21,7 +21,7 @@ class CatalogElementDTO extends Resource
     {
         return new static([
             'element' => CatalogItemDTO::make($elementData),
-            'path' => array_map([SectionDTO::class, 'make'], $arResult['PATH'] ?? []),
+            'path' => array_map([SectionDTO::class, 'make'], $arResult['PATH'] ?? $arResult['SECTION']['PATH'] ?? []),
         ]);
     }
 }

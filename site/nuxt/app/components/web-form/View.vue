@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import FormField from './FormField.vue'
-import SubmitButton from '../ui/SubmitButton.vue'
 import { useDynamicForm } from '~/composables/useDynamicForm'
 import type { FormDTO } from '~/types/web-form';
 
@@ -41,7 +39,7 @@ async function handleSubmit() {
     </div>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
-      <FormField
+      <WebFormField
         v-for="field in form.fields"
         :key="field.id"
         :field="field"
@@ -49,9 +47,9 @@ async function handleSubmit() {
         :error="errors[getKey(field.name)]"
       />
 
-      <SubmitButton :loading="loading">
+      <UiSubmitButton :loading="loading">
         Отправить
-      </SubmitButton>
+      </UiSubmitButton>
     </form>
   </div>
 </template>

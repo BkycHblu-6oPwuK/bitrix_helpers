@@ -6,8 +6,6 @@ if(!$formId) {
     throw new \RuntimeException("param formId is required");
 }
 
-$isContentAction = $isContentAction ?? false;
-
 $APPLICATION->IncludeComponent(
 	"beeralex:form.result.new",
 	".default",
@@ -26,6 +24,5 @@ $APPLICATION->IncludeComponent(
 		"USE_EXTENDED_ERRORS" => "Y",
 		"VARIABLE_ALIASES" => Array("RESULT_ID"=>"RESULT_ID","WEB_FORM_ID"=>"WEB_FORM_ID"),
 		"WEB_FORM_ID" => $formId,
-        "IS_CONTENT_ACTION" => $isContentAction,
 	)
 );

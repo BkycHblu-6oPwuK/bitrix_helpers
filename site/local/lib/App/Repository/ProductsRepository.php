@@ -4,11 +4,24 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Catalog\Repository\ProductsRepository as CatalogProductsRepository;
+use Beeralex\Core\Service\CatalogService;
 use Beeralex\Core\Service\FileService;
+use Beeralex\Core\Service\UrlService;
 
 class ProductsRepository extends CatalogProductsRepository
 {
+    public function __construct(
+        string $iblockCode,
+        CatalogService $catalogService,
+        CatalogViewedProductRepository $catalogViewedProductRepository,
+        UrlService $urlService,
+        protected readonly FileService $fileService,
+    ) {
+        parent::__construct($iblockCode, $catalogService, $catalogViewedProductRepository, $urlService);
+    }
+
     public function getProducts(array $productIds, bool $onlyActive = true): array
     {
         if (empty($productIds)) {
@@ -27,7 +40,6 @@ class ProductsRepository extends CatalogProductsRepository
 
         $products = [];
         $pictureIds = [];
-        $fileService = service(FileService::class);
 
         foreach ($items as $item) {
             if ($item['PREVIEW_PICTURE']) {
@@ -44,7 +56,7 @@ class ProductsRepository extends CatalogProductsRepository
             $products[(int)$item['ID']] = $item;
         }
 
-        $paths = $fileService->getPathByIds($pictureIds);
+        $paths = $this->fileService->getPathByIds($pictureIds);
         foreach ($products as &$product) {
             if ($product['PREVIEW_PICTURE'] && isset($paths[(int)$product['PREVIEW_PICTURE']])) {
                 $product['PREVIEW_PICTURE_SRC'] = $paths[(int)$product['PREVIEW_PICTURE']];
@@ -70,5 +82,22 @@ class ProductsRepository extends CatalogProductsRepository
         }
 
         return $result;
+    }
+
+    public function getProductsIdsBySections(array $sectionIds, bool $onlyActive = true): array
+    {
+        if (empty($sectionIds)) {
+            return [];
+        }
+
+        $filter = ['=IBLOCK_SECTION_ID' => $sectionIds];
+        if ($onlyActive) {
+            $filter['=ACTIVE'] = 'Y';
+        }
+
+        return $this->findAll(
+            $filter,
+            ['ID', 'IBLOCK_SECTION_ID'],
+        );
     }
 }

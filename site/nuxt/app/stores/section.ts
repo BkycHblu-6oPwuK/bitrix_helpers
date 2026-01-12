@@ -51,6 +51,9 @@ export const useSectionStore = defineStore('section', {
     skipNextRouteWatch: false,
 
     apiUrl: null as URL | null,
+
+    // Дополнительные данные для расширенных типов
+    additionalData: {} as Record<string, any>,
   }),
 
   getters: {
@@ -83,11 +86,16 @@ export const useSectionStore = defineStore('section', {
       this.items = sectionData.section.items
       this.pagination = sectionData.section.pagination
       this.sectionList = sectionData.sectionList
+
+      // Сохраняем дополнительные поля (все кроме базовых полей SectionData)
+      const { filter, section, sectionList, ...additional } = sectionData as any
+      this.additionalData = additional
+
       this.initializeFiltersFromChecked()
     },
 
-    setApiUrl(url: URL|string) {
-      if(typeof url === 'string') {
+    setApiUrl(url: URL | string) {
+      if (typeof url === 'string') {
         url = new URL(url, window.location.origin);
       }
       this.apiUrl = url;
@@ -102,11 +110,10 @@ export const useSectionStore = defineStore('section', {
 
       let selectedFilters: Record<string, string> = {}
 
-      for (const key in this.filterData.items) {
-        const item = this.filterData.items[key];
-        for (const valueKey in item?.values) {
-          if (item.values[valueKey].checked) {
-            selectedFilters[item.values[valueKey].controlId] = item.values[valueKey].htmlValue;
+      for (const item of Object.values(this.filterData.items)) {
+        for (const val of Object.values(item?.values || {})) {
+          if ((val as any).checked) {
+            selectedFilters[(val as any).controlId] = (val as any).htmlValue;
           }
         }
       }
@@ -229,21 +236,22 @@ export const useSectionStore = defineStore('section', {
      * @param options - Настройки загрузки
      *   - append: добавить элементы к существующим (true) или заменить (false)
      *   - navigateFilter: навигация на URL фильтра после загрузки (по умолчанию false)
+     *   - pushState: добавлять в историю url
      */
-    async loadPage<T extends SectionData>(url: URL, options?: { append?: boolean; navigateFilter?: boolean }) {
+    async loadPage<T extends SectionData>(url: URL, options?: { append?: boolean; navigateFilter?: boolean; pushState?: boolean; isOnMounted?: boolean }) {
       this.isLoading = true
       this.error = null
 
       try {
         const path = url.pathname
         const query = Object.fromEntries(url.searchParams);
-
+        
         const oldSelectedFilterHash = getSelectedFilterHash({
           ...this.selectedFilters,
           ...query
         });
 
-        if (oldSelectedFilterHash === this.oldSelectedFilterHash) {
+        if (!options?.isOnMounted && oldSelectedFilterHash === this.oldSelectedFilterHash) {
           return;
         }
 
@@ -251,58 +259,54 @@ export const useSectionStore = defineStore('section', {
 
         // Определяем режим загрузки: дозагрузка или замена
         const shouldAppend = options?.append || false
-
-        // Уникальный ключ кеша включает режим для предотвращения конфликтов
-        const uniqueKey = `${path}-${oldSelectedFilterHash}-${shouldAppend ? 'append' : 'replace'}`
-
-        const { data: response, error: apiError } = await useApi<PageData<T>>(path, {
-          key: uniqueKey,
-          query,
-          method: 'get'
-        })
-
-        if (apiError.value) {
-          throw apiError.value
-        }
-
-        if (!response.value?.data?.page) {
+        
+        // useApi (useAsyncData) нельзя безопасно вызывать внутри Pinia actions
+        // поэтому используем прямой fetch-варинт useApiFetch, который возвращает результат сразу
+        const res = await useApiFetch<PageData<T>>(path, { query })
+        if (!res?.data?.page) {
           throw new Error('Invalid response format')
         }
 
-        const newPageData = response.value.data.page
+        const newPageData = res.data.page
 
         if (shouldAppend) {
           // Режим "показать еще" - добавляем элементы к существующим
-          this.items = [...this.items, ...newPageData.section.items]
-          this.pagination = newPageData.section.pagination
+          this.items = [...this.items, ...(newPageData.section?.items || [])]
+          this.pagination = newPageData.section?.pagination || null
         } else {
           // Режим замены - обновляем всё (новая страница или применение фильтров)
-          this.items = newPageData.section.items
-          this.pagination = newPageData.section.pagination
+          this.items = newPageData.section?.items || []
+          this.pagination = newPageData.section?.pagination || null
           this.sectionList = newPageData.sectionList
           this.filterData = newPageData.filter
+
+          // Обновляем дополнительные поля
+          const { filter, section, sectionList, ...additional } = newPageData as any
+          this.additionalData = additional
         }
 
         this.nextAppendMode = false
 
-        let newUrl = ''
-        if (options?.navigateFilter && response.value.data.page.filter?.filterUrl) {
-          newUrl = response.value.data.page.filter.filterUrl // чпу фильтра
-        } else {
-         if(url === this.apiUrl) {
-          newUrl = window.location.pathname + url.search // текущий URL с параметрами
-         } else {
-          newUrl = url.pathname + url.search
-         }
-           // полная ссылка с параметрами
+        if (options?.pushState) {
+          let newUrl = ''
+          if (options?.navigateFilter && res.data.page.filter?.filterUrl) {
+            newUrl = res.data.page.filter.filterUrl // чпу фильтра
+          } else {
+            if (url === this.apiUrl) {
+              newUrl = window.location.pathname + url.search // текущий URL с параметрами
+            } else {
+              newUrl = url.pathname + url.search
+            }
+            // полная ссылка с параметрами
+          }
+
+          // Добавляем в историю только если URL изменился
+          if (window.location.pathname + window.location.search !== newUrl) {
+            window.history.pushState({ timestamp: Date.now() }, '', newUrl)
+          }
         }
 
-        // Добавляем в историю только если URL изменился
-        if (window.location.pathname + window.location.search !== newUrl) {
-          window.history.pushState({ timestamp: Date.now() }, '', newUrl) // с использованием навигации nuxt - происходит переход на новую страницу и повторяется загрузка данных
-        }
-
-        return response.value
+        return res
       } catch (err) {
         this.error = err as Error
         throw err

@@ -1,4 +1,9 @@
-<? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
+<?
+
+use Beeralex\Catalog\Enum\DIServiceKey;
+use Beeralex\Catalog\Service\CatalogService;
+
+ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 /** @var array $arParams */
 /** @var array $arResult */
@@ -190,4 +195,22 @@ $elementId = $APPLICATION->IncludeComponent(
     '',
     $componentElementParams,
     $component
+);
+
+/**
+ * @var \App\Repository\ProductsRepository $productsRepository
+ */
+$productsRepository = service(DIServiceKey::PRODUCT_REPOSITORY->value);
+$catalogService = service(CatalogService::class);
+$sameProuctsIds = $productsRepository->getSameProductsIds((int)$elementId, $componentElementParams['VARIABLES']['SECTION_ID'] ?? null, 15, 86400);
+
+$APPLICATION->IncludeComponent(
+    'beeralex:product.slider',
+    'same_products',
+    [
+        'IDS' => $sameProuctsIds,
+        'CACHE_TYPE' => $arParams['CACHE_TYPE'],
+        'CACHE_TIME' => $arParams['CACHE_TIME'],
+        'TITLE' => 'Другие продукты в этом разделе'
+    ],
 );

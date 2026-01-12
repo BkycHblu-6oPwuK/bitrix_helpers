@@ -17,6 +17,7 @@ abstract class AbstractIblockItemDTO extends Resource
     public static function getFromDecomposeProperties(array $item): array
     {
         $properties = [];
+        
         foreach ($item as $key => $value) {
             if (in_array($key, ['PRESELECTED_OFFER', 'OFFERS', 'PRICE', 'CATALOG', 'PRODUCT'])) continue; // Пропускаем, если это предвыбранное предложение
             if (is_array($value)) {
@@ -39,7 +40,7 @@ abstract class AbstractIblockItemDTO extends Resource
         $properties = [];
         if (!empty($item['DISPLAY_PROPERTIES'])) {
             foreach ($item['DISPLAY_PROPERTIES'] as $prop) {
-                $properties[] = PropertyItemDTO::make($prop);
+                $properties[$prop['CODE']] = PropertyItemDTO::make($prop);
             }
         }
         return $properties;

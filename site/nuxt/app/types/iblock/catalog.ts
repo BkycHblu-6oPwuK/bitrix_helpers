@@ -6,6 +6,7 @@
 import type { PageData, PageDataWithElement } from './content'
 import type { FilterDTO, SectionsDTO, SectionData } from './page'
 import type { SectionDTO, PropertiesType, PropertyItemDTO } from '.'
+import type { FileSrc } from '../file'
 
 
 /**
@@ -108,8 +109,8 @@ export interface CatalogItemDTO {
   code: string                         // Символьный код
   detailPageUrl: string                // URL детальной страницы
   detailText: string                   // Описание товара
-  previewPictureSrc: string           // URL превью картинки
-  detailPictureSrc: string            // URL детальной картинки
+  previewPictureSrc: FileSrc           // URL превью картинки
+  detailPictureSrc: FileSrc            // URL детальной картинки
   detailTextType: string               // Тип текста (html/text)
   searchableContent: string            // Индексируемый контент для поиска
   offers: CatalogOfferDTO[]            // Массив торговых предложений (для товаров с SKU)
@@ -143,7 +144,7 @@ export interface OffersTreePropsItemDTO {
 export interface OffersTreePropsValuesItemDTO {
   id: number,
   name: string, 
-  pictureSrc: string,
+  pictureSrc: FileSrc,
   value: string
 }
 

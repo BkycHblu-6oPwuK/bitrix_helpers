@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CatalogDetailPageApiResponse } from '~/types/iblock/catalog';
-import ProductDetail from '~/components/catalog/CatalogElement/ProductDetail.vue';
 
 const route = useRoute();
 
@@ -13,7 +12,7 @@ if (data.value?.data?.seo) {
 
 <template>
     <div class="container mx-auto px-4 py-8">
-        <ProductDetail 
+        <CatalogElement 
             v-if="data?.data?.page.element" 
             :item="data?.data?.page.element" 
         />
