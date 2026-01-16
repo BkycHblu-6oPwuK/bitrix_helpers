@@ -15,7 +15,6 @@
 import type { CatalogItemDTO } from './catalog'
 import type { SeoData } from '../seo'
 import type { ElementDTO, SectionDTO } from '.'
-import type { FormDTO } from '../web-form'
 import type { FileSrc } from '../file'
 
 /**
@@ -132,7 +131,7 @@ export type PageContent = (
  */
 export interface PageData<T = PageContent> {
   page: T
-  seo: SeoData
+  seo?: SeoData
 }
 
 /**
@@ -140,7 +139,7 @@ export interface PageData<T = PageContent> {
  */
 export interface DetailPageDTO<T = any> {
   element: T
-  path: Record<string, SectionDTO> // путь к элементу, хлебные крошки
+  path: SectionDTO[] // путь к элементу, хлебные крошки
 }
 
 /**

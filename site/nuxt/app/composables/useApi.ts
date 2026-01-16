@@ -1,5 +1,6 @@
 import { createError } from 'h3'
 import type { ApiResponse } from '~/types/api'
+import type { $Fetch } from 'ofetch'
 
 type ContentType = 'json' | 'form' | 'multipart' | 'auto'
 
@@ -54,9 +55,8 @@ export function useApi<T = unknown>(
         options.contentType
       )
 
-      const { $fetch } = useNuxtApp()
-
-      const res = await $fetch<ApiResponse<T>>(cleanPath, {
+      const fetch = useNuxtApp().$fetch as $Fetch
+      const res = await fetch<ApiResponse<T>>(cleanPath, {
         baseURL,
         method: options.method || 'get',
         query: options.query,
@@ -109,10 +109,8 @@ export async function useApiFetch<T = unknown>(
       options.body,
       options.contentType
     )
-
-    const { $fetch } = useNuxtApp()
-
-    const res = await $fetch<ApiResponse<T>>(cleanPath, {
+    const fetch = useNuxtApp().$fetch as $Fetch
+    const res = await fetch<ApiResponse<T>>(cleanPath, {
       baseURL,
       method: options.method || 'get',
       query: options.query,
@@ -122,12 +120,19 @@ export async function useApiFetch<T = unknown>(
     })
 
     if (res.status === 'error') {
-      throw new Error(res.errors?.[0]?.message || 'API error')
+      const err = new Error(res.errors?.[0]?.message || 'API error');
+      (err as any).data = { errors: res.errors }
+      throw err
     }
 
     return res
   } catch (error: any) {
-    throw new Error(error?.message || 'Network error')
+    if (error.data?.errors) {
+      throw error
+    }
+    const err = new Error(error?.message || 'Network error');
+    (err as any).data = { errors: error.data?.errors || {} }
+    throw err
   }
 }
 
