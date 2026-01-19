@@ -5,7 +5,10 @@ use Bitrix\Main\Loader;
 use Bitrix\Iblock\PropertyTable;
 use Bitrix\Iblock\SectionPropertyTable;
 use Beeralex\Catalog\Service\CatalogService;
-use Beeralex\Core\Service\IblockService;
+use Beeralex\Catalog\Service\SearchService;
+use Beeralex\Core\Service\SortingService;
+use Bitrix\Main\Context;
+use Bitrix\Main\Web\Uri;
 
 /*DEMO CODE for component inheritance
 CBitrixComponent::includeComponentClass("bitrix::news.base");
@@ -32,13 +35,13 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 
 	public function onPrepareComponentParams($arParams)
 	{
-		if (!$arParams['IBLOCK_ID']) {
-			$arParams['IBLOCK_ID'] = service(IblockService::class)->getIblockIdByCode('catalog');
-		}
-
 		if ($arParams['CATALOG_SERVICE'] === null || !($arParams['CATALOG_SERVICE'] instanceof CatalogService)) {
 			Loader::requireModule('beeralex.catalog');
 			$arParams['CATALOG_SERVICE'] = service(CatalogService::class);
+		}
+
+		if ($arParams['SORTING_SERVICE'] === null || !($arParams['SORTING_SERVICE'] instanceof SortingService)) {
+			throw new \InvalidArgumentException('SORTING_SERVICE param is required');
 		}
 
 		$arParams["CACHE_TIME"] = (int)($arParams["CACHE_TIME"] ?? 36000000);
@@ -1070,7 +1073,28 @@ class CBitrixCatalogSmartFilter extends CBitrixComponent
 		if (!$smartParts)
 			$smartParts[] = array("clear");
 		$res = str_replace("#SMART_FILTER_PATH#", implode("/", $this->encodeSmartParts($smartParts)), $url);
-		return $this->arParams['CATALOG_SERVICE']->makeUrl($res);
+		return $this->makeUrl($res);
+	}
+
+	public function makeUrl(string $url): string
+	{
+		if ($this->arParams['CATALOG_SERVICE']) {
+			return $this->arParams['CATALOG_SERVICE']->makeUrl($url);
+		}
+		Loader::requireModule('beeralex.catalog');
+		$requestedSortId = $this->arParams['SORTING_SERVICE']->getRequestedSortIdOrDefault();
+		$query = Context::getCurrent()->getRequest()->get(SearchService::REQUEST_PARAM);
+
+		$uri = new Uri($url);
+
+		if ($requestedSortId != $this->arParams['SORTING_SERVICE']->getDefaultSortId()) {
+			$uri->addParams([SortingService::REQUEST_PARAM => $requestedSortId]);
+		}
+		if ($query) {
+			$uri->addParams([SearchService::REQUEST_PARAM => $query]);
+		}
+
+		return $uri->getUri();
 	}
 
 	public function encodeSmartParts($smartParts)

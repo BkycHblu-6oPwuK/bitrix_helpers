@@ -2,6 +2,7 @@
 
 use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\Form\FormAnswerRepository;
+use Beeralex\Api\Domain\Form\FormHandlers;
 use Beeralex\Api\Domain\Form\FormRepository;
 use Beeralex\Api\Domain\Form\FormService;
 use Beeralex\Api\Domain\Iblock\Content\ContentRepository;
@@ -43,6 +44,11 @@ return [
             FormService::class => [
                 'constructor' => static function() {
                     return new FormService(service(FormRepository::class), service(FormAnswerRepository::class));
+                },
+            ],
+            FormHandlers::class => [
+                'constructor' => static function() {
+                    return new FormHandlers(service(FormService::class));
                 },
             ],
         ]

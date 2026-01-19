@@ -15,32 +15,7 @@ class FormService
         protected readonly FormAnswerRepository $formAnswerRepository
     ) {}
 
-    /**
-     * Более монолитный метод для отправки формы вопросов, но фронту удобно
-     */
-    /*
-    public function submitQuestionForm(Dto\QuestionRequestDTO $requestDto): Result
-    {
-        $formId = $this->getFormIdByName('Вопросы');
-        $mapFields = $this->getFormFieldMapByTitles($formId, [
-            'Имя',
-            'Телефон',
-            'текст',
-        ]);
-        $this->setInGlobals([
-            'WEB_FORM_ID' => $formId,
-            'web_form_apply' => 'Y',
-            $this->buildFormKey($mapFields['Имя']) => $requestDto->name,
-            $this->buildFormKey($mapFields['Телефон']) => $requestDto->phone,
-            $this->buildFormKey($mapFields['текст']) => $requestDto->text,
-        ]);
-        service(\Beeralex\Core\Service\FileService::class)->includeFile('v1.form.index', [
-            'formId' => $formId
-        ]);
-        return $this->processErrors();
-    }*/
-
-    protected function getFormIdByName(string $name): int
+    public function getFormIdByName(string $name): int
     {
         $formId = $this->formRepository->getIdByName($name);
         if ($formId === null) {
@@ -49,7 +24,7 @@ class FormService
         return $formId;
     }
 
-    protected function getFormFieldMapByTitles(int $formId, array $titles): array
+    public function getFormFieldMapByTitles(int $formId, array $titles): array
     {
         $fieldIds = $this->formAnswerRepository->getMapByTitles($formId, $titles);
         if ($fieldIds === null) {
@@ -58,7 +33,7 @@ class FormService
         return $fieldIds;
     }
 
-    protected function processErrors(): Result
+    public function processErrors(): Result
     {
         $apiResult = service(ApiResult::class);
         $result = new Result;
@@ -80,7 +55,7 @@ class FormService
         return $result;
     }
 
-    protected function buildFormKey(?array $field): string
+    public function buildFormKey(?array $field): string
     {
         if ($field === null) {
             throw new \RuntimeException('Form field not found');
@@ -96,7 +71,7 @@ class FormService
         return $result;
     }
 
-    protected function setInGlobals(array $data): void
+    public function setInGlobals(array $data): void
     {
         foreach ($data as $key => $value) {
             if (empty($value) || $key === '') {

@@ -2,7 +2,6 @@
 
 use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\Iblock\FilterDTO;
-use Beeralex\Catalog\Enum\DIServiceKey;
 use Bitrix\Iblock\SectionPropertyTable;
 
 $items = [];
@@ -26,7 +25,7 @@ $arResult['DTO'] = FilterDTO::make([
     'filterUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL']),
     'clearUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL']),
     'items' => $items,
-    'sorting' => service(DIServiceKey::SORTING_SERVICE->value)->getSorting(),
+    'sorting' => $arParams['SORTING_SERVICE']->getSorting(),
     'types' => [
         'checkbox' => SectionPropertyTable::CHECKBOXES,
         'range' => SectionPropertyTable::NUMBERS_WITH_SLIDER,

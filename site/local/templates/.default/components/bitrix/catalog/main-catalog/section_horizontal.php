@@ -57,7 +57,7 @@ if ($isFilter) {
 			"PAGER_PARAMS_NAME" => $arParams["PAGER_PARAMS_NAME"],
 			"INSTANT_RELOAD" => $arParams["INSTANT_RELOAD"],
 			'IS_SEARCH_PAGE'      => !empty($query),
-			'CATALOG_SERVICE' => $catalogService,
+			'SORTING_SERVICE' => $sortService,
 		),
 		$component,
 		array('HIDE_ICONS' => 'Y')
