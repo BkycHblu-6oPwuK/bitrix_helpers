@@ -3,13 +3,14 @@
 use Beeralex\Catalog\EventHandlers;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
+use Bitrix\Main\ModuleManager;
 
 class beeralex_catalog extends CModule
 {
     public function __construct()
     {
         $this->MODULE_ID = 'beeralex.catalog';
-        $this->MODULE_VERSION = '1.0';
+        $this->MODULE_VERSION = '1.1.0';
         $this->MODULE_VERSION_DATE = '2025-04-09 12:00:00';
         $this->MODULE_NAME = 'beeralex.catalog';
         $this->MODULE_DESCRIPTION = 'beeralex.catalog module';
@@ -19,9 +20,14 @@ class beeralex_catalog extends CModule
 
     public function DoInstall()
     {
-        \Bitrix\Main\ModuleManager::registerModule($this->MODULE_ID);
-        Loader::includeModule($this->MODULE_ID);
-        $this->InstallEvents();
+        global $APPLICATION;
+        if ($this->checkRequirements()) {
+            \Bitrix\Main\ModuleManager::registerModule($this->MODULE_ID);
+            Loader::includeModule($this->MODULE_ID);
+            $this->InstallEvents();
+        } else {
+            $APPLICATION->ThrowException('Для установки модуля необходима версия главного модуля не ниже 14.00.00 и установленный beeralex.core');
+        }
     }
 
     public function InstallEvents()
@@ -49,7 +55,7 @@ class beeralex_catalog extends CModule
             EventHandlers::class,
             'onGetCustomCheckList'
         );
-        
+
         EventManager::getInstance()->registerEventHandler(
             'sale',
             'onSaleDeliveryExtraServicesClassNamesBuildList',
@@ -99,5 +105,10 @@ class beeralex_catalog extends CModule
         Loader::includeModule($this->MODULE_ID);
         $this->UnInstallEvents();
         \Bitrix\Main\ModuleManager::unRegisterModule($this->MODULE_ID);
+    }
+
+    public function checkRequirements(): bool
+    {
+        return version_compare(ModuleManager::getVersion('main'), '14.00.00') >= 0 && Loader::includeModule('beeralex.core');
     }
 }

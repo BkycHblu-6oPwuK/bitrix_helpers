@@ -1,5 +1,5 @@
 {
-    "name": "beeralex/beeralex.oauth2",
+    "name": "beeralex/beeralex.user",
     "type": "bitrix-module",
     "description": "",
     "license": "MIT",
@@ -10,8 +10,7 @@
         }
     ],
     "require": {
-        "php": "^8.1",
-        "beeralex/beeralex.core": "*",
+        "beeralex/beeralex.core": "~1.2",
         "firebase/php-jwt": "^6.0"
     },
     "minimum-stability": "stable",

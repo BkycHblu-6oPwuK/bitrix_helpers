@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "beeralex/beeralex.core": "~1.1",
+        "beeralex/beeralex.core": "~1.2",
         "hflabs/dadata": "*"
     },
     "minimum-stability": "stable",

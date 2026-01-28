@@ -4,8 +4,8 @@
 
 ### Требования
 
-- PHP 8.1+
-- Bitrix Framework 22.0+
+- PHP 8.2+
+- Bitrix Framework 25.0+ (рекомендуемая для php 8.2)
 - Composer
 - Модуль `beeralex.core`
 

@@ -135,11 +135,10 @@ $result = $jwtManager->validateAccessToken($token);
 
 ## Зависимости
 
-- PHP 8.1+
-- Bitrix Framework 22.0+
+- PHP 8.2+
+- Bitrix Framework 25.0+ (рекомендуемая для php 8.2)
 - `beeralex.core` — базовые абстракции
 - `firebase/php-jwt` — JWT токены
-- `libphonenumber-for-php` — работа с телефонами (опционально)
 
 ## Навигация
 
