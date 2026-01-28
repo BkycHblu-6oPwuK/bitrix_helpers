@@ -1,8 +1,6 @@
 import { createError } from 'h3'
-import type { ApiResponse } from '~/types/api'
+import type { ApiResponse, ContentType } from '~/types/api'
 import type { $Fetch } from 'ofetch'
-
-type ContentType = 'json' | 'form' | 'multipart' | 'auto'
 
 function getBaseUrl() {
   const config = useRuntimeConfig()

@@ -32,6 +32,11 @@ export type ApiError = {
 }
 
 /**
+ * Типы контента для запросов
+ */
+export type ContentType = 'json' | 'form' | 'multipart' | 'auto'
+
+/**
  * Объединенный тип API ответа (успех или ошибка)
  * @template T - Тип данных при успешном ответе
  */
