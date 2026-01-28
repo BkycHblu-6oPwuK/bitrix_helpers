@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CatalogDetailPageApiResponse } from '~/types/iblock/catalog';
+import type { CatalogDetailPageApiResponse } from '~/types/catalog';
 
 const route = useRoute();
 

@@ -3,7 +3,7 @@
  */
 
 import type { ElementDTO } from "."
-import type { PageData } from "./content"
+import type { PageData } from "../page"
 import type { FilterDTO, SectionData } from "./page"
 
 /**

@@ -5,60 +5,57 @@ namespace Beeralex\Catalog\Service;
 use Beeralex\Catalog\Contracts\ProductRepositoryContract;
 use Beeralex\Core\Service\LanguageService;
 
-/**
- * @todo реализовать поиск не по CAllSearch, а можно использовать подключение компонента поиска
- */
 class SearchService
 {
     public const REQUEST_PARAM = 'q';
 
+    /**
+     * @param callable|null $factoryIncludeComponent Фабрика для подключения компонента поиска (возвращает массив с ID элементов)
+     */
     public function __construct(
-        protected readonly \CAllSearch $search,
+        protected $factoryIncludeComponent,
         protected readonly ProductRepositoryContract $productRepository,
         protected readonly LanguageService $languageService,
     ) {}
 
-    public function getProductsIds(string $query, int $limit): array
+    /**
+     * @return array{0: array, 1: array} Массив с ID товаров и массив с ID разделов
+     */
+    public function getIds(string $query, int $limit): array
     {
-        $this->search->SetLimit($limit);
-        $getProductsIds = function (string $query): array {
-            $this->search->Search(
-                [
-                    'QUERY' => $query,
-                    'SITE_ID' => SITE_ID,
-                    'MODULE_ID' => 'iblock',
-                    'CHECK_DATES' => 'Y',
-                    'PARAM2' => $this->productRepository->entityId,
-                ],
-                [
-                    'RANK' => 'DESC',
-                    'CUSTOM_RANK' => 'DESC',
-                ],
-                [
-                    'STEMMING' => true
-                ]
-            );
+        $_REQUEST[static::REQUEST_PARAM] = $query;
+        $getIds = function (): array {
+            if(empty($this->factoryIncludeComponent) || !is_callable($this->factoryIncludeComponent)) {
+                return [[], []];
+            }
+            ob_start();
+            $arElements = ($this->factoryIncludeComponent)();
+            ob_end_clean();
             $productsIds = [];
-            while ($element = $this->search->Fetch()) {
-                if (mb_substr($element['ITEM_ID'], 0, 1) === 's') {
-                    // Это раздел, а не элемент
+            $sectionIds = [];
+            foreach ($arElements as $key => $elementId) {
+                if (mb_strtolower(mb_substr($elementId, 0, 1)) === 's') {
+                    $sectionIds[] = (int)mb_substr($elementId, 1);
                     continue;
                 }
 
-                $productsIds[] = (int)$element['ITEM_ID'];
+                $productsIds[] = $elementId;
             }
-
-            return $productsIds;
+            return [$productsIds, $sectionIds];
         };
 
-        $productsIds = $getProductsIds($query);
+        [$productsIds, $sectionIds] = $getIds();
 
         if (empty($productsIds)) {
             if ($this->issetTranslitirate($query)) {
-                $productsIds = $getProductsIds($this->languageService->transliterate($query));
+                $_REQUEST[static::REQUEST_PARAM] = $this->languageService->transliterate($query);
+                [$productsIds, $sectionIds] = $getIds();
             }
         }
-        return $productsIds;
+        return [
+            array_slice($productsIds, 0, $limit),
+            array_slice($sectionIds, 0, $limit),
+        ];
     }
 
     protected function issetTranslitirate(string $str): bool

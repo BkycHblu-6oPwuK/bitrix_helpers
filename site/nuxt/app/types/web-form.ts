@@ -4,7 +4,7 @@
  */
 
 import type { FileSrc } from "./file"
-import type { PageData } from "./iblock/content"
+import type { PageData } from "./page"
 
 /**
  * Поле web-формы

@@ -12,6 +12,9 @@ use Beeralex\Catalog\Dto\PickPointDTO;
 
 Loader::includeModule('eshoplogistic.delivery');
 
+/**
+ * @todo по новому перенести в роуты -> контроллеры, здесь старая реализация
+ */
 class BeeralexEshoplogisticDeliveryController extends AjaxHandler
 {
     public function configureActions()

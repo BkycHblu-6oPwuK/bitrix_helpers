@@ -3,7 +3,6 @@ require_once __DIR__ . '/lib/Enum/DIServiceKey.php';
 
 use Beeralex\Catalog\Contracts\StoreRepositoryContract;
 use Beeralex\Catalog\Enum\DIServiceKey;
-use Beeralex\Catalog\Helper\OrderService;
 use Beeralex\Catalog\Location\BitrixLocationResolver;
 use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Beeralex\Catalog\Location\Contracts\LocationApiClientContract;
@@ -26,6 +25,7 @@ use Beeralex\Catalog\Service\CatalogElementService;
 use Beeralex\Catalog\Service\CatalogSectionsService;
 use Beeralex\Catalog\Service\Discount\CouponsService;
 use Beeralex\Catalog\Service\Discount\DiscountFactory;
+use Beeralex\Catalog\Service\OrderService;
 use Beeralex\Catalog\Service\PriceService;
 use Beeralex\Catalog\Service\SearchService;
 use Beeralex\Core\Repository\PropertyFeaturesRepository;
@@ -135,8 +135,33 @@ return [
             SearchService::class => [
                 'constructor' => static function () {
                     Loader::includeModule('search');
+                    $productsRepository = service(DIServiceKey::PRODUCT_REPOSITORY->value);
+                    $iblockType = $productsRepository->query()->setSelect(['IBLOCK_TYPE_ID' => 'IBLOCK.IBLOCK_TYPE_ID'])->cacheJoins(true)->setCacheTtl(864000)->fetch()['IBLOCK_TYPE_ID'];
                     return new SearchService(
-                        search: new \CSearch(),
+                        factoryIncludeComponent: fn() => $GLOBALS['APPLICATION']->IncludeComponent(
+                            "bitrix:search.page",
+                            "",
+                            array(
+                                "RESTART" => 'Y',
+                                "NO_WORD_LOGIC" => 'Y',
+                                "USE_LANGUAGE_GUESS" => 'N',
+                                "CHECK_DATES" => 'Y',
+                                "arrFILTER" => array("iblock_{$iblockType}"),
+                                "arrFILTER_iblock_{$iblockType}" => array($productsRepository->entityId),
+                                "USE_TITLE_RANK" => "N",
+                                "DEFAULT_SORT" => "rank",
+                                "FILTER_NAME" => "",
+                                "SHOW_WHERE" => "N",
+                                "arrWHERE" => array(),
+                                "SHOW_WHEN" => "N",
+                                "PAGE_RESULT_COUNT" => 10000,
+                                "DISPLAY_TOP_PAGER" => "N",
+                                "DISPLAY_BOTTOM_PAGER" => "N",
+                                "PAGER_TITLE" => "",
+                                "PAGER_SHOW_ALWAYS" => "N",
+                                "PAGER_TEMPLATE" => "N",
+                            ),
+                        ),
                         productRepository: service(DIServiceKey::PRODUCT_REPOSITORY->value),
                         languageService: service(LanguageService::class),
                     );

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { PageData } from '~/types/iblock/content';
+import type { MainPageContent } from '~/types/iblock/content'
 
-const page = await useApi<PageData>('get-main-page')
+const props = defineProps<{ data: MainPageContent}>()
 
 const groupedBlocks = computed(() => {
-  const blocks = page.data.value?.data?.page || []
+   const blocks = props.data || []
   return blocks.reduce((acc, block) => {
     if(!acc[block.type]) {
       acc[block.type] = []

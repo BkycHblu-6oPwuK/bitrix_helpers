@@ -3,11 +3,19 @@
   Отображает динамические блоки контента с сервера
   Добавлены тестовые ссылки для навигации
 -->
+
+<script setup lang="ts">
+import type { MainPageContent } from '~/types/iblock/content';
+import type { PageData } from '~/types/page';
+
+const page = await useApi<PageData<MainPageContent>>('get-main-page')
+</script>
+
 <template>
   <div>
     <!-- Динамические блоки контента с сервера -->
-    <Main></Main>
-    
+    <Main v-if="page.data.value?.data?.page" :data="page.data.value.data.page"></Main>
+
     <!-- Тестовый блок со ссылками -->
     <section class="text-center py-20">
       <NuxtLink to="/catalog"

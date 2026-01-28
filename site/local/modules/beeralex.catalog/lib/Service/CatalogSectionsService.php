@@ -12,7 +12,7 @@ class CatalogSectionsService
         protected readonly UrlService $urlService
     ) {}
 
-    public function getSections(array $productsIds)
+    public function getSectionsByProductsIds(array $productsIds)
     {
         $dbResult = $this->productsRepository->query()
             ->setSelect(
@@ -50,6 +50,37 @@ class CatalogSectionsService
                 ];
                 $count++;
             }
+        }
+        return array_values($sections);
+    }
+
+    public function getSections(array $sectionsIds)
+    {
+        $dbResult = $this->productsRepository->getIblockSectionRepository()->query()
+            ->setSelect(
+                [
+                    'ID',
+                    'CODE',
+                    'PAGE_URL' => 'IBLOCK.SECTION_PAGE_URL',
+                    'NAME',
+                ]
+            )
+            ->whereIn('ID', $sectionsIds)
+            ->where('ACTIVE', 'Y')
+            ->setCacheTtl(86400)
+            ->cacheJoins(true)
+            ->exec();
+
+        $sections = [];
+        while ($item = $dbResult->Fetch()) {
+            $id = (int)$item['ID'];
+            $url = $this->urlService->getSectionUrl($item, $item['PAGE_URL'], false, 'E');
+            $item['URL'] = $url;
+            $sections[$id] = [
+                'ID' => $id,
+                'URL' => $item['URL'],
+                'NAME' => $item['NAME']
+            ];
         }
         return array_values($sections);
     }

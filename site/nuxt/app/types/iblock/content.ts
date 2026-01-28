@@ -13,8 +13,7 @@
  */
 
 import type { CatalogItemDTO } from './catalog'
-import type { SeoData } from '../seo'
-import type { ElementDTO, SectionDTO } from '.'
+import type { ElementDTO } from '.'
 import type { FileSrc } from '../file'
 
 /**
@@ -25,7 +24,7 @@ import type { FileSrc } from '../file'
  * Допустимые типы блоков контента, которые может вернуть бэкенд.
  * Включает конкретные типы, но допускает и произвольные строки (новые типы).
  */
-export type PageContentType =
+export type MainPageContentType =
   | 'main_banner'
   | 'slider'
   | 'products'
@@ -41,8 +40,8 @@ export type PageContentType =
  * Поле `result` хранит необработанные данные — рендерёр может
  * передать их в `Dump` или в заглушку для отладки.
  */
-export interface ContentItemDTO {
-  type: PageContentType // Тип блока
+export interface MainContentItemDTO {
+  type: MainPageContentType // Тип блока
   result: Record<string, any> // Неявно типизированные данные блока
 }
 
@@ -113,42 +112,17 @@ export interface ProductSliderDTO {
 }
 
 /**
- * PageContent — массив блоков страницы.
+ * MainPageContent — массив блоков страницы.
  * Каждый элемент может быть одного из известных интерфейсов или универсальным объектом.
  */
-export type PageContent = (
+export type MainPageContent = (
   | MainBannerContent
   | SliderContent
   | SliderArticlesContent
   | VideoContent
-  | ContentItemDTO
+  | MainContentItemDTO
   | Record<string, any>
 )[]
-
-/**
- * Универсальный ответ API с данными страницы и SEO-метаданными.
- * @template T - Тип содержимого `page` (по умолчанию PageContent)
- */
-export interface PageData<T = PageContent> {
-  page: T
-  seo?: SeoData
-}
-
-/**
- * Универсальная структура данных для детальной страницы
- */
-export interface DetailPageDTO<T = any> {
-  element: T
-  path: SectionDTO[] // путь к элементу, хлебные крошки
-}
-
-/**
- * Специальная форма PageData для отображения одиночного элемента (детальная страница)
- * @template T - Тип элемента (ElementDTO и т.д.)
- */
-export interface PageDataWithElement<T = any> extends Omit<PageData, 'page'> {
-  page: DetailPageDTO<T>
-}
 
 export interface ContentDTO {
   title: string,

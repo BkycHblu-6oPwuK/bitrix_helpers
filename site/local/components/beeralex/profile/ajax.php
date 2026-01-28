@@ -5,7 +5,7 @@ use Bitrix\Main\Type\DateTime;
 use Beeralex\Core\Config\Config;
 
 /**
- * @todo перенести бы c m1 функционалльную часть соединив с этой
+ * @todo по новому перенести в роуты -> контроллеры, здесь старая реализация
  */
 class BeeralexProfileController extends \Bitrix\Main\Engine\Controller
 {

@@ -12,7 +12,7 @@ use Bitrix\Sale\Order;
 use Beeralex\Catalog\Helper\OrderHelper;
 
 /**
- * @todo Освежить бы код, да шаблон под сборщик
+ * @todo Освежить бы код, да шаблон под сборщик, старая реализация
  */
 class BeeralexQrShow extends \CBitrixComponent implements Controllerable
 {

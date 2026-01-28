@@ -29,6 +29,7 @@ return function (RoutingConfigurator $routes): void {
             $routes->get('get-main-page', [MainController::class, 'getMainPage']);
             $routes->get('get-menu', [MainController::class, 'getMenu']);
 
+            $routes->get('catalog/search/{query}', [CatalogController::class, 'search']);
             $routes->get(
                 'catalog/{search}',
                 [CatalogController::class, 'index']

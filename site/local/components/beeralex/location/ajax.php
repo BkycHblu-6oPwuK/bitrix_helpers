@@ -4,6 +4,9 @@ use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\Controller;
 use Beeralex\Core\Service\LocationService;
 
+/**
+ * @todo по новому перенести в роуты -> контроллеры, здесь старая реализация
+ */
 class BeeralexLocationController extends Controller
 {
     public function configureActions()

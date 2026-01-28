@@ -1,8 +1,8 @@
-import type { PageData } from './iblock/content'
-
 /**
  * Типы оформления заказа
  */
+
+import type { PageData } from "./page"
 
 export interface CheckoutItemDTO {
     id: number

@@ -4,7 +4,7 @@
   Загружает данные с сервера и устанавливает SEO мета-теги
 -->
 <script setup lang="ts">
-import type { SectionsPageApiResponse } from '~/types/iblock/catalog.ts'
+import type { SectionsPageApiResponse } from '~/types/catalog.ts'
 
 // Загрузка списка разделов каталога
 const { data } = await useApi<SectionsPageApiResponse>('catalog')

@@ -84,13 +84,16 @@ class CatalogService extends CoreCatalogService
         return $uri->getUri();
     }
 
-    public function search(string $query, int $searchLimit = 50, int $realLimit = 7): array
+    public function search(string $query, int $limit = 7): array
     {
         $result = [];
-        $productsIds = $this->searchService->getProductsIds($query, $searchLimit);
-        $sections = $this->catalogSectionsService->getSections($productsIds);
-        $productsIds = array_splice($productsIds, 0, $realLimit);
-        $result['PRODUCTS'] = $this->getProductsWithOffers($productsIds);
+        [$productIds, $sectionsIds] = $this->searchService->getIds($query, $limit);
+        if(empty($sectionsIds)) {
+            $sections = $this->catalogSectionsService->getSectionsByProductsIds($productIds);
+        } else {
+            $sections = $this->catalogSectionsService->getSections($sectionsIds);
+        }
+        $result['PRODUCTS'] = $this->getProductsWithOffers($productIds);
         $result['SECTIONS'] = $sections;
         return $result;
     }

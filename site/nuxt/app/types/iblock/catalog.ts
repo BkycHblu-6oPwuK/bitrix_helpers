@@ -3,8 +3,7 @@
  * Включает структуры для товаров, торговых предложений, цен
  */
 
-import type { PageData, PageDataWithElement } from './content'
-import type { FilterDTO, SectionsDTO, SectionData } from './page'
+import type { FilterDTO, SectionData } from './page'
 import type { SectionDTO, PropertiesType, PropertyItemDTO } from '.'
 import type { FileSrc } from '../file'
 
@@ -158,12 +157,4 @@ export type CatalogItemPropertiesType = Record<string, PropertiesType> & { MORE_
  * Включает список разделов, фильтр и список товаров с пагинацией
  */
 export interface CatalogDTO extends SectionData<SectionDTO[], FilterDTO, CatalogItemDTO> { }
-
-/** Тип ответа API для страницы списка разделов */
-export type SectionsPageApiResponse = PageData<SectionsDTO>
-
-/** Тип ответа API для страницы каталога с товарами */
-export type CatalogPageApiResponse = PageData<CatalogDTO>
-
-export type CatalogDetailPageApiResponse = PageDataWithElement<CatalogItemDTO>
 

@@ -6,9 +6,12 @@ namespace Beeralex\Api\V1\Controllers;
 
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
+use Beeralex\Api\Domain\Iblock\Catalog\CatalogSearchDTO;
+use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Service\FileService;
 use Beeralex\Core\Traits\Cacheable;
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Loader;
 
 class CatalogController extends Controller
 {
@@ -18,6 +21,9 @@ class CatalogController extends Controller
     {
         return [
             'index' => [
+                'prefilters' => [],
+            ],
+            'search' => [
                 'prefilters' => [],
             ],
         ];
@@ -42,6 +48,18 @@ class CatalogController extends Controller
             $result = service(ApiResult::class);
             $result->setSeo();
             $this->applyEtag($result, $cacheSettings);
+            return $result;
+        });
+    }
+
+    public function searchAction(string $query)
+    {
+        Loader::includeModule('beeralex.catalog');
+        $catalogService = service(CatalogService::class);
+        return $this->process(function () use ($catalogService, $query) {
+            $result = service(ApiResult::class);
+            $resultSearch = $catalogService->search($query);
+            $result->setData(CatalogSearchDTO::make($resultSearch));
             return $result;
         });
     }

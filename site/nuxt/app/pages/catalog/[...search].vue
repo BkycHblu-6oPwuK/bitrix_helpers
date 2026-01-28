@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CatalogPageApiResponse } from '~/types/iblock/catalog.ts'
+import type { CatalogPageApiResponse } from '~/types/catalog.ts'
 
 const route = useRoute()
 const search = route.params.search.join('/')

@@ -10,6 +10,9 @@ use Beeralex\Catalog\Helper\OrderHelper;
 use Beeralex\Catalog\Enum\OrderStatuses;
 use Beeralex\User\User;
 
+/**
+ * @todo по новому перенести в роуты -> контроллеры, здесь старая реализация
+ */
 class BeeralexOrderController extends Controller
 {
     public function configureActions()
