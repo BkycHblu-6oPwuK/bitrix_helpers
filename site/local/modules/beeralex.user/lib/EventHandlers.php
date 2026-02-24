@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Beeralex\User;
 
+use Beeralex\User\Auth\Social\Services\Bitrix\BitrixMailRuService;
 use Beeralex\User\Auth\Social\Services\Bitrix\BitrixTelegramService;
 
 class EventHandlers 
@@ -13,7 +14,8 @@ class EventHandlers
     {
         $result = [];
         $services = [
-            BitrixTelegramService::class
+            BitrixTelegramService::class,
+            BitrixMailRuService::class
         ];
         foreach($services as $serviceClass) {
             $service = new $serviceClass();

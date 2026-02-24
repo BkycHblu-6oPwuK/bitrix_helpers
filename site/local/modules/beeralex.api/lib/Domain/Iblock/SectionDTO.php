@@ -22,7 +22,7 @@ class SectionDTO extends Resource
     {
         $urlService = service(UrlService::class);
         $url = $sectionItem['SECTION_PAGE_URL'] ?? $sectionItem['URL'] ?? '';
-        if($url['clean_url']) {
+        if(is_array($url) && isset($url['clean_url'])) {
             $url = $url['clean_url'];
         }elseif (is_string($url)) {
             $url = $urlService->cleanUrl($url);
