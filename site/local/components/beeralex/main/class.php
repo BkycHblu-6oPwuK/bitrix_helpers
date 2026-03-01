@@ -18,7 +18,7 @@ class BeeralexMain extends \CBitrixComponent
     public function onPrepareComponentParams($params)
     {
         Loader::requireModule('beeralex.catalog');
-        $this->productsRepository = service(service(DIServiceKey::PRODUCT_REPOSITORY->value));
+        $this->productsRepository = service(DIServiceKey::PRODUCT_REPOSITORY->value);
         $this->mainRepository = service(MainRepository::class);
         return $params;
     }
@@ -89,5 +89,15 @@ class BeeralexMain extends \CBitrixComponent
     protected function getPopularProductsIds(): array
     {
         return $this->productsRepository->getPopularProductsIds();
+    }
+
+    public function getProductsRepository(): ProductsRepository
+    {
+        return $this->productsRepository;
+    }
+
+    public function getMainRepository(): MainRepository
+    {
+        return $this->mainRepository;
     }
 }

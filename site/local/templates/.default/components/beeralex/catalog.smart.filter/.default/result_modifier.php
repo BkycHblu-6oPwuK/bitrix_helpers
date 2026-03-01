@@ -2,7 +2,14 @@
 
 use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\Iblock\FilterDTO;
+use Beeralex\Core\Service\UrlService;
 use Bitrix\Iblock\SectionPropertyTable;
+
+/**
+ * @var BeeralexCatalogSmartFilter $component
+ */
+
+$component = $this->getComponent();
 
 $items = [];
 foreach($arResult['ITEMS'] as $key => &$item){
@@ -19,13 +26,13 @@ foreach($arResult['ITEMS'] as $key => &$item){
     $items[$key] = $item;
 }
 
-$urlService = service(\Beeralex\Core\Service\UrlService::class);
+$urlService = service(UrlService::class);
 
 $arResult['DTO'] = FilterDTO::make([
     'filterUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL']),
     'clearUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL']),
     'items' => $items,
-    'sorting' => $arParams['SORTING_SERVICE']->getSorting(),
+    'sorting' => $component->getSortingService()->getSorting(),
     'types' => [
         'checkbox' => SectionPropertyTable::CHECKBOXES,
         'range' => SectionPropertyTable::NUMBERS_WITH_SLIDER,
@@ -36,4 +43,4 @@ $arResult['DTO'] = FilterDTO::make([
     ]
 ]);
 service(ApiResult::class)->addPageData($arResult['DTO'], 'filter');
-$this->getComponent()->setResultCacheKeys(['DTO']);
+$component->setResultCacheKeys(['DTO']);

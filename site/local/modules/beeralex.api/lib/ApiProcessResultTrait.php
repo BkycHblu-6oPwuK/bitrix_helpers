@@ -24,8 +24,10 @@ trait ApiProcessResultTrait
             }
             return $result instanceof Result ? $result->getData() : $result;
         } catch (\Throwable $e) {
-            dd($e);
-            log($e->getMessage());
+            log(print_r([
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], true) . "\n");
             $this->addError(new Error('Internal Server Error', Errors::INTERNAL_ERROR->value));
             return [];
         }

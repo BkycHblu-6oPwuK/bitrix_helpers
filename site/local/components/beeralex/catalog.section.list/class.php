@@ -13,6 +13,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
      */
     protected $sectionEntity;
 
+    protected IblockRepository $iblockRepository;
     protected IblockSectionRepository $iblockSectionRepository;
     protected FileService $fileService;
 
@@ -36,8 +37,8 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         if ($params['SELECT'] && is_array($params['SELECT'])) {
             $this->defaultSelect = array_unique(array_merge($this->defaultSelect, $params['SELECT']));
         }
-        $iblockRepository = new IblockRepository((int)$params['IBLOCK_ID']);
-        $this->iblockSectionRepository = $iblockRepository->getIblockSectionRepository();
+        $this->iblockRepository = new IblockRepository((int)$params['IBLOCK_ID']);
+        $this->iblockSectionRepository = $this->iblockRepository->getIblockSectionRepository();
         $this->fileService = service(FileService::class);
 
         $params['SMART_FILTER_NAME'] = $params['SMART_FILTER_NAME'] ?: 'arrFilter';
@@ -244,5 +245,15 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
             'ID' => $item['ID']
         ], $item['SECTION_TEMPLATE'],);
         $item['URL'] = $url['clean_url'];
+    }
+
+    public function getIblockRepository(): IblockRepository
+    {
+        return $this->iblockRepository;
+    }
+
+    public function getIblockSectionRepository(): IblockSectionRepository
+    {
+        return $this->iblockSectionRepository;
     }
 }

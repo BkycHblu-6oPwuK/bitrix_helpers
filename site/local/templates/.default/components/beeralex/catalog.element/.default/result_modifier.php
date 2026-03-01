@@ -6,12 +6,12 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 /**
  * @var CBitrixComponentTemplate $this
- * @var CatalogSectionComponent $component
+ * @var BeeralexCatalogElement $component
  */
 
 $component = $this->getComponent();
 $arParams = $component->applyTemplateModifications();
 
-$elementData = $arParams['CATALOG_ELEMENT_SERVICE']->getElementData((int)$arResult['ID'], $arParams['OFFER_ID'] ? (int)$arParams['OFFER_ID'] : null);
+$elementData = $component->getCatalogElementService()->getElementData((int)$arResult['ID'], $arParams['OFFER_ID'] ? (int)$arParams['OFFER_ID'] : null);
 $arResult['DTO'] = CatalogElementDTO::makeFrom($elementData, $arResult);
-$this->getComponent()->setResultCacheKeys(['DTO']);
+$component->setResultCacheKeys(['DTO']);

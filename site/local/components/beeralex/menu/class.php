@@ -1,6 +1,7 @@
 <?php
 
 use Beeralex\Core\Repository\IblockRepository;
+use Beeralex\Core\Repository\IblockSectionRepository;
 use Beeralex\Core\Service\UrlService;
 use Bitrix\Main\Application;
 use Bitrix\Main\Loader;
@@ -19,7 +20,8 @@ class BeeralexMenu extends CBitrixComponent
         'SECTION_PAGE_URL' => 'IBLOCK.SECTION_PAGE_URL',
     ];
 
-    protected $iblockSectionRepository;
+    protected IblockRepository $iblockRepository;
+    protected IblockSectionRepository $iblockSectionRepository;
 
     public function onPrepareComponentParams($params)
     {
@@ -31,8 +33,8 @@ class BeeralexMenu extends CBitrixComponent
             );
         }
 
-        $iblockRepository = new IblockRepository($params['IBLOCK_ID']);
-        $this->iblockSectionRepository = $iblockRepository->getIblockSectionRepository();
+        $this->iblockRepository = new IblockRepository($params['IBLOCK_ID']);
+        $this->iblockSectionRepository = $this->iblockRepository->getIblockSectionRepository();
 
         return $params;
     }
@@ -114,5 +116,15 @@ class BeeralexMenu extends CBitrixComponent
         unset($section);
 
         return $tree;
+    }
+
+    public function getIblockRepository(): IblockRepository
+    {
+        return $this->iblockRepository;
+    }
+
+    public function getIblockSectionRepository(): IblockSectionRepository
+    {
+        return $this->iblockSectionRepository;
     }
 }

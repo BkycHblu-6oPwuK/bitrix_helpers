@@ -62,4 +62,9 @@ class BeeralexContent extends \CBitrixComponent
 
         $this->includeComponentTemplate();
     }
+    
+    public function getContentRepository(): ContentRepository
+    {
+        return $this->contentRepository;
+    }
 }

@@ -52,7 +52,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryContrac
         global $USER;
         static $currentUser;
         if ($currentUser === null || $refresh) {
-            if ($userId = $USER->GetID()) {
+            if (is_object($USER) && $userId = $USER->GetID()) {
                 $currentUser = $this->getById((int)$userId) ?? $this->factory->create([]);
             } else {
                 $currentUser = $this->factory->create([]);
