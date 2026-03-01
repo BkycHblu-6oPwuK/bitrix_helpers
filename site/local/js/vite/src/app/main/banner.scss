@@ -1,0 +1,17 @@
+@use "@/common/scss/var" as *;
+
+.banner__container {
+    width: 100%;
+    height: 400px;
+    position: relative;
+
+    .banner__title {
+        font-size: $font-size-xl;
+        line-height: $line-height-heading;
+        color: $color-white;
+
+        @include mobile {
+            font-size: $font-size-lg;
+        }
+    }
+}
