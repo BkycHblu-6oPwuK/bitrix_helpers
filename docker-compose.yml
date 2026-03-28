@@ -15,7 +15,7 @@ services:
         depends_on:
             - app
         networks:
-            - compose
+            - docky
         container_name: nginx
     app:
         build:
@@ -33,7 +33,7 @@ services:
         depends_on:
             - mysql
         networks:
-            - compose
+            - docky
         extra_hosts:
             - host.docker.internal:host-gateway
         container_name: app
@@ -49,7 +49,7 @@ services:
             MYSQL_DATABASE: site
             MYSQL_ROOT_PASSWORD: root
         networks:
-            - compose
+            - docky
         container_name: mysql
     node:
         build:
@@ -66,7 +66,7 @@ services:
         depends_on:
             - app
         networks:
-            - compose
+            - docky
         command: sh -c "pm2 start /var/www/nuxt/ecosystem.config.cjs --name node-server & tail -f /dev/null"
         working_dir: ${NODE_PATH}
         container_name: node
@@ -76,5 +76,5 @@ volumes:
     redis_data: {}
     sphinx_data: {}
 networks:
-    compose:
+    docky:
         driver: bridge
