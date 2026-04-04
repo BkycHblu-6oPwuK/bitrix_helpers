@@ -34,11 +34,8 @@ const remove = async () => {
     <UCard class="basket-item">
         <div class="flex gap-4">
             <NuxtLink :to="item.url" class="flex-shrink-0">
-                <img
-                    :src="item.previewPictureSrc || item.detailPictureSrc"
-                    :alt="item.name"
-                    class="w-24 h-24 object-cover rounded-lg"
-                />
+                <img :src="item.previewPictureSrc || item.detailPictureSrc" :alt="item.name"
+                    class="w-24 h-24 object-cover rounded-lg" />
             </NuxtLink>
 
             <div class="flex-1 min-w-0">
@@ -49,7 +46,8 @@ const remove = async () => {
                 <div class="mt-2 flex items-center gap-2">
                     <div>
                         <span class="text-xl font-bold">{{ item.priceFormatted }}</span>
-                        <span v-if="item.oldPrice" class="ml-2 text-sm text-gray-500 line-through" v-html="item.oldPriceFormatted">
+                        <span v-if="item.oldPrice" class="ml-2 text-sm text-gray-500 line-through"
+                            v-html="item.oldPriceFormatted">
                         </span>
                     </div>
 
@@ -60,36 +58,21 @@ const remove = async () => {
 
                 <div class="mt-4 flex items-center gap-4">
                     <div class="flex items-center gap-2">
-                        <UButton
-                            icon="i-heroicons-minus"
-                            size="sm"
-                            color="secondary"
-                            variant="outline"
-                            :disabled="quantity <= 1"
-                            @click="decrement"
-                        />
-                        
-                        <UInput
-                            v-model.number="quantity"
-                            type="number"
-                            min="1"
-                            class="w-20 text-center"
-                            @blur="updateQuantity(quantity)"
-                        />
-                        
-                        <UButton
-                            icon="i-heroicons-plus"
-                            size="sm"
-                            color="secondary"
-                            variant="outline"
-                            @click="increment"
-                        />
+                        <UButton icon="i-heroicons-minus" size="sm" color="secondary" variant="outline"
+                            :disabled="quantity <= 1" @click="decrement" />
+
+                        <UInput v-model.number="quantity" type="number" min="1" class="w-20 text-center"
+                            @blur="updateQuantity(quantity)" />
+
+                        <UButton icon="i-heroicons-plus" size="sm" color="secondary" variant="outline"
+                            @click="increment" />
                     </div>
 
                     <div class="ml-auto">
                         <div class="text-right">
                             <div class="text-lg font-bold" v-html="item.fullPriceFormatted"></div>
-                            <div v-if="item.fullOldPrice" class="text-sm text-gray-500 line-through" v-html="item.fullOldPriceFormatted">
+                            <div v-if="item.fullOldPrice" class="text-sm text-gray-500 line-through"
+                                v-html="item.fullOldPriceFormatted">
                             </div>
                         </div>
                     </div>
@@ -97,13 +80,7 @@ const remove = async () => {
             </div>
 
             <div class="flex-shrink-0">
-                <UButton
-                    icon="i-heroicons-trash"
-                    color="error"
-                    variant="ghost"
-                    size="sm"
-                    @click="remove"
-                />
+                <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="sm" @click="remove" />
             </div>
         </div>
     </UCard>

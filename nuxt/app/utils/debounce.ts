@@ -19,16 +19,16 @@
  * handleSearch('abcde') // Выполнится только этот
  */
 export function debounce<T extends (...args: any[]) => void>(
-  fn: T,
-  delay = 300
+    fn: T,
+    delay = 300
 ): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | undefined
+    let timeout: ReturnType<typeof setTimeout> | undefined
 
-  return (...args: Parameters<T>): void => {
-    // Отменяем предыдущий таймер, если он есть
-    if (timeout) clearTimeout(timeout)
-    
-    // Устанавливаем новый таймер
-    timeout = setTimeout(() => fn(...args), delay)
-  }
+    return (...args: Parameters<T>): void => {
+        // Отменяем предыдущий таймер, если он есть
+        if (timeout) clearTimeout(timeout)
+
+        // Устанавливаем новый таймер
+        timeout = setTimeout(() => fn(...args), delay)
+    }
 }

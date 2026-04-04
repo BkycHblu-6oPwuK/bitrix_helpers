@@ -25,11 +25,12 @@ services:
                 USERGROUP: ${USERGROUP}
         volumes:
             - ${SITE_PATH}:/var/www
-            - ${DOCKER_PATH}/app/php-${PHP_VERSION}/php.ini:/usr/local/etc/php/conf.d/php.ini
-            - ${DOCKER_PATH}/app/php-fpm.conf:/usr/local/etc/php-fpm.d/zzzzwww.conf
-            - ${DOCKER_PATH}/app/nginx:/etc/nginx/conf.d
         ports:
             - 9000:9000
+            - 6001:6001
+        environment:
+            PHP_IDE_CONFIG: serverName=xdebugServer
+            XDEBUG_TRIGGER: testTrig
         depends_on:
             - mysql
         networks:
@@ -51,6 +52,14 @@ services:
         networks:
             - docky
         container_name: mysql
+    mailhog:
+        image: mailhog/mailhog
+        ports:
+            - 1025:1025
+            - 8025:8025
+        networks:
+            - docky
+        container_name: mailhog
     node:
         build:
             context: ${DOCKER_PATH}
@@ -67,14 +76,11 @@ services:
             - app
         networks:
             - docky
-        command: sh -c "pm2 start /var/www/nuxt/ecosystem.config.cjs --name node-server & tail -f /dev/null"
+        command: sh -c "su -s /bin/sh docky -c 'pm2 start /var/www/nuxt/ecosystem.config.cjs --name node-server' && tail -f /dev/null"
         working_dir: ${NODE_PATH}
         container_name: node
 volumes:
-    mysql_data:
-        name: doc_mysql_data
-    redis_data: {}
-    sphinx_data: {}
+    mysql_data: {}
 networks:
     docky:
         driver: bridge

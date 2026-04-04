@@ -10,10 +10,10 @@ import type { SliderArticlesContent } from '~/types/iblock/content'
 
 // Пропсы: массив статей для слайдера
 const props = defineProps<{
-  data: SliderArticlesContent['result']
+    data: SliderArticlesContent['result']
 }>()
 </script>
 
 <template>
-  <Dump :data="props.data" :label="'SliderArticles.vue'"></Dump>
+    <Dump :data="props.data" :label="'SliderArticles.vue'"></Dump>
 </template>

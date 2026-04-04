@@ -12,7 +12,7 @@ import type { PaginationDTO } from "../pagination"
  * @template F - Тип данных фильтра
  * @template SL - Тип списка разделов (массив или null)
  */
-export interface SectionData<SL = any[]|null, F = FilterDTO|null, S = any> {
+export interface SectionData<SL = any[] | null, F = FilterDTO | null, S = any> {
     sectionList: SL // Список дочерних разделов (для навигации)
     filter: F // Данные фильтра (поля, сортировка, выбранные значения)
     section: SectionItemsDTO<S> // Элементы с пагинацией

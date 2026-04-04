@@ -4,11 +4,11 @@ export const useBootstrap = () => {
     const basketStore = useBasketStore();
 
     async function init() {
-        if (process.client && window.__BOOTSTRAP_DONE__) return;
-        if (process.client) window.__BOOTSTRAP_DONE__ = true;
-        
+        if (import.meta.client && window.__BOOTSTRAP_DONE__) return;
+        if (import.meta.client) window.__BOOTSTRAP_DONE__ = true;
+
         await userStore.loadUser();
-        
+
         await Promise.all([
             favourite.load(),
             basketStore.fetchIds()

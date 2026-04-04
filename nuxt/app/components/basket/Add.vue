@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const basketStore = useBasketStore()
 
-const itemInBasket = computed(() => 
+const itemInBasket = computed(() =>
     basketStore.items.find(item => item.offerId === props.offerId)
 )
 
@@ -65,126 +65,55 @@ const sizeClasses = computed(() => {
 <template>
     <div class="add-to-basket">
         <template v-if="variant === 'icon'">
-            <UButton
-                v-if="!isInBasket"
-                icon="i-heroicons-shopping-cart"
-                color="primary"
-                :size="size"
-                :disabled="disabled"
-                @click="addToBasket"
-            />
+            <UButton v-if="!isInBasket" icon="i-heroicons-shopping-cart" color="primary" :size="size"
+                :disabled="disabled" @click="addToBasket" />
             <UBadge v-else color="primary" :size="size">
                 {{ itemInBasket?.quantity }}
             </UBadge>
         </template>
 
         <template v-else-if="variant === 'compact'">
-            <UButton
-                v-if="!isInBasket"
-                icon="i-heroicons-shopping-cart"
-                :label="size === 'sm' ? '' : 'В корзину'"
-                color="primary"
-                :size="size"
-                :disabled="disabled"
-                @click="addToBasket"
-            />
+            <UButton v-if="!isInBasket" icon="i-heroicons-shopping-cart" :label="size === 'sm' ? '' : 'В корзину'"
+                color="primary" :size="size" :disabled="disabled" @click="addToBasket" />
             <div v-else class="flex items-center gap-1 border border-gray-300 dark:border-gray-600 rounded-lg">
-                <UButton
-                    icon="i-heroicons-minus"
-                    color="secondary"
-                    variant="ghost"
-                    :size="size"
-                    :class="sizeClasses.counter"
-                    @click="decrement"
-                />
+                <UButton icon="i-heroicons-minus" color="secondary" variant="ghost" :size="size"
+                    :class="sizeClasses.counter" @click="decrement" />
                 <span class="min-w-[2rem] text-center font-medium">
                     {{ itemInBasket?.quantity }}
                 </span>
-                <UButton
-                    icon="i-heroicons-plus"
-                    color="secondary"
-                    variant="ghost"
-                    :size="size"
-                    :class="sizeClasses.counter"
-                    @click="increment"
-                />
+                <UButton icon="i-heroicons-plus" color="secondary" variant="ghost" :size="size"
+                    :class="sizeClasses.counter" @click="increment" />
             </div>
         </template>
 
         <template v-else>
             <div v-if="!isInBasket" class="flex items-center gap-2">
-                <div v-if="size !== 'sm'" class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
-                    <UButton
-                        icon="i-heroicons-minus"
-                        color="secondary"
-                        variant="ghost"
-                        :size="size"
-                        :disabled="localQuantity <= 1"
-                        @click="localQuantity--"
-                    />
-                    <UInput
-                        v-model.number="localQuantity"
-                        type="number"
-                        min="1"
-                        :class="sizeClasses.input"
-                        class="text-center border-0"
-                    />
-                    <UButton
-                        icon="i-heroicons-plus"
-                        color="secondary"
-                        variant="ghost"
-                        :size="size"
-                        @click="localQuantity++"
-                    />
+                <div v-if="size !== 'sm'"
+                    class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
+                    <UButton icon="i-heroicons-minus" color="secondary" variant="ghost" :size="size"
+                        :disabled="localQuantity <= 1" @click="localQuantity--" />
+                    <UInput v-model.number="localQuantity" type="number" min="1" :class="sizeClasses.input"
+                        class="text-center border-0" />
+                    <UButton icon="i-heroicons-plus" color="secondary" variant="ghost" :size="size"
+                        @click="localQuantity++" />
                 </div>
-                
-                <UButton
-                    icon="i-heroicons-shopping-cart"
-                    label="В корзину"
-                    color="primary"
-                    :size="size"
-                    :class="sizeClasses.button"
-                    :disabled="disabled"
-                    class="flex-1"
-                    @click="addToBasket"
-                />
+
+                <UButton icon="i-heroicons-shopping-cart" label="В корзину" color="primary" :size="size"
+                    :class="sizeClasses.button" :disabled="disabled" class="flex-1" @click="addToBasket" />
             </div>
 
             <div v-else class="flex items-center gap-2">
                 <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
-                    <UButton
-                        icon="i-heroicons-minus"
-                        color="secondary"
-                        variant="ghost"
-                        :size="size"
-                        @click="decrement"
-                    />
-                    <UInput
-                        :model-value="itemInBasket?.quantity"
-                        type="number"
-                        min="1"
-                        :class="sizeClasses.input"
-                        class="text-center border-0"
-                        @blur="updateQuantity(Number($event.target.value))"
-                    />
-                    <UButton
-                        icon="i-heroicons-plus"
-                        color="secondary"
-                        variant="ghost"
-                        :size="size"
-                        @click="increment"
-                    />
+                    <UButton icon="i-heroicons-minus" color="secondary" variant="ghost" :size="size"
+                        @click="decrement" />
+                    <UInput :model-value="itemInBasket?.quantity" type="number" min="1" :class="sizeClasses.input"
+                        class="text-center border-0" @blur="updateQuantity(Number($event.target.value))" />
+                    <UButton icon="i-heroicons-plus" color="secondary" variant="ghost" :size="size"
+                        @click="increment" />
                 </div>
-                
-                <UButton
-                    icon="i-heroicons-check"
-                    label="В корзине"
-                    color="success"
-                    :size="size"
-                    variant="soft"
-                    class="flex-1"
-                    disabled
-                />
+
+                <UButton icon="i-heroicons-check" label="В корзине" color="success" :size="size" variant="soft"
+                    class="flex-1" disabled />
             </div>
         </template>
     </div>

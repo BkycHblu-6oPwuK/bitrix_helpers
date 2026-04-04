@@ -10,6 +10,16 @@ export default defineNuxtConfig({
     },
   },
 
+  routeRules: {
+    '/': { swr: 300 },
+    '/catalog': { swr: 300 },
+    '/catalog/**': { swr: 300 },
+    '/product/**': { swr: 300 },
+    '/articles': { swr: 300 },
+    '/articles/**': { swr: 300 },
+    '/reviews': { swr: 300 },
+  },
+
   ui: {
     fonts: false
   },

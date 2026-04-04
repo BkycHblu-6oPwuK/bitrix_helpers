@@ -12,27 +12,27 @@ const registerFormRef = ref()
 const phoneFormRef = ref()
 
 const handleSuccess = () => {
-  modelValue.value = false
-  emit('close')
+    modelValue.value = false
+    emit('close')
 }
 
 const switchMode = (newMode: AuthMode) => {
-  mode.value = newMode
-  loginFormRef.value?.clearErrors()
-  registerFormRef.value?.clearErrors()
-  phoneFormRef.value?.clearErrors()
+    mode.value = newMode
+    loginFormRef.value?.clearErrors()
+    registerFormRef.value?.clearErrors()
+    phoneFormRef.value?.clearErrors()
 }
 
 watch(modelValue, async (value) => {
-  if (value) {
-    await userStore.loadAuthMethods()
-    mode.value = userStore.defaultAuthMode
-  } else {
-    mode.value = 'login'
-    loginFormRef.value?.reset()
-    registerFormRef.value?.reset()
-    phoneFormRef.value?.reset()
-  }
+    if (value) {
+        await userStore.loadAuthMethods()
+        mode.value = userStore.defaultAuthMode
+    } else {
+        mode.value = 'login'
+        loginFormRef.value?.reset()
+        registerFormRef.value?.reset()
+        phoneFormRef.value?.reset()
+    }
 })
 </script>
 
@@ -54,63 +54,33 @@ watch(modelValue, async (value) => {
             </div>
 
             <div v-else>
-                <div v-if="mode !== 'register' && (userStore.hasEmailAuth || userStore.hasPhoneAuth)" 
-                     class="grid gap-3 mb-6" 
-                     :class="userStore.hasEmailAuth && userStore.hasPhoneAuth ? 'grid-cols-2' : 'grid-cols-1'">
-                    <UButton 
-                      v-if="userStore.hasEmailAuth"
-                      :variant="mode === 'login' ? 'solid' : 'outline'" 
-                      block 
-                      size="lg" 
-                      @click="switchMode('login')"
-                    >
+                <div v-if="mode !== 'register' && (userStore.hasEmailAuth || userStore.hasPhoneAuth)"
+                    class="grid gap-3 mb-6"
+                    :class="userStore.hasEmailAuth && userStore.hasPhoneAuth ? 'grid-cols-2' : 'grid-cols-1'">
+                    <UButton v-if="userStore.hasEmailAuth" :variant="mode === 'login' ? 'solid' : 'outline'" block
+                        size="lg" @click="switchMode('login')">
                         Email
                     </UButton>
 
-                    <UButton 
-                      v-if="userStore.hasPhoneAuth"
-                      :variant="mode === 'phone' ? 'solid' : 'outline'" 
-                      block 
-                      size="lg" 
-                      @click="switchMode('phone')"
-                    >
+                    <UButton v-if="userStore.hasPhoneAuth" :variant="mode === 'phone' ? 'solid' : 'outline'" block
+                        size="lg" @click="switchMode('phone')">
                         Телефон
                     </UButton>
                 </div>
 
-                <AuthLoginForm
-                  v-if="mode === 'login' && userStore.hasEmailAuth"
-                  ref="loginFormRef"
-                  @success="handleSuccess"
-                  @switch-to-register="switchMode('register')"
-                />
+                <AuthLoginForm v-if="mode === 'login' && userStore.hasEmailAuth" ref="loginFormRef"
+                    @success="handleSuccess" @switch-to-register="switchMode('register')" />
 
-                <AuthRegisterForm
-                  v-if="mode === 'register' && userStore.hasEmailAuth"
-                  ref="registerFormRef"
-                  @success="handleSuccess"
-                  @switch-to-login="switchMode('login')"
-                />
+                <AuthRegisterForm v-if="mode === 'register' && userStore.hasEmailAuth" ref="registerFormRef"
+                    @success="handleSuccess" @switch-to-login="switchMode('login')" />
 
-                <AuthPhoneLoginForm
-                  v-if="mode === 'phone' && userStore.hasPhoneAuth"
-                  ref="phoneFormRef"
-                  @success="handleSuccess"
-                  @switch-to-email="switchMode('login')"
-                />
+                <AuthPhoneLoginForm v-if="mode === 'phone' && userStore.hasPhoneAuth" ref="phoneFormRef"
+                    @success="handleSuccess" @switch-to-email="switchMode('login')" />
 
-                <AuthSocials
-                  v-if="mode === 'login'"
-                  :methods="userStore.socialAuthMethods"
-                />
+                <AuthSocials v-if="mode === 'login'" :methods="userStore.socialAuthMethods" />
 
-                <UAlert 
-                  v-if="!userStore.hasAnyAuthMethod"
-                  color="error"
-                  variant="soft"
-                  title="Методы авторизации не настроены"
-                  class="mb-4"
-                />
+                <UAlert v-if="!userStore.hasAnyAuthMethod" color="error" variant="soft"
+                    title="Методы авторизации не настроены" class="mb-4" />
             </div>
         </template>
     </UModal>

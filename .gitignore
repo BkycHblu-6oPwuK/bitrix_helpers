@@ -75,7 +75,7 @@ ehthumbs.db
 *:Zone.Identifier
 
 # однако храним robots.txt — он нужен
-!/robots.txt
+!**/robots.txt
 
 # не файлы миграций
 !/local/php_interface/migrations/**/

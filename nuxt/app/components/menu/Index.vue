@@ -15,15 +15,15 @@ const { topMenu, bottomMenu } = useMenu()
 
 // Маппинг типов меню на данные
 const menuDataMap: Record<MenuType, MenuData | null> = {
-  top_menu: topMenu,        // Верхнее меню
-  catalog_menu: null,       // Меню каталога (загружается отдельно)
-  bottom_menu: bottomMenu,  // Нижнее меню (футер)
+    top_menu: topMenu,        // Верхнее меню
+    catalog_menu: null,       // Меню каталога (загружается отдельно)
+    bottom_menu: bottomMenu,  // Нижнее меню (футер)
 }
 
 // Маппинг типов меню на компоненты Vue
 const componentsMap: Record<string, Component> = {
-  top_menu: MenuBlocksTopMenu,
-  bottom_menu: MenuBlocksFooterMenu,
+    top_menu: MenuBlocksTopMenu,
+    bottom_menu: MenuBlocksFooterMenu,
 }
 
 /**
@@ -31,7 +31,7 @@ const componentsMap: Record<string, Component> = {
  * Возвращает UnknownMenu если тип неизвестен
  */
 const resolveComponent = (type: MenuType) => {
-  return componentsMap[type] || MenuBlocksUnknownMenu
+    return componentsMap[type] || MenuBlocksUnknownMenu
 }
 
 // Данные текущего меню
@@ -39,5 +39,5 @@ const menu = menuDataMap[props.menuType]
 </script>
 
 <template>
-  <component v-if="menu?.menu" :is="resolveComponent(props.menuType)" :data="menu.menu" />
+    <component v-if="menu?.menu" :is="resolveComponent(props.menuType)" :data="menu.menu" />
 </template>

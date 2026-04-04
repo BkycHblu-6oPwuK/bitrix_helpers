@@ -8,7 +8,7 @@
  */
 export type Error = {
     code: Number,            // Код ошибки
-    customData: null|Object, // Дополнительные данные ошибки
+    customData: null | Object, // Дополнительные данные ошибки
     message: string          // Текстовое описание ошибки
 }
 
@@ -16,7 +16,7 @@ export type Error = {
  * Успешный ответ API
  * @template T - Тип данных в ответе
  */
-export type ApiSuccess<T> = { 
+export type ApiSuccess<T> = {
     status: 'success'; // Статус успеха
     data: T;           // Полезная нагрузка
     errors: []         // Пустой массив ошибок
@@ -25,7 +25,7 @@ export type ApiSuccess<T> = {
 /**
  * Ответ API с ошибкой
  */
-export type ApiError = { 
+export type ApiError = {
     status: 'error';   // Статус ошибки
     data: null;        // Данных нет
     errors: Error[]    // Массив ошибок

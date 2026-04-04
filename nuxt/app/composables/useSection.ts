@@ -12,56 +12,56 @@ import type { SectionData } from '~/types/iblock/page'
  * @returns Объект с данными секции и методами управления
  */
 export function useSection<T extends SectionData>(initialData?: T) {
-  const store = useSectionStore()
+    const store = useSectionStore()
 
-  // Инициализируем store данными с сервера (только при первой загрузке)
-  if (initialData) {
-    store.initialize(initialData)
-  }
+    // Инициализируем store данными с сервера (только при первой загрузке)
+    if (initialData) {
+        store.initialize(initialData)
+    }
 
-  // Отслеживаем навигацию по истории браузера (кнопки Назад/Вперед)
-  if (process.client) {
-    onMounted(() => {
-      const handlePopState = async () => {
-        if(!apiUrl.value) {
-          throw new Error('API URL is not set in section store');
-        }
-        apiUrl.value.search = window.location.search;
-        await store.loadPage<T>(apiUrl.value)
-      }
-      
-      window.addEventListener('popstate', handlePopState)
-      
-      onUnmounted(() => {
-        window.removeEventListener('popstate', handlePopState)
-      })
+    // Отслеживаем навигацию по истории браузера (кнопки Назад/Вперед)
+    if (import.meta.client) {
+        onMounted(() => {
+            const handlePopState = async () => {
+                if (!apiUrl.value) {
+                    throw new Error('API URL is not set in section store');
+                }
+                apiUrl.value.search = window.location.search;
+                await store.loadPage<T>(apiUrl.value)
+            }
+
+            window.addEventListener('popstate', handlePopState)
+
+            onUnmounted(() => {
+                window.removeEventListener('popstate', handlePopState)
+            })
+        })
+    }
+
+    // Получаем реактивные ссылки на данные из store
+    const { items, pagination, selectedFilters, sectionList, path, filterData, isLoading, error, apiUrl, additionalData } = storeToRefs(store)
+
+    // Объединяем данные в единую структуру для удобного использования в компонентах
+    const sectionData = computed<T>(() => {
+        return {
+            filter: filterData.value,
+            section: {
+                items: items.value,
+                pagination: pagination.value,
+                path: path.value
+            },
+            sectionList: sectionList.value,
+            ...additionalData.value
+        } as T
     })
-  }
 
-  // Получаем реактивные ссылки на данные из store
-  const { items, pagination, selectedFilters, sectionList, path, filterData, isLoading, error, apiUrl, additionalData } = storeToRefs(store)
-
-  // Объединяем данные в единую структуру для удобного использования в компонентах
-  const sectionData = computed<T>(() => {
     return {
-      filter: filterData.value,
-      section: {
-        items: items.value,
-        pagination: pagination.value,
-        path: path.value
-      },
-      sectionList: sectionList.value,
-      ...additionalData.value
-    } as T
-  })
-
-  return {
-    sectionData, // Объединенные данные секции
-    isLoading, // Флаг загрузки
-    error, // Объект ошибки
-    selectedFilters, // Выбранные фильтры
-    loadPage: store.loadPage, // Метод загрузки страницы
-    setAppendMode: store.setAppendMode, // Установка режима дозагрузки
-    setApiUrl: store.setApiUrl, // Установка API URL
-  }
+        sectionData, // Объединенные данные секции
+        isLoading, // Флаг загрузки
+        error, // Объект ошибки
+        selectedFilters, // Выбранные фильтры
+        loadPage: store.loadPage, // Метод загрузки страницы
+        setAppendMode: store.setAppendMode, // Установка режима дозагрузки
+        setApiUrl: store.setApiUrl, // Установка API URL
+    }
 }

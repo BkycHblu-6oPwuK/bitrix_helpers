@@ -5,5 +5,5 @@ useSeoPage(data.value?.data?.seo);
 </script>
 
 <template>
-   <DevDump :data="data" :label="'Статьи'"></DevDump>
+    <DevDump :data="data" :label="'Статьи'"></DevDump>
 </template>

@@ -7,7 +7,7 @@ export function useCheckoutForm() {
     const checkoutStore = useCheckoutStore()
 
     // Правила валидации
-    const validateCheckoutForm = (values: CheckoutFormDTO & { 
+    const validateCheckoutForm = (values: CheckoutFormDTO & {
         activePay: string
         deliveryId: string
         address: string

@@ -12,34 +12,34 @@ export const useBasketStore = defineStore('basket', {
 
     getters: {
         items: (state): BasketItemDTO[] => state.basket?.items || [],
-        
-        totalQuantity: (state): number => 
+
+        totalQuantity: (state): number =>
             state.basket?.summary.totalQuantity || state.ids.length,
-        
-        totalPrice: (state): number => 
+
+        totalPrice: (state): number =>
             state.basket?.summary.totalPrice || 0,
-        
-        totalPriceFormatted: (state): string => 
+
+        totalPriceFormatted: (state): string =>
             state.basket?.summary.totalPriceFormatted || '',
-        
-        totalDiscount: (state): number => 
+
+        totalDiscount: (state): number =>
             state.basket?.summary.totalDiscount || 0,
-        
-        totalDiscountFormatted: (state): string => 
+
+        totalDiscountFormatted: (state): string =>
             state.basket?.summary.totalDiscountFormatted || '',
-        
+
         coupon: (state) => state.basket?.coupon,
-        
-        isEmpty: (state): boolean => 
+
+        isEmpty: (state): boolean =>
             !state.basket?.items.length,
-        
-        hasItems: (state): boolean => 
+
+        hasItems: (state): boolean =>
             !!state.basket?.items.length,
     },
 
     actions: {
         async fetchIds() {
-            if(this.loadingIds) return;
+            if (this.loadingIds) return;
             this.loadingIds = true
             try {
                 const { data } = await useApiFetch<BasketIdsApiResponse>('/basket/get-ids')
@@ -51,12 +51,12 @@ export const useBasketStore = defineStore('basket', {
             }
         },
         async fetchBasket() {
-            if(this.loading) return;
+            if (this.loading) return;
             this.loading = true
 
             try {
                 const { data } = await useApiFetch<BasketApiResponse>('/basket/get')
-                
+
                 if (data?.page?.basket) {
                     this.basket = data.page.basket
                     this.initialized = true

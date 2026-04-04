@@ -8,10 +8,10 @@ import Dump from '~/components/dev/Dump.vue';
 
 // Пропсы: любые данные меню
 const props = defineProps<{
-  data?: any
+    data?: any
 }>()
 </script>
 
 <template>
-  <Dump :data="data" :label="'Неизвестное меню'"></Dump>
+    <Dump :data="data" :label="'Неизвестное меню'"></Dump>
 </template>

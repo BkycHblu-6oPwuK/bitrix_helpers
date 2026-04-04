@@ -9,10 +9,10 @@ import type { SliderContent } from '~/types/iblock/content'
 
 // Пропсы: данные слайдов (изображения, тексты, ссылки)
 const props = defineProps<{
-  data: SliderContent['result']
+    data: SliderContent['result']
 }>()
 </script>
 
 <template>
-  <Dump :data="props.data" :label="'Slider.vue'"></Dump>
+    <Dump :data="props.data" :label="'Slider.vue'"></Dump>
 </template>

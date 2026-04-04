@@ -12,9 +12,6 @@ if (data.value?.data?.seo) {
 
 <template>
     <div class="container mx-auto px-4 py-8">
-        <CatalogElement 
-            v-if="data?.data?.page.element" 
-            :item="data?.data?.page.element" 
-        />
+        <CatalogElement v-if="data?.data?.page.element" :item="data?.data?.page.element" />
     </div>
 </template>

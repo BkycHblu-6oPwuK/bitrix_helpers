@@ -8,10 +8,10 @@ import Dump from '~/components/dev/Dump.vue';
 
 // Пропсы: любые данные блока
 const props = defineProps<{
-  data?: any
+    data?: any
 }>()
 </script>
 
 <template>
-  <Dump :data="data" :label="'Неизвестный блок контента'"></Dump>
+    <Dump :data="data" :label="'Неизвестный блок контента'"></Dump>
 </template>

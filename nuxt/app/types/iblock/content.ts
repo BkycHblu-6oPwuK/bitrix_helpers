@@ -25,14 +25,14 @@ import type { FileSrc } from '../file'
  * Включает конкретные типы, но допускает и произвольные строки (новые типы).
  */
 export type MainPageContentType =
-  | 'main_banner'
-  | 'slider'
-  | 'products'
-  | 'slider_articles'
-  | 'video'
-  | 'new'
-  | 'popular'
-  | string
+    | 'main_banner'
+    | 'slider'
+    | 'products'
+    | 'slider_articles'
+    | 'video'
+    | 'new'
+    | 'popular'
+    | string
 
 /**
  * Базовый (универсальный) интерфейс блока контента.
@@ -41,32 +41,32 @@ export type MainPageContentType =
  * передать их в `Dump` или в заглушку для отладки.
  */
 export interface MainContentItemDTO {
-  type: MainPageContentType // Тип блока
-  result: Record<string, any> // Неявно типизированные данные блока
+    type: MainPageContentType // Тип блока
+    result: Record<string, any> // Неявно типизированные данные блока
 }
 
 /**
  * Блок главного баннера — обычно содержит массив элементов (картинки/слайды)
  */
 export interface MainBannerContent {
-  type: 'main_banner'
-  result: MainBannerDTO
+    type: 'main_banner'
+    result: MainBannerDTO
 }
 
 /**
  * Блок слайдера (карусель товаров или произвольных карточек)
  */
 export interface SliderContent {
-  type: 'slider'
-  result: ProductSliderDTO
+    type: 'slider'
+    result: ProductSliderDTO
 }
 
 /**
  * Блок: слайдер со статьями (содержит ссылку и массив элементов)
  */
 export interface SliderArticlesContent {
-  type: 'slider_articles'
-  result: ListArticlesDTO
+    type: 'slider_articles'
+    result: ListArticlesDTO
 }
 
 /**
@@ -76,39 +76,39 @@ export interface SliderArticlesContent {
  * Блок видео: может содержать список элементов с видео или ссылками
  */
 export interface VideoContent {
-  type: 'video'
-  result: VideoDTO
+    type: 'video'
+    result: VideoDTO
 }
 
 /**
  * DTO для главного баннера: массив элементов (ElementDTO содержит базовые поля)
  */
 export interface MainBannerDTO {
-  items: ElementDTO[]
+    items: ElementDTO[]
 }
 
 /**
  * DTO для блока видео — использует такую же структуру элементов
  */
 export interface VideoDTO {
-  items: ElementDTO[]
+    items: ElementDTO[]
 }
 
 /**
  * DTO для списка статей в слайдере
  */
 export interface ListArticlesDTO {
-  link: string
-  items: ElementDTO[]
+    link: string
+    items: ElementDTO[]
 }
 
 /**
  * DTO для слайдера с продуктами: заголовок, ссылка "все" и массив товаров
  */
 export interface ProductSliderDTO {
-  title: string
-  linkToAll: string
-  items: CatalogItemDTO[]
+    title: string
+    linkToAll: string
+    items: CatalogItemDTO[]
 }
 
 /**
@@ -116,16 +116,16 @@ export interface ProductSliderDTO {
  * Каждый элемент может быть одного из известных интерфейсов или универсальным объектом.
  */
 export type MainPageContent = (
-  | MainBannerContent
-  | SliderContent
-  | SliderArticlesContent
-  | VideoContent
-  | MainContentItemDTO
-  | Record<string, any>
+    | MainBannerContent
+    | SliderContent
+    | SliderArticlesContent
+    | VideoContent
+    | MainContentItemDTO
+    | Record<string, any>
 )[]
 
 export interface ContentDTO {
-  title: string,
-  text: string,
-  pictureSrc: FileSrc,
+    title: string,
+    text: string,
+    pictureSrc: FileSrc,
 }

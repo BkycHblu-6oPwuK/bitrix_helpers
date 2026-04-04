@@ -11,12 +11,12 @@ const { data } = await useApi<SectionsPageApiResponse>('catalog')
 
 // Установка SEO мета-тегов страницы
 if (data.value?.data?.seo) {
-  useSeoPage(data.value.data.seo)
+    useSeoPage(data.value.data.seo)
 }
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <CatalogSections v-if="data?.data?.page?.sectionList" :sections="data.data.page.sectionList" />
-  </div>
+    <div class="container mx-auto px-4 py-8">
+        <CatalogSections v-if="data?.data?.page?.sectionList" :sections="data.data.page.sectionList" />
+    </div>
 </template>

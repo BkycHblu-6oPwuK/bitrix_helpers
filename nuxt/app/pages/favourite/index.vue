@@ -5,8 +5,8 @@ const urlParams = useRoute().query;
 const apiUrl = `favorite/page?${new URLSearchParams(urlParams as Record<string, string>).toString()}`;
 const page = ref<FavouritePageDTO>()
 onMounted(() => {
-    useApiFetch<FavouritePageApiResponse>(apiUrl).then(({data}) => {
-        if(data?.page) {
+    useApiFetch<FavouritePageApiResponse>(apiUrl).then(({ data }) => {
+        if (data?.page) {
             page.value = data.page;
         }
         if (data?.seo) {

@@ -9,4 +9,4 @@ import type { SectionData } from "./page"
 /**
  * Данные списка статей с пагинацией
  */
-export interface ArticlesDTO extends SectionData<null, null, ElementDTO> {}
+export interface ArticlesDTO extends SectionData<null, null, ElementDTO> { }

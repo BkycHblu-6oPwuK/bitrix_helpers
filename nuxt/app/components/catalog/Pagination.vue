@@ -6,18 +6,18 @@
 <script setup lang="ts">
 // События для родительского компонента
 const emit = defineEmits<{
-  showMore: [] // Дозагрузка следующей страницы
-  changePage: [page: number] // Переход на конкретную страницу
+    showMore: [] // Дозагрузка следующей страницы
+    changePage: [page: number] // Переход на конкретную страницу
 }>()
 
 // Обработчик кнопки "Показать еще"
 const handleShowMore = () => {
-  emit('showMore')
+    emit('showMore')
 }
 
 // Обработчик клика по номеру страницы
 const handleChangePage = (page: number) => {
-  emit('changePage', page)
+    emit('changePage', page)
 }
 
 // Получаем данные пагинации из store

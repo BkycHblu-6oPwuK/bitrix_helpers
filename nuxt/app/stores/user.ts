@@ -87,7 +87,7 @@ export const useUserStore = defineStore('user', {
         },
 
         async loadAuthMethods() {
-            if(this.isLoadingMethods) return;
+            if (this.isLoadingMethods) return;
             this.isLoadingMethods = true
             try {
                 const response = await useApiFetch<AuthMethodsApiResponse>('user/methods', {
@@ -108,9 +108,9 @@ export const useUserStore = defineStore('user', {
         },
 
         async loadUser() {
-            if(this.userLoaded) return;
+            if (this.userLoaded) return;
             this.userLoaded = true
-            
+
             try {
                 const response = await useApiFetch<MeApiResponse>('/user/me', {
                     method: 'get'

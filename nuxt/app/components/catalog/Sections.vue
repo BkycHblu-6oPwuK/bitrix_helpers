@@ -8,16 +8,12 @@ import type { SectionDTO } from '~/types/iblock';
 
 // Пропсы: массив дочерних разделов
 const props = defineProps<{
-  sections: Array<SectionDTO>
+    sections: Array<SectionDTO>
 }>()
 </script>
 
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <CatalogSectionItem
-            v-for="item in sections"
-            :key="item.id"
-            :item="item"
-        />
+        <CatalogSectionItem v-for="item in sections" :key="item.id" :item="item" />
     </div>
 </template>

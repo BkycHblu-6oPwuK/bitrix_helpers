@@ -4,13 +4,15 @@ import type { $Fetch } from 'ofetch'
 
 function getBaseUrl() {
   const config = useRuntimeConfig()
-  return process.server
-    ? config.apiBaseServer
-    : config.public.apiBaseClient
+  return config.public.apiBaseClient
 }
 
 function getCleanPath(path: string) {
   return path.replace(/^\/+/, '')
+}
+
+function getApiFetch() {
+  return (import.meta.server ? useRequestFetch() : useNuxtApp().$fetch) as $Fetch
 }
 
 /**
@@ -34,7 +36,7 @@ export function useApi<T = unknown>(
     key?: string
     query?: Record<string, any>
     body?: any
-    method?: 'get' | 'post'
+    method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
     lazy?: boolean
     contentType?: ContentType
   } = {}
@@ -53,7 +55,7 @@ export function useApi<T = unknown>(
         options.contentType
       )
 
-      const fetch = useNuxtApp().$fetch as $Fetch
+      const fetch = getApiFetch()
       const res = await fetch<ApiResponse<T>>(cleanPath, {
         baseURL,
         method: options.method || 'get',
@@ -95,7 +97,7 @@ export async function useApiFetch<T = unknown>(
   options: {
     query?: Record<string, any>
     body?: any
-    method?: 'get' | 'post'
+    method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
     contentType?: ContentType
   } = {}
 ) {
@@ -107,7 +109,7 @@ export async function useApiFetch<T = unknown>(
       options.body,
       options.contentType
     )
-    const fetch = useNuxtApp().$fetch as $Fetch
+    const fetch = getApiFetch()
     const res = await fetch<ApiResponse<T>>(cleanPath, {
       baseURL,
       method: options.method || 'get',

@@ -40,7 +40,7 @@ export const useFavouriteStore = defineStore('favourite', {
                     },
                 );
 
-                if(!data) return;
+                if (!data) return;
 
                 if (data.action === 'added') {
                     if (!this.items.includes(id)) this.items.push(id);
@@ -48,7 +48,7 @@ export const useFavouriteStore = defineStore('favourite', {
                     this.items = this.items.filter((x) => x !== id);
                 }
             } catch (e) {
-                useToast().error({message: 'Ошибка при добавлении в избранное'});
+                useToast().error({ message: 'Ошибка при добавлении в избранное' });
             }
         },
     },

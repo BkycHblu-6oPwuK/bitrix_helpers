@@ -12,7 +12,7 @@ const item = toRef(props, 'item');
 const { isAvailable, images, price } = useCatalogItem(item);
 
 // ID предложения для корзины (либо preselectedOffer, либо сам товар)
-const offerId = computed(() => 
+const offerId = computed(() =>
     item.value.preselectedOffer?.id || item.value.id
 )
 </script>
@@ -20,9 +20,10 @@ const offerId = computed(() =>
 <template>
     <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
         <NuxtLink :to="item.detailPageUrl" class="block relative mb-auto">
-            <Favourite :productId="item.id" :absolute="true"/>
+            <Favourite :productId="item.id" :absolute="true" />
             <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md mb-4 overflow-hidden">
-                <img v-if="images && images.length > 0" :src="images[0]" :alt="item.name" class="w-full h-full object-cover" />
+                <img v-if="images && images.length > 0" :src="images[0]" :alt="item.name"
+                    class="w-full h-full object-cover" />
                 <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
                     <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -35,7 +36,7 @@ const offerId = computed(() =>
                 {{ item.name }}
             </h3>
 
-            <CatalogPrice v-if="price" :price="price"/>
+            <CatalogPrice v-if="price" :price="price" />
 
             <div class="mt-2 text-sm">
                 <span :class="[
@@ -49,12 +50,7 @@ const offerId = computed(() =>
 
         <!-- Кнопка добавления в корзину -->
         <div class="mt-4" @click.stop>
-            <BasketAdd
-                :offer-id="offerId"
-                :disabled="!isAvailable"
-                size="sm"
-                variant="compact"
-            />
+            <BasketAdd :offer-id="offerId" :disabled="!isAvailable" size="sm" variant="compact" />
         </div>
     </div>
 </template>

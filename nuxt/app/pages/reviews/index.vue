@@ -6,5 +6,5 @@ useSeoPage(data.value?.data?.seo);
 </script>
 
 <template>
-   <Dump :data="data" :label="'отзывы'"></Dump>
+    <Dump :data="data" :label="'отзывы'"></Dump>
 </template>

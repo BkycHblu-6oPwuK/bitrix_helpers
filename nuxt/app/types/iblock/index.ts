@@ -10,20 +10,20 @@ import type { FileSrc } from "../file"
  * Содержит стандартные поля Bitrix и пользовательские свойства
  */
 export interface ElementDTO {
-  id: number                     // Уникальный ID элемента
-  code: string                   // Символьный код
-  name: string                   // Название элемента
+    id: number                     // Уникальный ID элемента
+    code: string                   // Символьный код
+    name: string                   // Название элемента
 
-  previewText: string            // Анонс (краткое описание)
-  previewPicture: string         // URL картинки анонса
-  detailText: string             // Подробное описание
-  detailPicture: string          // URL детальной картинки
+    previewText: string            // Анонс (краткое описание)
+    previewPicture: string         // URL картинки анонса
+    detailText: string             // Подробное описание
+    detailPicture: string          // URL детальной картинки
 
-  detailPageUrl: string          // URL детальной страницы
-  listPageUrl: string            // URL списка/раздела
-  dateCreate: string             // Дата создания (ISO формат)
+    detailPageUrl: string          // URL детальной страницы
+    listPageUrl: string            // URL списка/раздела
+    dateCreate: string             // Дата создания (ISO формат)
 
-  properties: PropertyItemDTO[]  // Массив пользовательских свойств
+    properties: PropertyItemDTO[]  // Массив пользовательских свойств
 }
 
 /**
@@ -32,14 +32,14 @@ export interface ElementDTO {
  */
 
 export interface PropertyItemDTO {
-  id: number                            // Уникальный ID свойства
-  code: string                           // Символьный код свойства
-  name: string                           // Название свойства
-  value: string | number | boolean | null // Значение свойства
-  type?: string | null                   // Тип свойства (string, number, file, list и т.д.)
-  xmlId?: string | null                  // Внешний код свойства
-  link?: string | null                   // Ссылка на ресурс (если применимо)
-  pictureSrc?: string | null             // URL картинки (если свойство - картинка)
+    id: number                            // Уникальный ID свойства
+    code: string                           // Символьный код свойства
+    name: string                           // Название свойства
+    value: string | number | boolean | null // Значение свойства
+    type?: string | null                   // Тип свойства (string, number, file, list и т.д.)
+    xmlId?: string | null                  // Внешний код свойства
+    link?: string | null                   // Ссылка на ресурс (если применимо)
+    pictureSrc?: string | null             // URL картинки (если свойство - картинка)
 }
 
 /**

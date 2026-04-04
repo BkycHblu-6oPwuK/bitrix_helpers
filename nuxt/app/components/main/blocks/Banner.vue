@@ -9,10 +9,10 @@ import type { MainBannerContent } from '~/types/iblock/content'
 
 // Пропсы: данные баннера (текст, изображения, ссылки)
 const props = defineProps<{
-  data: MainBannerContent['result']
+    data: MainBannerContent['result']
 }>()
 </script>
 
 <template>
-  <Dump :data="props.data" :label="'MainBanner.vue'"></Dump>
+    <Dump :data="props.data" :label="'MainBanner.vue'"></Dump>
 </template>

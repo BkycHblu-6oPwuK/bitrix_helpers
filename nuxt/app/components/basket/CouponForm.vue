@@ -38,22 +38,10 @@ const applyCoupon = async () => {
         </div>
 
         <div v-else class="space-y-3">
-            <UInput
-                v-model="couponCode"
-                placeholder="Введите промокод"
-                size="lg"
-                @keyup.enter="applyCoupon"
-            />
-            
-            <UButton
-                block
-                color="primary"
-                variant="outline"
-                label="Применить"
-                :loading="loading"
-                :disabled="!couponCode.trim()"
-                @click="applyCoupon"
-            />
+            <UInput v-model="couponCode" placeholder="Введите промокод" size="lg" @keyup.enter="applyCoupon" />
+
+            <UButton block color="primary" variant="outline" label="Применить" :loading="loading"
+                :disabled="!couponCode.trim()" @click="applyCoupon" />
         </div>
     </UCard>
 </template>

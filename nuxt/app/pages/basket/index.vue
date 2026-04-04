@@ -22,15 +22,9 @@ const clearBasket = async () => {
     <div class="container mx-auto px-4 py-8">
         <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold">Корзина</h1>
-            
-            <UButton
-                v-if="basketStore.hasItems"
-                color="error"
-                variant="ghost"
-                icon="i-heroicons-trash"
-                label="Очистить корзину"
-                @click="clearBasket"
-            />
+
+            <UButton v-if="basketStore.hasItems" color="error" variant="ghost" icon="i-heroicons-trash"
+                label="Очистить корзину" @click="clearBasket" />
         </div>
 
         <div v-if="basketStore.loading && !basketStore.initialized" class="text-center py-12">
@@ -42,26 +36,17 @@ const clearBasket = async () => {
             <UIcon name="i-heroicons-shopping-cart" class="text-6xl text-gray-400 mb-4" />
             <h2 class="text-2xl font-semibold text-gray-600 mb-2">Корзина пуста</h2>
             <p class="text-gray-500 mb-6">Добавьте товары, чтобы оформить заказ</p>
-            <UButton
-                to="/catalog"
-                color="primary"
-                size="lg"
-                label="Перейти в каталог"
-            />
+            <UButton to="/catalog" color="primary" size="lg" label="Перейти в каталог" />
         </div>
 
         <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-4">
-                <BasketItem
-                    v-for="item in basketStore.items"
-                    :key="item.id"
-                    :item="item"
-                />
+                <BasketItem v-for="item in basketStore.items" :key="item.id" :item="item" />
             </div>
 
             <div class="space-y-4">
                 <BasketCouponForm />
-                
+
                 <BasketSummary />
             </div>
         </div>
