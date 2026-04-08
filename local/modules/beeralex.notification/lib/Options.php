@@ -10,7 +10,7 @@ final class Options extends AbstractOptions
 
     protected function mapOptions(array $options): void
     {
-        $this->moduleEnable = $options['MODULE_ENABLED'] ?? false;
+        $this->moduleEnable = $options['module_enabled'] ?? false;
     }
 
     public function getModuleId(): string

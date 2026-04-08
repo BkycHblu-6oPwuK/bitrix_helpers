@@ -26,7 +26,7 @@ class SectionItemsDTO extends Resource
     public static function makeFrom(array $sectionItems, ?PaginationDTO $pagination = null, array $path = []): static
     {
         return new static([
-            'items' => $sectionItems,
+            'items' => array_values($sectionItems),
             'pagination' => $pagination,
             'path' => $path,
         ]);

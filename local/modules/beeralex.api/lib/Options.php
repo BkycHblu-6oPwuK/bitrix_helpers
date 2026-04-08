@@ -11,7 +11,7 @@ final class Options extends AbstractOptions
 
     protected function mapOptions(array $options): void
     {
-        $this->spaApiEnabled = (bool)($options['SPA_API_ENABLED'] ?? false);
+        $this->spaApiEnabled = (bool)($options['spa_api_enabled'] ?? false);
     }
 
     public function getModuleId(): string
