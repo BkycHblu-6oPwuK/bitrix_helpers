@@ -33,13 +33,13 @@ const remove = async () => {
 <template>
     <UCard class="basket-item">
         <div class="flex gap-4">
-            <NuxtLink :to="item.url" class="flex-shrink-0">
+            <NuxtLink :to="item.url" :prefetch="false" class="flex-shrink-0">
                 <img :src="item.previewPictureSrc || item.detailPictureSrc" :alt="item.name"
                     class="w-24 h-24 object-cover rounded-lg" />
             </NuxtLink>
 
             <div class="flex-1 min-w-0">
-                <NuxtLink :to="item.url" class="hover:text-primary-500">
+                <NuxtLink :to="item.url" :prefetch="false" class="hover:text-primary-500">
                     <h3 class="text-lg font-semibold truncate">{{ item.name }}</h3>
                 </NuxtLink>
 

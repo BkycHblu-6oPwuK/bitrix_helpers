@@ -23,7 +23,7 @@ const props = defineProps<{ data: MenuItem }>()
                text-gray-800 dark:text-gray-200 transition-colors">
                 <div v-for="(item, i) in data.children || []" :key="i" class="space-y-2">
                     <!-- Основной раздел -->
-                    <NuxtLink :to="item.link || '#'" class="block font-medium text-gray-800 dark:text-gray-100
+                    <NuxtLink :to="item.link || '#'" :prefetch="false" class="block font-medium text-gray-800 dark:text-gray-100
                    hover:text-primary-600 dark:hover:text-primary-400
                    transition-colors">
                         {{ item.name }}
@@ -32,7 +32,7 @@ const props = defineProps<{ data: MenuItem }>()
                     <!-- Подразделы -->
                     <ul v-if="item.children?.length" class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                         <li v-for="child in item.children" :key="child.id">
-                            <NuxtLink :to="child.link || '#'" class="block pl-2 border-l border-gray-100 dark:border-gray-700
+                            <NuxtLink :to="child.link || '#'" :prefetch="false" class="block pl-2 border-l border-gray-100 dark:border-gray-700
                        hover:border-primary-400 dark:hover:border-primary-500
                        hover:text-primary-600 dark:hover:text-primary-400
                        transition-colors">

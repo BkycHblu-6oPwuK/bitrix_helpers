@@ -14,7 +14,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <NuxtLink :to="item.url || '#'"
+    <NuxtLink :to="item.url || '#'" :prefetch="false"
         class="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-lg transition-shadow">
         <div class="text-lg font-semibold mb-2">{{ item.name }}</div>
     </NuxtLink>

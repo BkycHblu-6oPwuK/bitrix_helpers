@@ -19,7 +19,7 @@ const offerId = computed(() =>
 
 <template>
     <div class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
-        <NuxtLink :to="item.detailPageUrl" class="block relative mb-auto">
+        <NuxtLink :to="item.detailPageUrl" :prefetch="false" class="block relative mb-auto">
             <Favourite :productId="item.id" :absolute="true" />
             <div class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-md mb-4 overflow-hidden">
                 <img v-if="images && images.length > 0" :src="images[0]" :alt="item.name"

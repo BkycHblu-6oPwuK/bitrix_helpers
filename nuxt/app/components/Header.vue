@@ -72,7 +72,7 @@ const openAuthModal = () => {
 
         <div class="py-3">
             <UContainer class="flex flex-wrap items-center justify-between gap-4">
-                <NuxtLink to="/" class="flex items-center gap-2">
+                <NuxtLink to="/" :prefetch="false" class="flex items-center gap-2">
                     <div
                         class="bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold text-lg px-4 py-2 rounded-md">
                         logo
@@ -87,13 +87,13 @@ const openAuthModal = () => {
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <NuxtLink to="/favourite"
+                    <NuxtLink to="/favourite" :prefetch="false"
                         class="flex items-center gap-2 px-2 py-1 rounded text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
                         <UIcon name="i-heroicons-heart" class="w-5 h-5" />
                         <span>Избранное</span>
                     </NuxtLink>
 
-                    <NuxtLink to="/basket"
+                    <NuxtLink to="/basket" :prefetch="false"
                         class="flex items-center gap-2 px-2 py-1 rounded text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
                         <UIcon name="i-heroicons-shopping-cart" class="w-5 h-5" />
                         <span>Корзина</span>

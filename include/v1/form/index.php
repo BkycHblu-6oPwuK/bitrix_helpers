@@ -20,7 +20,7 @@ $APPLICATION->IncludeComponent(
 		"LIST_URL" => "",
 		"SEF_MODE" => "Y", // когда SEF_MODE = Y, то нужно в SUCCESS_URL передать WEB_FORM_ID в гет параметрах, макрос #WEB_FORM_ID# битрикс подменяет в компоненте
         "SEF_FOLDER" => "/",
-		"SUCCESS_URL" => 'api/v1/web-form/?WEB_FORM_ID=#WEB_FORM_ID#',
+		"SUCCESS_URL" => 'bitrix/api/v1/web-form/?WEB_FORM_ID=#WEB_FORM_ID#',
 		"USE_EXTENDED_ERRORS" => "Y",
 		"VARIABLE_ALIASES" => Array("RESULT_ID"=>"RESULT_ID","WEB_FORM_ID"=>"WEB_FORM_ID"),
 		"WEB_FORM_ID" => $formId,

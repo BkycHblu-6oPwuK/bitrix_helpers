@@ -130,9 +130,9 @@ $APPLICATION->IncludeComponent(
 		"USE_SHARE" => "N",
 		"SEF_FOLDER" => "/",
 		"SEF_URL_TEMPLATES" => array(
-			"news" => "api/v1/reviews",
+			"news" => "bitrix/api/v1/reviews",
 			"section" => "",
-			"detail" => "api/v1/reviews/#ELEMENT_ID#",
+			"detail" => "bitrix/api/v1/reviews/#ELEMENT_ID#",
 		)
 	),
 	false

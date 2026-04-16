@@ -7,8 +7,8 @@ ErrorDocument 404 /404.php
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-l
 	RewriteCond %{REQUEST_FILENAME} !-d
-	RewriteCond %{REQUEST_FILENAME} !/bitrix/urlrewrite.php$
-	RewriteRule ^(.*)$ /bitrix/urlrewrite.php [L]
+	RewriteCond %{REQUEST_FILENAME} !/local/urlrewrite.php$
+	RewriteRule ^(.*)$ /local/urlrewrite.php [L]
 	RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}]
 </IfModule>
 

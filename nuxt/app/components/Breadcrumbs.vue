@@ -33,7 +33,7 @@ const items = computed<BreadcrumbItem[]>(() => {
     <nav v-if="items.length" aria-label="Breadcrumb">
         <ol class="breadcrumbs">
             <li v-for="(item, i) in items" :key="i">
-                <NuxtLink v-if="item.to && i !== items.length - 1" :to="item.to">
+                <NuxtLink v-if="item.to && i !== items.length - 1" :to="item.to" :prefetch="false">
                     {{ item.title }}
                 </NuxtLink>
                 <span v-else>{{ item.title }}</span>

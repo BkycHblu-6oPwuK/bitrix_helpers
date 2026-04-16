@@ -167,9 +167,9 @@ $APPLICATION->IncludeComponent(
 		"COMPONENT_TEMPLATE" => "articles-page",
 		"SEF_FOLDER" => "/",
 		"SEF_URL_TEMPLATES" => array(
-			"news" => "api/v1/articles",
+			"news" => "bitrix/api/v1/articles",
 			"section" => "",
-			"detail" => "api/v1/articles/#ELEMENT_CODE#",
+			"detail" => "bitrix/api/v1/articles/#ELEMENT_CODE#",
 		)
 	),
 	false

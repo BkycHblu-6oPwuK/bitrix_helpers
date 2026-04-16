@@ -31,6 +31,15 @@ return [
             'encryption_key' => 'KMC0N/+dFrGoB2CYlH3q2XQwLJBLvY2En6+fS4i9rZs=', // ключ шифрования
         ]
     ],
+    'beeralex.core' => [
+        'value' => [
+            'url_remove_parts' => [
+                'bitrix/api',
+                'api',
+                'v1',
+            ]
+        ]
+    ],
     'services' => [
         'value' => [
             DIServiceKey::PRODUCT_REPOSITORY->value => [

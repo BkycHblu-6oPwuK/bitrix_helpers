@@ -5,38 +5,32 @@
   Клик по кнопке ведет на страницу каталога
 -->
 <script setup lang="ts">
-import { watch, ref, computed } from 'vue'
+import { watch, ref } from 'vue'
 import type { MenuData } from '~/types/menu'
 
 // Состояние открытия поповера
 const isOpen = ref(false)
 
-// Ссылка на API объект (lazy-loaded)
-const api = ref<any>(null)
-
-// Computed свойства для удобного доступа к данным API
-const data = computed(() => api.value?.data)
-const pending = computed(() => api.value?.pending)
-const error = computed(() => api.value?.error)
-
-/**
- * Инициализация API объекта (только при первом вызове)
- */
-async function ensureApi() {
-    if (!api.value) {
-        api.value = await useApi<MenuData>('get-menu', {
-            query: { menuType: 'catalog' },
-        })
-    }
-}
+const data = ref<MenuData | null>(null)
+const pending = ref(false)
+const error = ref<any>(null)
 
 /**
  * Загрузка данных меню, если еще не загружено
  */
 async function fetchMenuIfNeeded() {
-    await ensureApi()
-    if (!data.value && !pending.value) {
-        await api.value.execute()
+    if (data.value || pending.value) return
+    pending.value = true
+    error.value = null
+    try {
+        const res = await useApiFetch<MenuData>('get-menu', {
+            query: { menuType: 'catalog' },
+        })
+        data.value = res.data ?? null
+    } catch (e) {
+        error.value = e
+    } finally {
+        pending.value = false
     }
 }
 
@@ -49,7 +43,7 @@ function toCatalog() {
 
 // Загружаем данные при открытии поповера
 watch(isOpen, async (value) => {
-    if (value) {
+    if (value && import.meta.client) {
         await fetchMenuIfNeeded()
     }
 })
@@ -74,9 +68,9 @@ watch(isOpen, async (value) => {
                 <div v-else-if="error" class="flex items-center justify-center p-4 text-red-500">
                     Ошибка загрузки
                 </div>
-                <div v-else-if="data?.data?.menu" class="grid grid-cols-2 gap-6">
-                    <div v-for="item in data.data.menu" :key="item.id" class="space-y-2">
-                        <NuxtLink :to="item.link || '#'" class="block font-medium text-gray-800 dark:text-gray-100
+                <div v-else-if="data?.menu" class="grid grid-cols-2 gap-6">
+                    <div v-for="item in data.menu" :key="item.id" class="space-y-2">
+                        <NuxtLink :to="item.link || '#'" :prefetch="false" class="block font-medium text-gray-800 dark:text-gray-100
                      hover:text-primary-600 dark:hover:text-primary-400
                      transition-colors">
                             {{ item.name }}
@@ -84,7 +78,7 @@ watch(isOpen, async (value) => {
 
                         <ul v-if="item.children?.length" class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                             <li v-for="child in item.children" :key="child.id">
-                                <NuxtLink :to="child.link || '#'" class="block pl-2 border-l border-gray-100 dark:border-gray-700
+                                <NuxtLink :to="child.link || '#'" :prefetch="false" class="block pl-2 border-l border-gray-100 dark:border-gray-700
                          hover:border-primary-400 dark:hover:border-primary-500
                          hover:text-primary-600 dark:hover:text-primary-400
                          transition-colors">
