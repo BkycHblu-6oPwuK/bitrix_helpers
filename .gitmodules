@@ -1,0 +1,33 @@
+[submodule "local/modules/itb.licencecheck"]
+	path = local/modules/itb.licencecheck
+	url = https://git.itb-dev.ru/ITB-dev/itb.licencecheck.git
+[submodule "local/modules/itb.seo"]
+	path = local/modules/itb.seo
+	url = https://git.itb-dev.ru/ITB-dev/itb.seo.git
+[submodule "local/modules/itb.sms"]
+	path = local/modules/itb.sms
+	url = https://git.itb-dev.ru/ITB-dev/itb.sms.git
+[submodule "local/modules/beeralex.core"]
+	path = local/modules/beeralex.core
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.core.git
+[submodule "local/modules/beeralex.user"]
+	path = local/modules/beeralex.user
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.user.git
+[submodule "local/modules/beeralex.marking"]
+	path = local/modules/beeralex.marking
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.marking.git
+[submodule "local/modules/beeralex.favorite"]
+	path = local/modules/beeralex.favorite
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.favorite.git
+[submodule "local/modules/beeralex.oauth2"]
+	path = local/modules/beeralex.oauth2
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.oauth2.git
+[submodule "local/modules/beeralex.gigachat"]
+	path = local/modules/beeralex.gigachat
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.gigachat.git
+[submodule "local/modules/beeralex.reviews"]
+	path = local/modules/beeralex.reviews
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.reviews.git
+[submodule "local/modules/beeralex.catalog"]
+	path = local/modules/beeralex.catalog
+	url = https://github.com/BkycHblu-6oPwuK/beeralex.catalog.git
