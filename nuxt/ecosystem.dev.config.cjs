@@ -10,11 +10,11 @@ module.exports = {
             script: path.join(appDir, '.output/server/index.mjs'),
             cwd: appDir,
 
-            exec_mode: 'cluster', // cluster или 'fork' для одного процесса
-            instances: 'max', // количество экземпляров, можно указать 'max' для использования всех ядер
+            exec_mode: 'fork',
+            instances: 1,
 
             node_args: [
-                '--max-old-space-size=768', // под каждый процесс
+                '--max-old-space-size=768',
                 ...(process.env.NUXT_DEBUG === 'true' ? ['--expose-gc', '--heapsnapshot-signal=SIGUSR2'] : []),
             ].join(' '),
 
@@ -23,7 +23,7 @@ module.exports = {
             min_uptime: '10s',
             restart_delay: 2000,
 
-            max_memory_restart: '1000M', // под каждый процесс
+            max_memory_restart: '1000M',
 
             error_file: path.join(appDir, 'logs/err.log'),
             out_file: path.join(appDir, 'logs/out.log'),

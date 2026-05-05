@@ -4,9 +4,7 @@ import type { BasketItemDTO } from '~/types/basket'
 const props = defineProps<{
     item: BasketItemDTO
 }>()
-
 const basketStore = useBasketStore()
-
 const quantity = ref(props.item.quantity)
 
 watch(() => props.item.quantity, (newVal) => {

@@ -37,7 +37,7 @@ const basketStore = useBasketStore()
         </div>
 
         <template #footer>
-            <UButton block to="/checkout" size="lg" color="primary" label="Оформить заказ"
+            <UButton block to="/checkout/" size="lg" color="primary" label="Оформить заказ"
                 :disabled="basketStore.isEmpty" />
         </template>
     </UCard>

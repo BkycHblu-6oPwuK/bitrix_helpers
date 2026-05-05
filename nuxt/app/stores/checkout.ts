@@ -111,7 +111,7 @@ export const useCheckoutStore = defineStore('checkout', {
                 }
             } catch (e) {
                 console.error('Checkout refresh error:', e)
-                useToast().error({ message: 'Ошибка обновления данных заказа' })
+                useToast().add({ title: 'Ошибка обновления данных заказа', color: 'error' })
             } finally {
                 this.loading = false
             }
@@ -148,7 +148,7 @@ export const useCheckoutStore = defineStore('checkout', {
                 }
             } catch (e) {
                 console.error('Checkout refresh error:', e)
-                useToast().error({ message: 'Ошибка обновления данных заказа' })
+                useToast().add({ title: 'Ошибка обновления данных заказа', color: 'error' })
             } finally {
                 this.loading = false
             }
@@ -176,11 +176,11 @@ export const useCheckoutStore = defineStore('checkout', {
                 if (data?.page?.redirectUrl) {
                     window.location.href = data.page.redirectUrl
                 } else if (data?.page?.error) {
-                    useToast().error({ message: data.page.error })
+                    useToast().add({ title: data.page.error, color: 'error' })
                 }
             } catch (e: any) {
                 console.error('Order confirm error:', e)
-                useToast().error({ message: e.message || 'Ошибка при оформлении заказа' })
+                useToast().add({ title: e.message || 'Ошибка при оформлении заказа', color: 'error' })
             } finally {
                 this.loading = false
             }

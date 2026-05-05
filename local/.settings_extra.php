@@ -37,7 +37,8 @@ return [
                 'bitrix/api',
                 'api',
                 'v1',
-            ]
+            ],
+            'url_trailing_slash' => true,
         ]
     ],
     'services' => [

@@ -14,7 +14,7 @@ export const useMenu = () => {
             {
                 id: 1,
                 name: 'Статьи',
-                link: '/articles',
+                link: '/articles/',
                 children: [],
                 code: '',
                 iblockSectionId: 0,
@@ -22,7 +22,7 @@ export const useMenu = () => {
             {
                 id: 2,
                 name: 'Отзывы',
-                link: '/reviews',
+                link: '/reviews/',
                 children: [],
                 code: '',
                 iblockSectionId: 0,
@@ -43,7 +43,7 @@ export const useMenu = () => {
                     {
                         id: 11,
                         name: 'О компании',
-                        link: '/about-company',
+                        link: '/about-company/',
                         children: [],
                         code: '',
                         iblockSectionId: 0,
@@ -51,7 +51,7 @@ export const useMenu = () => {
                     {
                         id: 12,
                         name: 'Отзывы',
-                        link: '/reviews',
+                        link: '/reviews/',
                         children: [],
                         code: '',
                         iblockSectionId: 0,
@@ -68,7 +68,7 @@ export const useMenu = () => {
                     {
                         id: 21,
                         name: 'Политика конфиденциальности',
-                        link: '/policy',
+                        link: '/policy/',
                         children: [],
                         code: '',
                         iblockSectionId: 0,
@@ -76,7 +76,7 @@ export const useMenu = () => {
                     {
                         id: 22,
                         name: 'Карта сайта',
-                        link: '/sitemap',
+                        link: '/sitemap/',
                         children: [],
                         code: '',
                         iblockSectionId: 0,

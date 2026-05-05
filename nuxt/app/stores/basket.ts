@@ -3,7 +3,7 @@ import type { BasketApiResponse, BasketDataDTO, BasketIdsApiResponse, BasketItem
 
 export const useBasketStore = defineStore('basket', {
     state: () => ({
-        ids: [] as number[],
+        ids: null as number[] | null,
         basket: null as BasketDataDTO | null,
         loading: false,
         loadingIds: false,
@@ -11,10 +11,10 @@ export const useBasketStore = defineStore('basket', {
     }),
 
     getters: {
-        items: (state): BasketItemDTO[] => state.basket?.items || [],
+        items: (state): BasketItemDTO[] | null => state.basket?.items || null,
 
         totalQuantity: (state): number =>
-            state.basket?.summary.totalQuantity || state.ids.length,
+            state.basket?.summary.totalQuantity || state.ids?.length || 0,
 
         totalPrice: (state): number =>
             state.basket?.summary.totalPrice || 0,
@@ -43,7 +43,7 @@ export const useBasketStore = defineStore('basket', {
             this.loadingIds = true
             try {
                 const { data } = await useApiFetch<BasketIdsApiResponse>('/basket/get-ids')
-                this.ids = data?.data?.ids || []
+                this.ids = data.ids
             } catch (e) {
                 console.error('Basket fetch IDs error:', e)
             } finally {
@@ -63,7 +63,7 @@ export const useBasketStore = defineStore('basket', {
                 }
             } catch (e) {
                 console.error('Basket fetch error:', e)
-                useToast().error({ message: 'Ошибка загрузки корзины' })
+                useToast().add({ title: 'Ошибка загрузки корзины', color: 'error' })
             } finally {
                 this.loading = false
             }
@@ -81,11 +81,11 @@ export const useBasketStore = defineStore('basket', {
 
                 if (data?.page?.basket) {
                     this.basket = data.page.basket
-                    useToast().success({ message: 'Товар добавлен в корзину' })
+                    useToast().add({ title: 'Товар добавлен в корзину', color: 'success' })
                 }
             } catch (e) {
                 console.error('Add to basket error:', e)
-                useToast().error({ message: 'Ошибка при добавлении в корзину' })
+                useToast().add({ title: 'Ошибка при добавлении в корзину', color: 'error' })
             }
         },
 
@@ -109,7 +109,7 @@ export const useBasketStore = defineStore('basket', {
                 }
             } catch (e) {
                 console.error('Update basket error:', e)
-                useToast().error({ message: 'Ошибка при обновлении количества' })
+                useToast().add({ title: 'Ошибка при обновлении количества', color: 'error' })
             }
         },
 
@@ -124,11 +124,11 @@ export const useBasketStore = defineStore('basket', {
 
                 if (data?.page?.basket) {
                     this.basket = data.page.basket
-                    useToast().success({ message: 'Товар удален из корзины' })
+                    useToast().add({ title: 'Товар удален из корзины', color: 'success' })
                 }
             } catch (e) {
                 console.error('Remove from basket error:', e)
-                useToast().error({ message: 'Ошибка при удалении товара' })
+                useToast().add({ title: 'Ошибка при удалении товара', color: 'error' })
             }
         },
 
@@ -143,11 +143,11 @@ export const useBasketStore = defineStore('basket', {
 
                 if (data?.page?.basket) {
                     this.basket = data.page.basket
-                    useToast().success({ message: 'Корзина очищена' })
+                    useToast().add({ title: 'Корзина очищена', color: 'success' })
                 }
             } catch (e) {
                 console.error('Clear basket error:', e)
-                useToast().error({ message: 'Ошибка при очистке корзины' })
+                useToast().add({ title: 'Ошибка при очистке корзины', color: 'error' })
             }
         },
 
@@ -163,23 +163,23 @@ export const useBasketStore = defineStore('basket', {
 
                 if (data?.page?.basket) {
                     this.basket = data.page.basket
-                    useToast().success({ message: 'Купон применен' })
+                    useToast().add({ title: 'Купон применен', color: 'success' })
                 }
             } catch (e) {
                 console.error('Apply coupon error:', e)
-                useToast().error({ message: 'Ошибка при применении купона' })
+                useToast().add({ title: 'Ошибка при применении купона', color: 'error' })
             }
         },
 
         async incrementItem(offerId: number) {
-            const item = this.items.find(i => i.offerId === offerId)
+            const item = this.items?.find(i => i.offerId === offerId)
             if (item) {
                 await this.updateItem(offerId, item.quantity + 1)
             }
         },
 
         async decrementItem(offerId: number) {
-            const item = this.items.find(i => i.offerId === offerId)
+            const item = this.items?.find(i => i.offerId === offerId)
             if (item) {
                 await this.updateItem(offerId, item.quantity - 1)
             }

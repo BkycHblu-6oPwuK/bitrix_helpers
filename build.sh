@@ -2,10 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NUXT_DIR="$SCRIPT_DIR/nuxt"
-
-MODE="${1:-auto}"
+MODE="auto"
+PM2_CONFIG="ecosystem.config.cjs"
 
 log() {
 	echo "[build.sh] $*"
@@ -25,14 +24,6 @@ run() {
 	"$@"
 }
 
-case "$MODE" in
-	auto|local|prod)
-		;;
-	*)
-		fail "Unknown mode: $MODE. Use: auto | local | prod"
-		;;
-esac
-
 if [[ "$MODE" == "auto" ]]; then
 	if command -v docky >/dev/null 2>&1; then
 		MODE="local"
@@ -41,15 +32,44 @@ if [[ "$MODE" == "auto" ]]; then
 	fi
 fi
 
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--mode=*)
+			MODE="${1#*=}"
+			shift
+			;;
+		--mode)
+			MODE="$2"
+			shift 2
+			;;
+		--pm2=*)
+			PM2_CONFIG="${1#*=}"
+			shift
+			;;
+		--pm2)
+			PM2_CONFIG="$2"
+			shift 2
+			;;
+		*)
+			fail "Unknown argument: $1"
+			;;
+	esac
+done
+
+case "$MODE" in
+	local|prod)
+		;;
+	*)
+		fail "Unknown mode: $MODE. Use: local | prod"
+		;;
+esac
+
 log "Mode: $MODE"
+log "PM2 config: $PM2_CONFIG"
 
-if [[ ! -f "$SCRIPT_DIR/composer.json" ]]; then
-	fail "composer.json not found in $SCRIPT_DIR"
-fi
-
-if [[ ! -f "$NUXT_DIR/package.json" ]]; then
-	fail "package.json not found in $NUXT_DIR"
-fi
+[[ -f "$NUXT_DIR/$PM2_CONFIG" ]] || fail "PM2 config not found: $PM2_CONFIG"
+[[ -f "$SCRIPT_DIR/composer.json" ]] || fail "composer.json not found"
+[[ -f "$NUXT_DIR/package.json" ]] || fail "package.json not found"
 
 if [[ "$MODE" == "local" ]]; then
 	need_cmd docky
@@ -58,7 +78,8 @@ if [[ "$MODE" == "local" ]]; then
 
 	run docky npm install
 	run docky npm run build
-	run docky pm2 restart nuxt-ssr
+
+	run docky pm2 startOrRestart "$PM2_CONFIG" --update-env
 else
 	need_cmd composer
 	need_cmd npm
@@ -71,7 +92,7 @@ else
 	run npm install
 	run npm run build
 
-	run pm2 restart nuxt-ssr
+	run pm2 startOrRestart "$PM2_CONFIG" --update-env
 fi
 
 log "Done"

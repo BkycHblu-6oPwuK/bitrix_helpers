@@ -50,6 +50,7 @@ export type LoginApiResponse = {
     refreshToken: string
     accessTokenExpired: number
     refreshTokenExpired: number
+    user: UserDTO | null
 }
 
 export type RefreshTokensApiResponse = {
@@ -57,6 +58,7 @@ export type RefreshTokensApiResponse = {
     refreshToken: string
     accessTokenExpired: number
     refreshTokenExpired: number
+    user: UserDTO | null
 }
 
 export type MeApiResponse = {

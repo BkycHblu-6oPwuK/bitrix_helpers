@@ -46,8 +46,17 @@ class JwtTokenHandler
             $userId = (int)$decoded['sub'];
             if ($userId > 0) {
                 global $USER;
-                if (!($USER instanceof \CUser) || (!$USER->IsAuthorized() || $USER->GetID() != $userId)) {
-                    service(EmptyAuthentificator::class)->authorizeByUserId($userId);
+
+                if (!($USER instanceof \CUser)) {
+                    $USER = new \CUser();
+                }
+
+                $needAuth =
+                    !$USER->IsAuthorized() ||
+                    (int)$USER->GetID() !== (int)$userId;
+
+                if ($needAuth) {
+                    $result = service(EmptyAuthentificator::class)->authorizeByUserId($userId);
                 }
                 static::updateLastActivity($request);
             }

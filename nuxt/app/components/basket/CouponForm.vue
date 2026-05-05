@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const basketStore = useBasketStore()
-
 const couponCode = ref('')
 const loading = ref(false)
 

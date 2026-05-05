@@ -32,22 +32,9 @@ class CatalogController extends Controller
     public function indexAction()
     {
         return $this->process(function () {
-            $cacheKey = sprintf(
-                'catalog.index.v1|uri:%s',
-                $this->getRequest()->getRequestUri() ?? ''
-            );
-            $cacheSettings = $this->getCacheSettingsDto(
-                time: 120,
-                key: $cacheKey,
-                public: true,
-                useEtag: true
-            );
-            $this->applyHttpCache($cacheSettings);
-
             service(FileService::class)->includeFile('v1.catalog.index');
             $result = service(ApiResult::class);
             $result->setSeo();
-            $this->applyEtag($result, $cacheSettings);
             return $result;
         });
     }

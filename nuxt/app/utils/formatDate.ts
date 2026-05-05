@@ -26,5 +26,5 @@ export function formatDate(
         DD: pad(date.getDate()),
     }
 
-    return format.replace(/YYYY|MM|DD/g, token => map[token])
+    return format.replace(/YYYY|MM|DD/g, token => map[token] ?? token)
 }

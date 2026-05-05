@@ -1,8 +1,9 @@
-import { createError, getRouterParam } from 'h3'
-import { proxyApiRequest } from '../../utils/api'
+import { createError } from 'h3'
+import { fetchProxy } from '../../utils/api'
+import { getUpstreamUrl, getApiPath } from './utils/api'
 
 export default defineEventHandler((event) => {
-    const path = getRouterParam(event, 'path')
+    const path = getApiPath(event)
     if (!path) {
         throw createError({
             statusCode: 400,
@@ -10,5 +11,5 @@ export default defineEventHandler((event) => {
         })
     }
 
-    return proxyApiRequest(event, path)
+    return fetchProxy(event, getUpstreamUrl(path))
 })

@@ -1,23 +1,27 @@
 import tailwindcss from "@tailwindcss/vite";
 
+const isDev = process.env.NODE_ENV === 'development'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
   runtimeConfig: {
     apiBaseServer: process.env.NUXT_API_BASE_SERVER,
+    debug: process.env.NUXT_DEBUG === 'true',
     public: {
       apiBaseClient: process.env.NUXT_PUBLIC_API_BASE_CLIENT,
     },
   },
 
   routeRules: {
-    '/': { swr: 300 },
-    '/catalog': { swr: 300 },
-    '/catalog/**': { swr: 300 },
-    '/product/**': { swr: 300 },
-    '/articles': { swr: 300 },
-    '/articles/**': { swr: 300 },
-    '/reviews': { swr: 300 },
+    '/api/v1/get-main-page': { swr: isDev ? false : 300 },
+    '/api/v1/get-menu': { swr: isDev ? false : 600 },
+    '/api/v1/catalog': { swr: isDev ? false : 300 },
+    '/api/v1/catalog/**': { swr: isDev ? false : 300 },
+    '/api/v1/product/**': { swr: isDev ? false : 300 },
+    '/api/v1/articles': { swr: isDev ? false : 300 },
+    '/api/v1/articles/**': { swr: isDev ? false : 300 },
+    '/api/v1/reviews': { swr: isDev ? false : 300 },
   },
 
   ui: {

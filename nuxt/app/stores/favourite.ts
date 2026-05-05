@@ -48,7 +48,7 @@ export const useFavouriteStore = defineStore('favourite', {
                     this.items = this.items.filter((x) => x !== id);
                 }
             } catch (e) {
-                useToast().error({ message: 'Ошибка при добавлении в избранное' });
+                useToast().add({ title: 'Ошибка при добавлении в избранное', color: 'error' });
             }
         },
     },

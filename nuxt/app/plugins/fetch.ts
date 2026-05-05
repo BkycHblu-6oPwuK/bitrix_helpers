@@ -1,6 +1,11 @@
 // app/plugins/fetch.ts
 import { $fetch } from 'ofetch'
 
+declare module 'ofetch' {
+    interface FetchOptions {
+        _retry?: boolean
+    }
+}
 /**
  * @todo вообще  вся эта тема авторизацией и получением пользователя должна быть пересмотрена
  */
@@ -15,10 +20,9 @@ export default defineNuxtPlugin((nuxtApp) => {
             if (options._retry) return
 
             if (import.meta.server && cookieHeader) {
-                options.headers = {
-                    ...(options.headers as Record<string, string>),
-                    cookie: cookieHeader
-                }
+                const headers = new Headers(options.headers as HeadersInit | undefined)
+                headers.set('cookie', cookieHeader)
+                options.headers = headers
             }
         },
 
@@ -35,7 +39,7 @@ export default defineNuxtPlugin((nuxtApp) => {
                 const success = await refreshPromise
                 if (!success) return
 
-                return nuxtApp.$fetch(request, {
+                (nuxtApp.$fetch as typeof $fetch)(request, {
                     ...options,
                     _retry: true
                 })

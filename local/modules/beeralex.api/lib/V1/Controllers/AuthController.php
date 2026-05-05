@@ -70,8 +70,14 @@ class AuthController extends ApiController
     public function loginAction(AuthCredentialsDto $credentials)
     {
         return $this->process(function () use ($credentials) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
+
+            if ($ip && str_contains($ip, ',')) {
+                $ip = trim(explode(',', $ip)[0]);
+            }
+
             $metadata = [
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ip' => $ip,
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
             ];
 

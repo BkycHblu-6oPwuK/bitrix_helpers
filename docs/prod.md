@@ -67,4 +67,26 @@ pm2 save
 
 после ребута сервера процессы должны быть запущены сами
 
-В итоге после пула запускайте build.sh
+В итоге после пула запускайте `build.sh`
+
+на тестовом 
+
+```bash
+./build.sh --pm2 ecosystem.dev.config.cjs
+```
+
+## logs
+
+```bash
+pm2 install pm2-logrotate
+```
+
+```bash
+pm2 set pm2-logrotate:max_size 10M
+pm2 set pm2-logrotate:retain 10
+pm2 set pm2-logrotate:compress true
+pm2 set pm2-logrotate:rotateInterval '0 0 * * *'
+pm2 save
+```
+
+или оставить по умолчанию

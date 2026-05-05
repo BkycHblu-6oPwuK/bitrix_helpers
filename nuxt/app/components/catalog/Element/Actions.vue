@@ -10,7 +10,7 @@ const catalogDetail = useCatalogDetailStore()
     <div class="product-actions">
         <!-- Количество и кнопки -->
         <div class="flex items-center gap-4">
-            <BasketAdd v-if="catalogDetail.item?.preselectedOffer" :offer-id="catalogDetail.item.preselectedOffer.id"
+            <BasketAdd v-if="catalogDetail.selectedOffer" :offer-id="catalogDetail.selectedOffer.id"
                 :quantity="catalogDetail.quantity" :disabled="!catalogDetail.isAvailable" size="lg" variant="default"
                 class="flex-1" />
 

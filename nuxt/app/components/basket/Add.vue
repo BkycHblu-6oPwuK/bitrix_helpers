@@ -12,30 +12,26 @@ const props = defineProps<{
 }>()
 
 const basketStore = useBasketStore()
-
-const itemInBasket = computed(() =>
-    basketStore.items.find(item => item.offerId === props.offerId)
-)
-
-const isInBasket = computed(() => !!itemInBasket.value)
-
+const itemInBasket = computed(() => basketStore.items?.find(item => item.offerId === props.offerId))
+const isItemInBasket = computed(() => Boolean(itemInBasket.value || basketStore.ids?.includes(props.offerId)))
+const isInBasket = computed(() => !!isItemInBasket.value)
 const localQuantity = ref(props.quantity || 1)
 
 const addToBasket = async () => {
     await basketStore.addItem(props.offerId, localQuantity.value)
 }
 const increment = async () => {
-    if (itemInBasket.value) {
+    if (isItemInBasket.value) {
         await basketStore.incrementItem(props.offerId)
     }
 }
 const decrement = async () => {
-    if (itemInBasket.value) {
+    if (isItemInBasket.value) {
         await basketStore.decrementItem(props.offerId)
     }
 }
 const updateQuantity = async (newQuantity: number) => {
-    if (itemInBasket.value && newQuantity > 0) {
+    if (isItemInBasket.value && newQuantity > 0) {
         await basketStore.updateItem(props.offerId, newQuantity)
     }
 }
@@ -107,7 +103,7 @@ const sizeClasses = computed(() => {
                     <UButton icon="i-heroicons-minus" color="secondary" variant="ghost" :size="size"
                         @click="decrement" />
                     <UInput :model-value="itemInBasket?.quantity" type="number" min="1" :class="sizeClasses.input"
-                        class="text-center border-0" @blur="updateQuantity(Number($event.target.value))" />
+                        class="text-center border-0" @blur="updateQuantity(Number(($event.target as HTMLInputElement)?.value))" />
                     <UButton icon="i-heroicons-plus" color="secondary" variant="ghost" :size="size"
                         @click="increment" />
                 </div>
