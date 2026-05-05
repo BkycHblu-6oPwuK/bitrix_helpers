@@ -51,6 +51,8 @@ export async function fetchProxy(event: H3Event, upstreamUrl: URL) {
         if (key === 'transfer-encoding') continue
         if (key === 'connection') continue
         if (key === 'set-cookie') continue
+        if (key === 'content-encoding') continue
+        if (key === 'content-length') continue
 
         appendHeader(event, key, value)
     }
