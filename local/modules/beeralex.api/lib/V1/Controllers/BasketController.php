@@ -81,6 +81,9 @@ class BasketController extends Controller
         return $this->process(function () use ($offerId, $quantity) {
             $result = $this->basketService->increment($offerId, $quantity);
             if ($result->isSuccess()) {
+                $result = $this->basketService->save();
+            }
+            if ($result->isSuccess()) {
                 $basketData = $this->basketService->getBasketData();
                 $result = \service(ApiResult::class);
                 $result->addPageData(BasketDataDTO::make($basketData), 'basket');
@@ -94,6 +97,9 @@ class BasketController extends Controller
     {
         return $this->process(function () use ($offerId, $quantity) {
             $result = $this->basketService->changeProductQuantityInBasket($offerId, $quantity);
+            if ($result->isSuccess()) {
+                $result = $this->basketService->save();
+            }
             if ($result->isSuccess()) {
                 $basketData = $this->basketService->getBasketData();
                 $result = \service(ApiResult::class);
@@ -109,6 +115,9 @@ class BasketController extends Controller
         return $this->process(function () use ($offerId) {
             $result = $this->basketService->remove($offerId);
             if ($result->isSuccess()) {
+                $result = $this->basketService->save();
+            }
+            if ($result->isSuccess()) {
                 $basketData = $this->basketService->getBasketData();
                 $result = \service(ApiResult::class);
                 $result->addPageData(BasketDataDTO::make($basketData), 'basket');
@@ -122,6 +131,9 @@ class BasketController extends Controller
     {
         return $this->process(function () {
             $result = $this->basketService->removeAll();
+            if ($result->isSuccess()) {
+                $result = $this->basketService->save();
+            }
             if ($result->isSuccess()) {
                 $this->setCookie('cart_coupon', '', time() - 3600);
                 
