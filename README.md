@@ -26,3 +26,7 @@ cat report.txt | sed -E '
 s/В таблице ([^ ]+) поле ([^ ]+) "`[^`]+` ([^"]+)" не соответствует описанию на диске "`[^`]+` ([^"]+)"/ALTER TABLE \1 MODIFY COLUMN \2 \4;/g
 ' > fix.sql
 ```
+
+2. При использовании ORM и xdebug может быть так что запрос зависает и создается большая нагрузка на диск.
+
+Отключить xdebug либо закомментировать в /bitrix/modules/main/lib/db/result.php в методе getCount выброс исключения (throw new \Bitrix\Main\ObjectPropertyException("count"))
