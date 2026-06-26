@@ -2,7 +2,6 @@
 namespace Beeralex\Api\Domain\Checkout;
 
 use Bitrix\Sale\Order;
-use Beeralex\Catalog\Helper\PriceHelper;
 use Beeralex\Api\Domain\Checkout\DTO\TotalPriceDTO;
 use Beeralex\Catalog\Service\PriceService;
 
@@ -21,17 +20,17 @@ class TotalBuilder
     public function build(Order $order, array $basketSummary): TotalPriceDTO
     {
         $deliveryPrice = $order->getDeliveryPrice();
-        $basketPrice = (float)($basketSummary['totalPrice'] ?? 0);
-        $discount = (float)($basketSummary['totalDiscount'] ?? 0);
+        $basketPrice = (float)($basketSummary['TOTAL_PRICE'] ?? 0);
+        $discount = (float)($basketSummary['TOTAL_DISCOUNT'] ?? 0);
         $totalPrice = $basketPrice + $deliveryPrice;
 
         return TotalPriceDTO::make([
             'basket' => $basketPrice,
-            'basketFormatted' => $basketSummary['totalPriceFormatted'] ?? $this->priceService->format($basketPrice),
+            'basketFormatted' => $basketSummary['TOTAL_PRICE_FORMATTED'] ?? $this->priceService->format($basketPrice),
             'delivery' => $deliveryPrice,
             'deliveryFormatted' => $this->priceService->format($deliveryPrice),
             'discount' => $discount,
-            'discountFormatted' => $basketSummary['totalDiscountFormatted'] ?? $this->priceService->format($discount),
+            'discountFormatted' => $basketSummary['TOTAL_DISCOUNT_FORMATTED'] ?? $this->priceService->format($discount),
             'total' => $totalPrice,
             'totalFormatted' => $this->priceService->format($totalPrice),
         ]);

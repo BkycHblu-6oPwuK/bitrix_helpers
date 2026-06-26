@@ -4,7 +4,6 @@ namespace Beeralex\Api\Domain\Checkout;
 
 use Bitrix\Sale\Order;
 use Illuminate\Support\Collection;
-use Beeralex\Catalog\Helper\PriceHelper;
 use Beeralex\Api\Domain\Checkout\Delivery\BaseDelivery;
 use Beeralex\Api\Domain\Checkout\DTO\DeliveryDTO;
 use Beeralex\Api\Domain\Checkout\DTO\DeliveryiesDTO;
@@ -46,6 +45,7 @@ class DeliveriesBuilder
         $this->deliveries = $deliveries->mapWithKeys(fn($delivery) => [$delivery['ID'] => new BaseDelivery($delivery, $this->deliveryHandlers[$delivery['ID']])]);
         $this->storeSelectedId = $this->shipment?->getStoreId() ?? 0;
         $this->priceService = \service(PriceService::class);
+        $this->orderService = \service(OrderService::class);
     }
 
     public function buildDeliveriesDTO(): DeliveryiesDTO

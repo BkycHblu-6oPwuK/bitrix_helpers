@@ -2,13 +2,9 @@
 namespace Beeralex\Api\Domain\Checkout;
 
 use Bitrix\Sale\BasketBase;
-use Bitrix\Sale\PropertyValueCollectionBase;
 use Beeralex\Api\Domain\Checkout\DTO\CheckoutDTO;
 use Beeralex\Api\Domain\Checkout\DTO\CouponDTO;
 use Beeralex\Api\Domain\Checkout\DTO\DeliveryiesDTO;
-use Beeralex\Api\Domain\Checkout\DTO\FormDTO;
-use Beeralex\Api\Domain\Checkout\DTO\PropertyDTO;
-use Beeralex\Catalog\Service\OrderService;
 use Bitrix\Sale\Order;
 
 class CheckoutDTOBuilder
@@ -23,13 +19,7 @@ class CheckoutDTOBuilder
     private bool $rules;
     private string $signedParameters;
     private string $siteId;
-    private OrderService $orderService;
-
-    public function __construct()
-    {
-        $this->orderService = \service(OrderService::class);
-    }
-
+    
     public function setRules(bool $rules): static
     {
         $this->rules = $rules;
@@ -90,7 +80,7 @@ class CheckoutDTOBuilder
         $totalPrice = (new TotalBuilder())->build($this->order, $basketData['SUMMARY']);
 
         return CheckoutDTO::make([
-            'items' => $basketData['items'],
+            'items' => $basketData['ITEMS'],
             'delivery' => $this->buildDeliveries($this->deliveriesBuilder),
             'totalPrice' => $totalPrice,
             'coupon' => $this->buildCoupon($basketData['COUPON']),
