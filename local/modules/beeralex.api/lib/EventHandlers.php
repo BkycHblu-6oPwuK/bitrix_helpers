@@ -3,7 +3,6 @@
 namespace Beeralex\Api;
 
 use Beeralex\Api\Domain\EventHandlers\CouponHandler;
-use Beeralex\Api\Domain\EventHandlers\FUserHandler;
 use Beeralex\Api\Domain\EventHandlers\JwtTokenHandler;
 use Bitrix\Main\Context;
 

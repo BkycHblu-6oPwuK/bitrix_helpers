@@ -3,11 +3,11 @@
 namespace Sprint\Migration;
 
 
-class Version20251218112537 extends Version
+class Version20251218103146 extends Version
 {
     protected $author = "admin";
 
-    protected $description = "инфоблок видео";
+    protected $description = "инфоблок сортировки";
 
     protected $moduleVersion = "5.4.1";
 
@@ -19,38 +19,38 @@ class Version20251218112537 extends Version
     {
         $helper = $this->getHelperManager();
         $helper->Iblock()->saveIblockType(array (
-  'ID' => 'content',
+  'ID' => 'catalog',
   'SECTIONS' => 'Y',
-  'EDIT_FILE_BEFORE' => '',
-  'EDIT_FILE_AFTER' => '',
+  'EDIT_FILE_BEFORE' => NULL,
+  'EDIT_FILE_AFTER' => NULL,
   'IN_RSS' => 'N',
-  'SORT' => '500',
+  'SORT' => '100',
   'LANG' => 
   array (
     'ru' => 
     array (
-      'NAME' => 'Контент',
-      'SECTION_NAME' => '',
-      'ELEMENT_NAME' => '',
+      'NAME' => 'Каталоги',
+      'SECTION_NAME' => 'Разделы',
+      'ELEMENT_NAME' => 'Товары',
     ),
     'en' => 
     array (
-      'NAME' => 'Content',
-      'SECTION_NAME' => '',
-      'ELEMENT_NAME' => '',
+      'NAME' => 'Catalog',
+      'SECTION_NAME' => 'Sections',
+      'ELEMENT_NAME' => 'Products',
     ),
   ),
 ));
         $iblockId = $helper->Iblock()->saveIblock(array (
-  'IBLOCK_TYPE_ID' => 'content',
+  'IBLOCK_TYPE_ID' => 'catalog',
   'LID' => 
   array (
     0 => 's1',
   ),
-  'CODE' => 'video',
-  'API_CODE' => 'VideoApi',
+  'CODE' => 'sorting',
+  'API_CODE' => 'SortingApi',
   'REST_ON' => 'N',
-  'NAME' => 'Видео',
+  'NAME' => 'Сортировка',
   'ACTIVE' => 'Y',
   'SORT' => '500',
   'LIST_PAGE_URL' => '',
@@ -237,11 +237,11 @@ class Version20251218112537 extends Version
   'CODE' => 
   array (
     'NAME' => 'Символьный код',
-    'IS_REQUIRED' => 'N',
+    'IS_REQUIRED' => 'Y',
     'DEFAULT_VALUE' => 
     array (
-      'UNIQUE' => 'N',
-      'TRANSLITERATION' => 'N',
+      'UNIQUE' => 'Y',
+      'TRANSLITERATION' => 'Y',
       'TRANS_LEN' => 100,
       'TRANS_CASE' => 'L',
       'TRANS_SPACE' => '-',
@@ -405,15 +405,15 @@ class Version20251218112537 extends Version
   'administrators' => 'X',
 ));
         $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Заголовок',
+  'NAME' => 'Назначить по-умолчанию',
   'ACTIVE' => 'Y',
   'SORT' => '500',
-  'CODE' => 'TITLE',
+  'CODE' => 'DEFAULT',
   'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'S',
+  'PROPERTY_TYPE' => 'L',
   'ROW_COUNT' => '1',
   'COL_COUNT' => '30',
-  'LIST_TYPE' => 'L',
+  'LIST_TYPE' => 'C',
   'MULTIPLE' => 'N',
   'XML_ID' => NULL,
   'FILE_TYPE' => '',
@@ -425,36 +425,18 @@ class Version20251218112537 extends Version
   'IS_REQUIRED' => 'N',
   'VERSION' => '1',
   'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => NULL,
+  'USER_TYPE_SETTINGS' => 'a:0:{}',
   'HINT' => '',
-  'SMART_FILTER' => NULL,
-  'DISPLAY_TYPE' => NULL,
-  'DISPLAY_EXPANDED' => NULL,
-  'FILTER_HINT' => NULL,
-));
-            $helper->Iblock()->saveProperty($iblockId, array (
-  'NAME' => 'Видео',
-  'ACTIVE' => 'Y',
-  'SORT' => '500',
-  'CODE' => 'VIDEO',
-  'DEFAULT_VALUE' => '',
-  'PROPERTY_TYPE' => 'F',
-  'ROW_COUNT' => '1',
-  'COL_COUNT' => '30',
-  'LIST_TYPE' => 'L',
-  'MULTIPLE' => 'N',
-  'XML_ID' => NULL,
-  'FILE_TYPE' => 'mpg, avi, wmv, mpeg, mpe, flv',
-  'MULTIPLE_CNT' => '5',
-  'LINK_IBLOCK_ID' => '0',
-  'WITH_DESCRIPTION' => 'N',
-  'SEARCHABLE' => 'N',
-  'FILTRABLE' => 'N',
-  'IS_REQUIRED' => 'N',
-  'VERSION' => '1',
-  'USER_TYPE' => NULL,
-  'USER_TYPE_SETTINGS' => NULL,
-  'HINT' => '',
+  'VALUES' => 
+  array (
+    0 => 
+    array (
+      'VALUE' => 'Да',
+      'DEF' => 'N',
+      'SORT' => '500',
+      'XML_ID' => 'Y',
+    ),
+  ),
   'FEATURES' => 
   array (
     0 => 
@@ -477,9 +459,65 @@ class Version20251218112537 extends Version
     ),
   ),
   'SMART_FILTER' => NULL,
-  'DISPLAY_TYPE' => NULL,
+  'DISPLAY_TYPE' => 'F',
   'DISPLAY_EXPANDED' => NULL,
-  'FILTER_HINT' => NULL,
+  'FILTER_HINT' => '',
+));
+            $helper->Iblock()->saveProperty($iblockId, array (
+  'NAME' => 'Направление сортировки',
+  'ACTIVE' => 'Y',
+  'SORT' => '500',
+  'CODE' => 'SORT_BY',
+  'DEFAULT_VALUE' => '',
+  'PROPERTY_TYPE' => 'S',
+  'ROW_COUNT' => '1',
+  'COL_COUNT' => '30',
+  'LIST_TYPE' => 'L',
+  'MULTIPLE' => 'N',
+  'XML_ID' => NULL,
+  'FILE_TYPE' => '',
+  'MULTIPLE_CNT' => '5',
+  'LINK_IBLOCK_ID' => '0',
+  'WITH_DESCRIPTION' => 'N',
+  'SEARCHABLE' => 'N',
+  'FILTRABLE' => 'N',
+  'IS_REQUIRED' => 'N',
+  'VERSION' => '1',
+  'USER_TYPE' => NULL,
+  'USER_TYPE_SETTINGS' => 'a:0:{}',
+  'HINT' => '',
+  'SMART_FILTER' => NULL,
+  'DISPLAY_TYPE' => 'F',
+  'DISPLAY_EXPANDED' => NULL,
+  'FILTER_HINT' => '',
+));
+            $helper->Iblock()->saveProperty($iblockId, array (
+  'NAME' => 'Поле сортировки',
+  'ACTIVE' => 'Y',
+  'SORT' => '500',
+  'CODE' => 'DIRECTION',
+  'DEFAULT_VALUE' => '',
+  'PROPERTY_TYPE' => 'S',
+  'ROW_COUNT' => '1',
+  'COL_COUNT' => '30',
+  'LIST_TYPE' => 'L',
+  'MULTIPLE' => 'N',
+  'XML_ID' => NULL,
+  'FILE_TYPE' => '',
+  'MULTIPLE_CNT' => '5',
+  'LINK_IBLOCK_ID' => '0',
+  'WITH_DESCRIPTION' => 'N',
+  'SEARCHABLE' => 'N',
+  'FILTRABLE' => 'N',
+  'IS_REQUIRED' => 'N',
+  'VERSION' => '1',
+  'USER_TYPE' => NULL,
+  'USER_TYPE_SETTINGS' => 'a:0:{}',
+  'HINT' => '',
+  'SMART_FILTER' => NULL,
+  'DISPLAY_TYPE' => 'F',
+  'DISPLAY_EXPANDED' => NULL,
+  'FILTER_HINT' => '',
 ));
         $helper->UserOptions()->saveElementGrid($iblockId, array (
   'views' => 

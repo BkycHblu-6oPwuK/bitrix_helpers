@@ -1,6 +1,9 @@
 #
 пример сайта на bitrix + nuxt
 
+php 8.2
+node 24
+
 # инфоблоки
 
 миграции есть в local/php_interface/migrations

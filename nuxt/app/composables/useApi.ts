@@ -7,8 +7,11 @@ function getBaseUrl() {
   return config.public.apiBaseClient
 }
 
+/**
+ * Возвращает путь без ведущих и конечных слешей
+ */
 function getCleanPath(path: string) {
-  return path.replace(/^\/+/, '')
+  return path.replace(/^\/+/, '').replace(/\/+$/, '')
 }
 
 function getApiFetch() {

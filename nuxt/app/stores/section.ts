@@ -172,7 +172,7 @@ export const useSectionStore = defineStore('section', {
          * @returns URL объект с параметрами фильтрации
          */
         buildFilterUrl(): URL {
-            const url = this.apiUrl
+            const url = new URL(this.apiUrl?.toString() || '')
             if (!url) {
                 throw new Error('API URL is not set');
             }
@@ -206,7 +206,7 @@ export const useSectionStore = defineStore('section', {
          */
         getPageUrl(page: number): URL | null {
             if (!this.pagination || typeof window === 'undefined') return null
-            const url = this.apiUrl
+            const url = new URL(this.apiUrl?.toString() || '')
             if (!url) {
                 throw new Error('API URL is not set');
             }
@@ -248,7 +248,8 @@ export const useSectionStore = defineStore('section', {
 
                 const oldSelectedFilterHash = getSelectedFilterHash({
                     ...this.selectedFilters,
-                    ...query
+                    ...query,
+                    pathname: path,
                 });
 
                 if (!options?.isOnMounted && oldSelectedFilterHash === this.oldSelectedFilterHash) {
@@ -292,7 +293,7 @@ export const useSectionStore = defineStore('section', {
                     if (options?.navigateFilter && res.data.page.filter?.filterUrl) {
                         newUrl = res.data.page.filter.filterUrl // чпу фильтра
                     } else {
-                        if (url === this.apiUrl) {
+                        if (url.toString() === this.apiUrl?.toString()) {
                             newUrl = window.location.pathname + url.search // текущий URL с параметрами
                         } else {
                             newUrl = url.pathname + url.search

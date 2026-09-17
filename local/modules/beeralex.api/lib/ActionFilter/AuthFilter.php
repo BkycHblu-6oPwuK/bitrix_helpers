@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\ActionFilter;
 
-use Beeralex\Api\Domain\User\UserService;
 use Beeralex\Api\Options as ApiOptions;
 use Beeralex\User\Options;
-use Bitrix\Main\Context;
 use Bitrix\Main\Engine\ActionFilter\Base;
 use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Event;

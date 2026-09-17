@@ -58,4 +58,5 @@ export interface SectionDTO {
     code: string      // Символьный код
     url: string       // URL раздела
     pictureSrc: FileSrc // URL картинки раздела
+    selected?: boolean // Флаг, указывающий, выбран ли раздел
 }

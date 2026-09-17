@@ -60,6 +60,7 @@ export function useSection<T extends SectionData>(initialData?: T) {
         isLoading, // Флаг загрузки
         error, // Объект ошибки
         selectedFilters, // Выбранные фильтры
+        apiUrl, // API URL для загрузки данных
         loadPage: store.loadPage, // Метод загрузки страницы
         setAppendMode: store.setAppendMode, // Установка режима дозагрузки
         setApiUrl: store.setApiUrl, // Установка API URL
