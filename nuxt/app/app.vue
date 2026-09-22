@@ -4,13 +4,16 @@
   NuxtLayout использует layouts/default.vue по умолчанию
 -->
 <script setup lang="ts">
+const { initClient, initServer } = useBootstrap();
+
+await callOnce('bootstrap-server-init', () => initServer());
+
 onMounted(() => {
-  // Инициализация fuser токена при монтировании приложения
-  useBootstrap()
+    initClient();
 });
 </script>
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+    <NuxtLayout>
+        <NuxtPage />
+    </NuxtLayout>
 </template>

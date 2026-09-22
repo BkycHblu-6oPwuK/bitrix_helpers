@@ -84,6 +84,10 @@ class BeeralexMenu extends CBitrixComponent
             return [];
         }
 
+        $sectionIdsWithActiveElements = array_flip(
+            $this->getSectionIdsWithActiveElements($iblockId)
+        );
+
         $taggedCache = Application::getInstance()->getTaggedCache();
 
         $tree = [];
@@ -100,6 +104,8 @@ class BeeralexMenu extends CBitrixComponent
             )['clean_url'];
 
             $section['CHILDREN'] = [];
+            $section['HAS_ACTIVE_ELEMENTS'] = isset($sectionIdsWithActiveElements[$section['ID']]);
+
             $byId[$section['ID']] = $section;
         }
 
@@ -115,7 +121,43 @@ class BeeralexMenu extends CBitrixComponent
         }
         unset($section);
 
-        return $tree;
+        return $this->filterSectionsWithActiveElements($tree);
+    }
+
+    /**
+     * ID разделов, в которых есть хотя бы один активный элемент.
+     */
+    protected function getSectionIdsWithActiveElements(int $iblockId): array
+    {
+        $rows = $this->iblockRepository->getList([
+            'select' => ['IBLOCK_SECTION_ID'],
+            'filter' => [
+                'IBLOCK_ID' => $iblockId,
+                'ACTIVE' => 'Y',
+            ],
+            'group' => ['IBLOCK_SECTION_ID'],
+        ])->fetchAll();
+
+        return array_column($rows, 'IBLOCK_SECTION_ID');
+    }
+
+    /**
+     * Оставляет только разделы, у которых есть свои активные элементы,
+     * либо остались дочерние разделы после рекурсивной фильтрации.
+     */
+    protected function filterSectionsWithActiveElements(array $sections): array
+    {
+        $result = [];
+
+        foreach ($sections as $section) {
+            $section['CHILDREN'] = $this->filterSectionsWithActiveElements($section['CHILDREN']);
+
+            if ($section['HAS_ACTIVE_ELEMENTS'] || $section['CHILDREN']) {
+                $result[] = $section;
+            }
+        }
+
+        return $result;
     }
 
     public function getIblockRepository(): IblockRepository

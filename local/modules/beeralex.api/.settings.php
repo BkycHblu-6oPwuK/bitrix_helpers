@@ -5,13 +5,9 @@ use Beeralex\Api\Domain\Form\FormAnswerRepository;
 use Beeralex\Api\Domain\Form\FormHandlers;
 use Beeralex\Api\Domain\Form\FormRepository;
 use Beeralex\Api\Domain\Form\FormService;
-use Beeralex\Api\Domain\Iblock\Content\ContentRepository;
 use Beeralex\Api\Domain\Iblock\Content\MainRepository;
 use Beeralex\Api\Domain\User\UserService;
 use Beeralex\Api\Options;
-use Beeralex\Catalog\Enum\DIServiceKey;
-use Beeralex\Core\Service\FileService;
-use Bitrix\Main\Loader;
 
 return [
     'services' => [
@@ -32,11 +28,6 @@ return [
             ],
             FormAnswerRepository::class => [
                 'className' => FormAnswerRepository::class,
-            ],
-            ContentRepository::class => [
-                'constructor' => static function () {
-                    return new ContentRepository('content', service(FileService::class));
-                },
             ],
             UserService::class => [
                 'className' => UserService::class,

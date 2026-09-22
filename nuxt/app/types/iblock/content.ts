@@ -26,12 +26,8 @@ import type { FileSrc } from '../file'
  */
 export type MainPageContentType =
     | 'main_banner'
-    | 'slider'
-    | 'products'
+    | 'slider_products'
     | 'slider_articles'
-    | 'video'
-    | 'new'
-    | 'popular'
     | string
 
 /**
@@ -57,7 +53,7 @@ export interface MainBannerContent {
  * Блок слайдера (карусель товаров или произвольных карточек)
  */
 export interface SliderContent {
-    type: 'slider'
+    type: 'slider_products'
     result: ProductSliderDTO
 }
 
@@ -70,27 +66,9 @@ export interface SliderArticlesContent {
 }
 
 /**
- * Блок с видео
- */
-/**
- * Блок видео: может содержать список элементов с видео или ссылками
- */
-export interface VideoContent {
-    type: 'video'
-    result: VideoDTO
-}
-
-/**
  * DTO для главного баннера: массив элементов (ElementDTO содержит базовые поля)
  */
 export interface MainBannerDTO {
-    items: ElementDTO[]
-}
-
-/**
- * DTO для блока видео — использует такую же структуру элементов
- */
-export interface VideoDTO {
     items: ElementDTO[]
 }
 
@@ -119,7 +97,6 @@ export type MainPageContent = (
     | MainBannerContent
     | SliderContent
     | SliderArticlesContent
-    | VideoContent
     | MainContentItemDTO
     | Record<string, any>
 )[]

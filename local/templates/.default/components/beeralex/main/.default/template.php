@@ -6,7 +6,7 @@ use Beeralex\Core\Service\IblockService;
 
 foreach ($arResult as $item) {
 	switch ($item['TYPE']) {
-		case MainContentTypes::SLIDER:
+		case MainContentTypes::PRODUCTS_SLIDER:
 			$APPLICATION->IncludeComponent(
 				"beeralex:product.slider",
 				".default",
@@ -25,7 +25,7 @@ foreach ($arResult as $item) {
 			$GLOBALS['mainBannerFilter']['=ACTIVE'] = 'Y';
 			$APPLICATION->IncludeComponent(
 				"bitrix:news.list",
-				"mainBanner",
+				"main-banner",
 				array(
 					"ACTIVE_DATE_FORMAT" => "d.m.Y",
 					"ADD_SECTIONS_CHAIN" => "N",
@@ -39,7 +39,7 @@ foreach ($arResult as $item) {
 					"CACHE_TIME" => "86400",
 					"CACHE_TYPE" => "A",
 					"CHECK_DATES" => "Y",
-					"COMPONENT_TEMPLATE" => "mainBanner",
+					"COMPONENT_TEMPLATE" => "main-banner",
 					"DETAIL_URL" => "",
 					"DISPLAY_BOTTOM_PAGER" => "N",
 					"DISPLAY_DATE" => "Y",
@@ -80,40 +80,12 @@ foreach ($arResult as $item) {
 					"SET_STATUS_404" => "N",
 					"SET_TITLE" => "N",
 					"SHOW_404" => "N",
-					"SORT_BY1" => "ACTIVE_FROM",
-					"SORT_BY2" => "SORT",
-					"SORT_ORDER1" => "DESC",
-					"SORT_ORDER2" => "ASC",
+					"SORT_BY1" => "SORT",
+					"SORT_BY2" => "ACTIVE_FROM",
+					"SORT_ORDER1" => "ASC",
+					"SORT_ORDER2" => "DESC",
 					"STRICT_SECTION_CHECK" => "N",
 				)
-			);
-			break;
-		case MainContentTypes::VIDEO:
-			$GLOBALS['arrFilterVideo'] = ['ID' => $item['IDS']];
-			$APPLICATION->IncludeComponent(
-				"bitrix:news.list",
-				"video",
-				[
-					"CACHE_TYPE" => "A",
-					"CACHE_TIME" => "3600000",
-					"FILTER_NAME" => "arrFilterVideo",
-					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode('video'),
-					"NEWS_COUNT" => "20",
-					"SET_BROWSER_TITLE" => "N",
-					"SET_LAST_MODIFIED" => "N",
-					"SET_META_DESCRIPTION" => "N",
-					"SET_META_KEYWORDS" => "N",
-					"SET_STATUS_404" => "N",
-					"SET_TITLE" => "N",
-					"DISPLAY_DATE" => "N",
-					"SORT_BY1" => "ID",
-					"SORT_ORDER1" => "DESC",
-					"PROPERTY_CODE" => [
-						"TITLE",
-						"VIDEO",
-					],
-				],
-				false
 			);
 			break;
 		case MainContentTypes::ARTICLES:
@@ -122,13 +94,13 @@ foreach ($arResult as $item) {
 			if (!empty($item['IDS'])) {
 				$GLOBALS['arrFilterArticles'] = ['ID' => $item['IDS']];
 			}
-			if ($item['TYPE_SLIDER'] === MainContentTypes::SLIDER_NEW) {
+			if ($item['TYPE_SLIDER'] === MainContentTypes::NEW) {
 				$sortBy1 = 'ID';
 				$sortOrder1 = 'DESC';
 			}
 			$APPLICATION->IncludeComponent(
 				"bitrix:news.list",
-				"mainArticles",
+				"main-articles",
 				[
 					"CACHE_TYPE" => "A",
 					"CACHE_TIME" => "3600000",

@@ -22,7 +22,7 @@ class ProductSliderDTO extends Resource
             'title' => $data['TITLE'] ?? '',
             'linkToAll' => $data['LINK_TO_ALL'] ?? '',
             'items' => array_map([CatalogItemDTO::class, 'make'],
-                $data['ITEMS'] ?? []
+                array_values($data['ITEMS'] ?? [])
             ),
         ]);
     }

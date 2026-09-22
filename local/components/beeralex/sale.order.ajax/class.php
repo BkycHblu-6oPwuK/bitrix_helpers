@@ -99,8 +99,7 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
     {
         return new PersonTypeBuilder(
             $this->arResult['PERSON_TYPE'],
-            $this->order->getPersonTypeId() ?? 0,
-            (int)$this->arUserResult['PERSON_TYPE_OLD']
+            $this->order->getPersonTypeId() ?? 0
         );
     }
 

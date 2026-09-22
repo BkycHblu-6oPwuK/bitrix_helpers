@@ -6,7 +6,7 @@ use Beeralex\Api\Domain\Iblock\Content\Enum\MainContentTypes;
 use Beeralex\Api\Domain\Iblock\Content\ProductSliderDTO;
 
 $arResult['DTO'] = ContentItemDTO::makeFrom(
-    MainContentTypes::SLIDER,
+    MainContentTypes::PRODUCTS_SLIDER,
     ProductSliderDTO::make($arResult)
 );
 $this->getComponent()->setResultCacheKeys(['DTO']);

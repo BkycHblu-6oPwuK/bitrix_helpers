@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fa6939a5c5ddb764da57af7186fdaeaa",
+    "content-hash": "dacbbc2bff1b1b0426dc28864881625a",
     "packages": [
         {
             "name": "andreyryabin/sprint.migration",
@@ -54,6 +54,54 @@
                 "source": "https://github.com/andreyryabin/sprint.migration/tree/master"
             },
             "time": "2026-01-20T07:08:07+00:00"
+        },
+        {
+            "name": "apiship/apiship-sdk-php",
+            "version": "1.3.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/apiship/apiship-sdk-php.git",
+                "reference": "2d7690bc33bcc7da9b15ff2c502c5209931d1580"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/apiship/apiship-sdk-php/zipball/2d7690bc33bcc7da9b15ff2c502c5209931d1580",
+                "reference": "2d7690bc33bcc7da9b15ff2c502c5209931d1580",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "~7.0",
+                "php": ">=7.2"
+            },
+            "require-dev": {
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "extension",
+            "autoload": {
+                "psr-4": {
+                    "Apiship\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "ApiShip",
+                    "email": "info@apiship.ru"
+                }
+            ],
+            "description": "Integration (SDK) with Apiship API",
+            "keywords": [
+                "Apiship",
+                "integration",
+                "rest",
+                "sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/apiship/apiship-sdk-php/issues",
+                "source": "https://github.com/apiship/apiship-sdk-php/tree/1.3.8"
+            },
+            "time": "2025-09-19T10:54:34+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",

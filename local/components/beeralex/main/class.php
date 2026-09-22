@@ -37,10 +37,10 @@ class BeeralexMain extends \CBitrixComponent
         return array_map(function ($item) {
             $type = $item['TYPE']['ITEM']['XML_ID'];
             switch ($type) {
-                case MainContentTypes::SLIDER->value:
+                case MainContentTypes::PRODUCTS_SLIDER->value:
                     $ids = match ($item['PRODUCTS_TYPE']) {
-                        MainContentTypes::SLIDER_NEW->value => $this->getNewProductsIds(),
-                        MainContentTypes::PRODUCTS_POPULAR->value => $this->getPopularProductsIds(),
+                        MainContentTypes::NEW->value => $this->getNewProductsIds(),
+                        MainContentTypes::POPULAR->value => $this->getPopularProductsIds(),
                         default => null
                     };
                     if ($ids === null && !empty($item['PRODUCTS_SECTION_IDS'])) {
@@ -50,7 +50,7 @@ class BeeralexMain extends \CBitrixComponent
                         }
                     }
                     return [
-                        'TYPE' =>  MainContentTypes::SLIDER,
+                        'TYPE' =>  MainContentTypes::PRODUCTS_SLIDER,
                         'IDS' => $ids ?? array_column($item['PRODUCTS_IDS'], 'VALUE'),
                         'TITLE' => $item['PRODUCTS_TITLE'] ? $item['PRODUCTS_TITLE']['VALUE'] : $item['NAME'],
                         'TEXT' => $item['PRODUCTS_TEXT']['VALUE'] ?? null,
@@ -60,11 +60,6 @@ class BeeralexMain extends \CBitrixComponent
                 case MainContentTypes::MAIN_BANNER->value:
                     return [
                         'TYPE' => MainContentTypes::MAIN_BANNER,
-                    ];
-                case MainContentTypes::VIDEO->value:
-                    return [
-                        'TYPE' =>  MainContentTypes::VIDEO,
-                        'IDS' => array_column($item['VIDEO_IDS'], 'VALUE'),
                     ];
                 case MainContentTypes::ARTICLES->value:
                     $typeSlider = $item['ARTICLES_TYPE']['ITEM']['XML_ID'] ?? '';

@@ -30,9 +30,7 @@ class MainRepository extends IblockRepository
                     'ARTICLES_IDS.VALUE',
                     'ARTICLES_TITLE.VALUE',
                     'ARTICLES_TYPE.ITEM.XML_ID',
-                    'MAIN_BANNER.VALUE',
                     'IBLOCK_MODEL_SECTION.CODE',
-                    'VIDEO_IDS.VALUE',
                     'PRODUCTS_SECTION_IDS.VALUE',
                 ]
             )

@@ -3,11 +3,10 @@ export const useBootstrap = () => {
     const userStore = useUserStore();
     const basketStore = useBasketStore();
 
-    async function init() {
-        if (import.meta.client && window.__BOOTSTRAP_DONE__) return;
-        if (import.meta.client) window.__BOOTSTRAP_DONE__ = true;
-
-        await userStore.loadUser();
+    async function initClient() {
+        if(!import.meta.client) return;
+        if (window.__BOOTSTRAP_CLIENT_DONE__) return;
+        window.__BOOTSTRAP_CLIENT_DONE__ = true;
 
         await Promise.all([
             favourite.load(),
@@ -15,5 +14,11 @@ export const useBootstrap = () => {
         ]);
     }
 
-    init();
+    async function initServer() {
+        if (!import.meta.client) {
+            await Promise.all([userStore.loadUser()]);
+        }
+    }
+
+    return { initClient, initServer }
 };
