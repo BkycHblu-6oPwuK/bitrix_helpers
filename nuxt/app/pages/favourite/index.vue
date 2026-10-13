@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FavouritePageApiResponse, FavouritePageDTO } from '~/types/favourite';
+import type { FavouritePageApiResponse, FavouritePageDTO } from '~/types/pages/favourite';
 
 const urlParams = useRoute().query;
 const apiUrl = `favorite/page?${new URLSearchParams(urlParams as Record<string, string>).toString()}`;

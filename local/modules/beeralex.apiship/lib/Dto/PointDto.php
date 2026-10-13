@@ -8,42 +8,24 @@ use Beeralex\Core\Http\Resources\Resource;
 /**
  * Пункт выдачи/приёма заказов (ПВЗ).
  *
- * @property-read string $id
- * @property-read string $providerKey
- * @property-read string $name
- * @property-read string $address
- * @property-read float $lat
- * @property-read float $lng
+ * @property string $id
+ * @property string $providerKey
+ * @property string $name
+ * @property string $address
+ * @property float|null $lat
+ * @property float|null $lng
  */
 final class PointDto extends Resource
 {
-    public function getId(): string
+    public static function make(array $data): static
     {
-        return (string)$this->get('id');
-    }
-
-    public function getProviderKey(): string
-    {
-        return (string)$this->getString('providerKey');
-    }
-
-    public function getName(): string
-    {
-        return (string)$this->getString('name');
-    }
-
-    public function getAddress(): string
-    {
-        return (string)$this->getString('address');
-    }
-
-    public function getLat(): ?float
-    {
-        return $this->getFloat('lat');
-    }
-
-    public function getLng(): ?float
-    {
-        return $this->getFloat('lng');
+        return new static([
+            'id'          => (string)($data['id'] ?? ''),
+            'providerKey' => (string)($data['providerKey'] ?? ''),
+            'name'        => (string)($data['name'] ?? ''),
+            'address'     => (string)($data['address'] ?? ''),
+            'lat'         => isset($data['lat']) ? (float)$data['lat'] : null,
+            'lng'         => isset($data['lng']) ? (float)$data['lng'] : null,
+        ]);
     }
 }

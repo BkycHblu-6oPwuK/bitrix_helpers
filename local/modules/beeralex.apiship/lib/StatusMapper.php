@@ -4,64 +4,72 @@ declare(strict_types=1);
 namespace Beeralex\Apiship;
 
 use Bitrix\Sale\Order;
-use Beeralex\Apiship\Dto\StatusDto;
-use Beeralex\Apiship\Repository\StatusLogRepository;
+use Beeralex\Apiship\Dto\StatusMappingDto;
+use Beeralex\Apiship\Support\ShipmentLocator;
 
 /**
- * Маппинг статусов ApiShip -> статусы заказа Bitrix + применение статуса.
+ * Маппинг статусов ApiShip -> статусы Bitrix + применение к заказу и отгрузке.
  *
- * Стандартная карта покрывает типовые ключи статусов ApiShip (см. openapi.yaml /lists/statuses,
- * а также lib/Sdk/Api/Lists::getStatuses()). Карта не претендует на полноту — конкретные ключи
- * ApiShip зависят от подключённых ТК; при необходимости переопределите getMap() или расширьте
- * настройками модуля (см. docs/JOURNAL.md TODO).
+ * Один статус ApiShip меняет ОБЕ сущности:
+ *  - статус заказа    (Bitrix\Sale\OrderStatus, тип "O") — $order->setField('STATUS_ID', ...);
+ *  - статус отгрузки  (Bitrix\Sale\DeliveryStatus, тип "D") — $shipment->setField('STATUS_ID', ...).
+ *
+ * Карты берутся из настроек модуля (см. Options::$orderStatusMap / $shipmentStatusMap); заданные в
+ * админке значения накладываются поверх дефолтных карт из кода. Пустое значение в карте («— не менять —»)
+ * означает, что соответствующая сущность не трогается.
  */
 final class StatusMapper
 {
-    /**
-     * ApiShip status key => Bitrix STATUS_ID.
-     * Ключи заказа Bitrix — стандартные из демо-набора статусов ("N" новый, ... "F" выполнен,
-     * "CANCEL" отменён). Скорректируйте под реальный набор статусов проекта.
-     */
-    private const DEFAULT_MAP = [
-        'created'          => 'N',
-        'confirmed'        => 'AP',
-        'inTransitToClient'=> 'PD',
-        'arrivedAtPoint'   => 'PD',
-        'delivered'        => 'F',
-        'returned'         => 'CANCEL',
-        'cancelled'        => 'CANCEL',
-        'error'            => 'CANCEL',
-    ];
-
     public function __construct(
-        private readonly StatusLogRepository $statusLogRepository
+        private readonly Options $options,
     ) {}
+
+    /**
+     * Карта берётся из настроек модуля целиком (если задана).
+     * После первого сохранения формы настроек карта в опциях содержит все ключи (пустое
+     * значение = «не менять»), поэтому переопределяет дефолт полностью, а не по ключу.
+     *
+     * @return array<string,string>
+     */
+    protected function getOrderMap(): array
+    {
+        return $this->options->orderStatusMap !== [] ? $this->options->orderStatusMap : [];
+    }
 
     /**
      * @return array<string,string>
      */
-    protected function getMap(): array
+    protected function getShipmentMap(): array
     {
-        return self::DEFAULT_MAP;
-    }
-
-    public function mapToBitrixStatus(string $apiShipStatusKey): ?string
-    {
-        return $this->getMap()[$apiShipStatusKey] ?? null;
+        return $this->options->shipmentStatusMap !== [] ? $this->options->shipmentStatusMap : [];
     }
 
     /**
-     * Применяет статус к заказу Bitrix (если статус смаппен и заказ найден) и пишет лог.
+     * Возвращает пару целевых статусов Bitrix для ключа статуса ApiShip.
+     * Отсутствующее/пустое значение в карте => null (сущность не трогаем).
+     */
+    public function map(string $apiShipStatusKey): StatusMappingDto
+    {
+        return new StatusMappingDto(
+            self::normalize($this->getOrderMap()[$apiShipStatusKey] ?? null),
+            self::normalize($this->getShipmentMap()[$apiShipStatusKey] ?? null),
+        );
+    }
+
+    private static function normalize(?string $statusId): ?string
+    {
+        $statusId = $statusId !== null ? trim($statusId) : '';
+
+        return $statusId === '' ? null : $statusId;
+    }
+
+    /**
+     * Применяет статус ApiShip к заказу Bitrix и его отгрузке ApiShip (если смаппены).
      */
     public function applyToBitrixOrder(int $bitrixOrderId, string $apiShipStatusKey): bool
     {
-        $this->statusLogRepository->logIfChanged($bitrixOrderId, StatusDto::make([
-            'orderId' => 0,
-            'key'     => $apiShipStatusKey,
-        ]));
-
-        $bitrixStatusId = $this->mapToBitrixStatus($apiShipStatusKey);
-        if ($bitrixStatusId === null) {
+        $mapping = $this->map($apiShipStatusKey);
+        if ($mapping->isEmpty()) {
             return false;
         }
 
@@ -70,11 +78,29 @@ final class StatusMapper
             return false;
         }
 
-        if ($order->getField('STATUS_ID') === $bitrixStatusId) {
+        $changed = false;
+
+        if ($mapping->orderStatusId !== null
+            && $order->getField('STATUS_ID') !== $mapping->orderStatusId
+        ) {
+            $order->setField('STATUS_ID', $mapping->orderStatusId);
+            $changed = true;
+        }
+
+        if ($mapping->shipmentStatusId !== null) {
+            $shipment = ShipmentLocator::findApiShipShipment($order);
+            if ($shipment !== null
+                && $shipment->getField('STATUS_ID') !== $mapping->shipmentStatusId
+            ) {
+                $shipment->setField('STATUS_ID', $mapping->shipmentStatusId);
+                $changed = true;
+            }
+        }
+
+        if (!$changed) {
             return true;
         }
 
-        $order->setField('STATUS_ID', $bitrixStatusId);
         $result = $order->save();
 
         return $result->isSuccess();

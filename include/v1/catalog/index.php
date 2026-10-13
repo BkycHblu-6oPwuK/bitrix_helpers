@@ -4,11 +4,8 @@ use Beeralex\Core\Service\IblockService;
 
 global $APPLICATION;
 
-$requestUri = $_SERVER['REQUEST_URI'];
-$isRootFilter = str_contains($requestUri, '/catalog/filter/');
-
 $APPLICATION->IncludeComponent(
-    "bitrix:catalog",
+    "beeralex:catalog",
     "main-catalog",
     array(
         "IBLOCK_TYPE" => "catalog",
@@ -302,11 +299,12 @@ $APPLICATION->IncludeComponent(
         "FILE_404" => "",
         "STORE_PATH" => "/store/#store_id#",
         "SEF_URL_TEMPLATES" => array(
-            "sections" => $isRootFilter ? "bitrix/api/v1/catalog/#SECTION_CODE_PATH#" : "bitrix/api/v1/catalog", // тут если каталог сделан что в корне товары выводятся и отменяется фильтр, то изначально используется путь с #SECTION_CODE_PATH#, т.к. filter/clear... считается битрой будто разделы
+            "sections" => "bitrix/api/v1/catalog",
             "section" => "bitrix/api/v1/catalog/#SECTION_CODE_PATH#",
             "element" => "bitrix/api/v1/product/#ELEMENT_CODE#",
             "compare" => "bitrix/api/v1/catalog/compare",
             "smart_filter" => "bitrix/api/v1/catalog/#SECTION_CODE_PATH#/filter/#SMART_FILTER_PATH#/apply",
+            "root_filter" => "bitrix/api/v1/catalog/filter/#SMART_FILTER_PATH#/apply"
         )
     ),
     false

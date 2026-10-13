@@ -6,11 +6,11 @@
 -->
 <script setup lang="ts">
 import Dump from '~/components/dev/Dump.vue';
-import type { SliderArticlesContent } from '~/types/iblock/content'
+import type { MainSliderArticlesContent } from '~/types/iblock/main'
 
 // Пропсы: массив статей для слайдера
 const props = defineProps<{
-    data: SliderArticlesContent['result']
+    data: MainSliderArticlesContent['result']
 }>()
 </script>
 

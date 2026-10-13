@@ -32,6 +32,7 @@ class WebhookLogTable extends ORM\Data\DataManager
 
             new ORM\Fields\StringField('EVENT_ID', [
                 'required' => true,
+                'unique'   => true,
                 'size'     => 128,
             ]),
 

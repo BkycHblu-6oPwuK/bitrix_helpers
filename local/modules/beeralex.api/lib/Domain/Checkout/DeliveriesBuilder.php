@@ -1,5 +1,4 @@
 <?php
-
 namespace Beeralex\Api\Domain\Checkout;
 
 use Bitrix\Sale\Order;
@@ -9,8 +8,8 @@ use Beeralex\Api\Domain\Checkout\DTO\DeliveryDTO;
 use Beeralex\Api\Domain\Checkout\DTO\DeliveryiesDTO;
 use Beeralex\Api\Domain\Checkout\DTO\ExtraServiceDTO;
 use Beeralex\Api\Domain\Checkout\DTO\StoreDTO;
+use Beeralex\Catalog\Contracts\StoreRepositoryContract;
 use Beeralex\Catalog\Service\OrderService;
-use Beeralex\Catalog\Repository\StoreRepository;
 use Beeralex\Catalog\Service\PriceService;
 use Bitrix\Sale\Delivery\Services\Base;
 use Bitrix\Sale\PropertyValueCollectionBase;
@@ -19,10 +18,12 @@ use Bitrix\Sale\Shipment;
 class DeliveriesBuilder
 {
     private Order $order;
+
     /**
      * @var Collection<BaseDelivery>
      */
     private Collection $deliveries;
+
     /**
      * @var array<int, Base>
      */
@@ -50,45 +51,42 @@ class DeliveriesBuilder
 
     public function buildDeliveriesDTO(): DeliveryiesDTO
     {
+        $locationData = $this->buildLocationData();
         if (!$this->haveAvailableDeliveries()) {
-            return DeliveryiesDTO::make([
+            return DeliveryiesDTO::make(array_merge([
                 'deliveries' => [],
                 'selectedId' => 0,
                 'storeSelectedId' => 0,
-                'minDeliveryPrice' => 0,
-                'minDeliveryPriceFormatted' => $this->priceService->format(0),
-                'message' => 'Мы не доставляем товар в ваш населенный пункт',
-            ]);
+                'minDeliveryPrice' => 0.0,
+                'minDeliveryPriceFormatted' => $this->priceService->format(0.0),
+                'message' => 'Нет доступных способов доставки',
+            ], $locationData));
         }
 
         $deliveries = $this->deliveries
             ->map(fn(BaseDelivery $delivery) => $this->buildDeliveryDTO($delivery))
             ->toArray();
 
-        return DeliveryiesDTO::make([
+        return DeliveryiesDTO::make(array_merge([
             'deliveries' => $deliveries,
             'selectedId' => $this->shipment?->getDeliveryId() ?? 0,
             'storeSelectedId' => $this->storeSelectedId,
             'minDeliveryPrice' => $this->getMinPrice(),
             'minDeliveryPriceFormatted' => $this->priceService->format($this->getMinPrice()),
             'message' => '',
-        ]);
+        ], $locationData));
     }
 
     private function buildLocationData(): array
     {
         $props = $this->orderService->getPropertyValues($this->orderProperties);
-        
+
         return [
             'location' => $props['LOCATION'] ?? '',
             'city' => $props['CITY'] ?? '',
             'address' => $props['ADDRESS'] ?: ($props['CITY'] ?? ''),
             'postCode' => $props['ZIP'] ?? '',
-            'selectedPvz' => $props['ESHOPLOGISTIC_PVZ'] ?? '',
-            'coordinates' => $props['COORDINATES'] ? explode(',', $props['COORDINATES'], 2) : [],
-            'completionDate' => $props['COMPLETION_DATE'] ?? '',
-            'distance' => (float)($props['DISTANCE'] ?? 0),
-            'duration' => (float)($props['DURATION'] ?? 0),
+            'selectedPvz' => $props['PICKUP_POINT_ID'] ?? '',
         ];
     }
 
@@ -99,6 +97,30 @@ class DeliveriesBuilder
             ? $this->getStoreData($delivery) 
             : [];
 
+        $price  = $delivery->getPrice();
+        $period = (string)$delivery->getDeliveryPeriod();
+
+        if (!$delivery->isSelected() && $this->shipment !== null) {
+            $handler = $this->deliveryHandlers[$delivery->getId()] ?? null;
+            if ($handler && ($price <= 0 || $period === '')) {
+                try {
+                    $calcResult = $handler->calculate($this->shipment);
+                    if ($calcResult->isSuccess()) {
+                        if ($price <= 0) {
+                            $price = (float)$calcResult->getPrice();
+                        }
+                        if ($period === '') {
+                            $period = $this->formatPeriod(
+                                (int)$calcResult->getPeriodFrom(),
+                                (int)$calcResult->getPeriodTo(),
+                                (string)$calcResult->getPeriodType()
+                            );
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+        }
+
         return DeliveryDTO::make([
             'id' => $delivery->getId(),
             'code' => $delivery->getCode(),
@@ -108,13 +130,32 @@ class DeliveriesBuilder
             'currency' => $this->order->getCurrency(),
             'sort' => $delivery->getSort(),
             'logotip' => $delivery->getLogotip(),
-            'price' => $delivery->getPrice(),
-            'priceFormatted' => $this->priceService->format($delivery->getPrice()),
+            'price' => $price,
+            'priceFormatted' => $this->priceService->format($price),
+            'deliveryPeriod' => $period,
             'isSelected' => $delivery->isSelected(),
             'extraServices' => $extraServices,
             'isStoreDelivery' => $delivery->isStoreDelivery(),
+            'isCourier' => $delivery->isCourier(),
+            'isPickup' => $delivery->isPickup(),
             'storeList' => $storeList,
         ]);
+    }
+
+    /**
+     * Форматирует период доставки из числовых значений.
+     */
+    private function formatPeriod(int $from, int $to, string $type): string
+    {
+        if ($from <= 0 && $to <= 0) {
+            return '';
+        }
+        $label = match ($type) {
+            'H' => 'ч',
+            'M' => 'мин',
+            default => 'дн',
+        };
+        return $from > 0 && $from !== $to ? "{$from}–{$to} {$label}" : "{$to} {$label}";
     }
 
     /**
@@ -155,12 +196,10 @@ class DeliveriesBuilder
                         'priceFormatted' => $this->priceService->format($priceItem)
                     ];
                 }
-                
-                $code = $extraService->getCode();
 
                 $extraServicesFormatted[] = ExtraServiceDTO::make([
                     'id' => $extraServiceId,
-                    'code' => $code,
+                    'code' => $extraService->getCode(),
                     'title' => $extraService->getName(),
                     'value' => $selectedValue,
                     'values' => $values,
@@ -183,7 +222,7 @@ class DeliveriesBuilder
             return [];
         }
 
-        $storeData = (new StoreRepository)->getPickPoints($delivery->getStoreList());
+        $storeData = service(StoreRepositoryContract::class)->getPickPoints($delivery->getStoreList());
         
         if (!$this->storeSelectedId && isset($storeData[0])) {
             $this->storeSelectedId = $storeData[0]->id;

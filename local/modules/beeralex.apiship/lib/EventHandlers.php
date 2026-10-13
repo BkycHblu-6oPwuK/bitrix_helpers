@@ -7,6 +7,7 @@ use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
 use Beeralex\Apiship\Contracts\OrderServiceContract;
 use Beeralex\Apiship\Exception\ApiShipException;
+use Bitrix\Main\SystemException;
 
 /**
  * Обработчики событий модуля sale.
@@ -39,6 +40,13 @@ final class EventHandlers
             if ($options->logsEnable) {
                 \AddMessage2Log(
                     "ApiShip: не удалось отправить заказ #{$order->getId()}: {$e->getMessage()}",
+                    'beeralex.apiship'
+                );
+            }
+        } catch (SystemException $e) {
+            if ($options->logsEnable) {
+                \AddMessage2Log(
+                    "ApiShip: системная ошибка при сохранении заказа в таблицу #{$order->getId()}: {$e->getMessage()}",
                     'beeralex.apiship'
                 );
             }

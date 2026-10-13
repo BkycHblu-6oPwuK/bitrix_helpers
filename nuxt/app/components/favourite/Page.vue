@@ -5,7 +5,7 @@
 -->
 <script setup lang="ts">
 import type { CatalogDTO } from '~/types/iblock/catalog.ts';
-import type { FavouritePageDTO } from '~/types/favourite';
+import type { FavouritePageDTO } from '~/types/pages/favourite';
 
 // Пропсы: начальные данные каталога с сервера
 const props = defineProps<{
@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 // Инициализируем store с данными и получаем методы управления
-const { sectionData, isLoading, setAppendMode, setApiUrl, loadPage } = useSection<FavouritePageDTO>(props.favourite)
+const { sectionData, isLoading, setAppendMode, loadPage } = useSection<FavouritePageDTO>(props.favourite, { apiUrl: props.apiUrl })
 const { getPageUrl } = usePagination()
 
 /**
@@ -43,10 +43,6 @@ const handleChangePage = async (page: number) => {
         loadPage<CatalogDTO>(pageUrl)
     }
 }
-
-onMounted(() => {
-    setApiUrl(props.apiUrl);
-})
 </script>
 
 <template>
@@ -58,7 +54,7 @@ onMounted(() => {
         <div v-else-if="sectionData" class="grid gap-8">
 
             <main class="lg:col-span-3">
-                <CatalogSections v-if="sectionData.sectionList?.length" :sections="sectionData.sectionList"
+                <CatalogSections v-if="sectionData.sectionList" :sections="sectionData.sectionList"
                     class="mb-8" />
 
                 <CatalogSection v-if="sectionData.section" :section="sectionData.section" @show-more="handleShowMore"

@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-09-27 — Рефакторинг StatusMapper: двойной маппинг (заказ + отгрузка)
+
+- `lib/Dto/StatusMappingDto.php` — новый VO `{?string orderStatusId, ?string shipmentStatusId, isEmpty()}`.
+- `lib/Support/ShipmentLocator.php` — статический хелпер `findApiShipShipment(Order): ?Shipment`;
+  логика перенесена из `ApiShipOrderRequestBuilder::findApiShipShipment()` (дублирование устранено).
+- `lib/Builder/ApiShipOrderRequestBuilder.php` — приватный `findApiShipShipment()` заменён вызовом
+  `ShipmentLocator::findApiShipShipment($order)`.
+- `lib/StatusMapper.php` — две дефолтных карты (`DEFAULT_ORDER_MAP`, `DEFAULT_SHIPMENT_MAP`);
+  конструктор принимает `Options`; `map(string): StatusMappingDto` заменяет `mapToBitrixStatus()`;
+  `applyToBitrixOrder()` применяет оба статуса (заказ + отгрузка ApiShip) за один `$order->save()`.
+- `lib/Options.php` — добавлены `$orderStatusMap`, `$shipmentStatusMap`; JSON-парсинг в `mapOptions()`
+  через приватный `decodeMap()`.
+- `options_schema.php` — два скрытых `input` (JSON-хранилище карт) + `staticHtml` с таблицей
+  селектов и JS-синхронизацией; строки JSON-инпутов скрыты через JS на загрузке страницы.
+- `.settings.php` — в конструктор `StatusMapper` добавлен `service(Options::class)`.
+
+
+
 ## 2026-09-19 — Фаза 4: ORM, репозитории, события, вебхук, StatusMapper
 
 - `lib/Model/{Order,StatusLog,WebhookLog}Table` — DataManager + TableManagerTrait,
@@ -16,7 +34,7 @@
   попытка вставки с перехватом дублей (`registerEvent` возвращает false если уже есть).
 - `lib/StatusMapper` — маппинг `apiShipStatusKey → Bitrix STATUS_ID` (константный массив,
   переопределяется через `getMap()`). `applyToBitrixOrder()` загружает `Order`, меняет
-  `STATUS_ID`, вызывает `save()`. Также пишет в `StatusLogRepository`.
+  `STATUS_ID`, вызывает `save()`.
 - `lib/EventHandlers::onSaleStatusOrderChange` — реагирует на `EVENT_ENTITY` (объект Order),
   проверяет `VALUE === Options::sendOnStatusId`, вызывает
   `OrderServiceContract::createForBitrixOrder($order->getId())`.
@@ -28,7 +46,7 @@
   `InstallEvents()`/`UnInstallEvents()` регистрируют/отписывают `OnSaleStatusOrderChange` и
   `onSaleDeliveryHandlersClassNamesBuildList`. Классы адресуются строковыми FQCN-константами
   (guard на ранних фазах снят — все классы теперь существуют).
-- `.settings.php` — добавлены `OrderRepository`, `StatusLogRepository`,
+- `.settings.php` — добавлены `OrderRepository`,
   `WebhookLogRepository`, `StatusMapper`.
 
 ### Итог: все фазы 0–4 реализованы. Модуль готов к установке и тестированию.

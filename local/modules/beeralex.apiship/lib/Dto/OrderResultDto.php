@@ -8,18 +8,16 @@ use Beeralex\Core\Http\Resources\Resource;
 /**
  * Результат создания/получения заказа ApiShip.
  *
- * @property-read int $orderId ID заказа в ApiShip
- * @property-read string $created
+ * @property int $orderId ID заказа в ApiShip
+ * @property string|null $created
  */
 final class OrderResultDto extends Resource
 {
-    public function getOrderId(): int
+    public static function make(array $data): static
     {
-        return (int)$this->getInt('orderId');
-    }
-
-    public function getCreated(): ?string
-    {
-        return $this->getString('created');
+        return new static([
+            'orderId' => (int)($data['orderId'] ?? 0),
+            'created' => isset($data['created']) ? (string)$data['created'] : null,
+        ]);
     }
 }

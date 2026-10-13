@@ -8,53 +8,32 @@ use Beeralex\Core\Http\Resources\Resource;
 /**
  * Нормализованный тариф расчёта доставки.
  *
- * @property-read string $providerKey
- * @property-read int $tariffId
- * @property-read string $tariffName
- * @property-read float $deliveryCost
- * @property-read int $daysMin
- * @property-read int $daysMax
- * @property-read int $deliveryType 1 — до двери, 2 — до ПВЗ
+ * @property string $providerKey
+ * @property int $tariffId
+ * @property string $tariffName
+ * @property float $deliveryCost
+ * @property int $daysMin
+ * @property int $daysMax
+ * @property int $deliveryType 1 — до двери, 2 — до ПВЗ
+ * @property bool $isToPoint
+ * @property array<int,string> $pointIds
  */
 final class TariffDto extends Resource
 {
-    public function getProviderKey(): string
+    public static function make(array $data): static
     {
-        return (string)$this->getString('providerKey');
-    }
+        $deliveryType = (int)($data['deliveryType'] ?? 0);
 
-    public function getTariffId(): int
-    {
-        return (int)$this->getInt('tariffId');
-    }
-
-    public function getTariffName(): string
-    {
-        return (string)$this->getString('tariffName');
-    }
-
-    public function getDeliveryCost(): float
-    {
-        return (float)$this->getFloat('deliveryCost');
-    }
-
-    public function getDaysMin(): int
-    {
-        return (int)$this->getInt('daysMin');
-    }
-
-    public function getDaysMax(): int
-    {
-        return (int)$this->getInt('daysMax');
-    }
-
-    public function getDeliveryType(): int
-    {
-        return (int)$this->getInt('deliveryType');
-    }
-
-    public function isToPoint(): bool
-    {
-        return $this->getDeliveryType() === 2;
+        return new static([
+            'providerKey'  => (string)($data['providerKey'] ?? ''),
+            'tariffId'     => (int)($data['tariffId'] ?? 0),
+            'tariffName'   => (string)($data['tariffName'] ?? ''),
+            'deliveryCost' => (float)($data['deliveryCost'] ?? 0),
+            'daysMin'      => (int)($data['daysMin'] ?? 0),
+            'daysMax'      => (int)($data['daysMax'] ?? 0),
+            'deliveryType' => $deliveryType,
+            'isToPoint'    => $deliveryType === 2,
+            'pointIds'     => (array)($data['pointIds'] ?? []),
+        ]);
     }
 }

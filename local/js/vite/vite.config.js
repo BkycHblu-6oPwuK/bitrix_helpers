@@ -23,9 +23,6 @@ export default defineConfig({
             },
         }),
     ],
-    //define: {
-    //    'process.env': env // можно передать переменные в клиентский код
-    //},
     base: base,
     build: {
         outDir: env.VITE_CLIENT_PATH,
@@ -34,14 +31,6 @@ export default defineConfig({
         manifest: true,
         rollupOptions: {
             input: {
-                bundle: 'src/common/js/bundle.js',
-                catalog: 'src/app/catalog/index.js',
-                catalog_element: 'src/app/catalog_element/index.js',
-                cart: 'src/app/cart/index.js',
-                checkout: 'src/app/checkout/index.js',
-                dressing: 'src/app/dressing/index.js',
-                profile: 'src/app/profile/index.js',
-                articles: 'src/app/articles/index.js',
             },
         },
     },

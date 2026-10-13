@@ -88,6 +88,7 @@ class ApiShipHandler extends Base
     /**
      * Минимальная конфигурация: providerKey/tariffId/providerConnectId опциональны —
      * если не заданы, расчёт делается по всем подключённым ТК ApiShip (см. CalculatorService).
+     * @todo - настройки здесь бесполезны, это должно быть в профилях доставок
      */
     public function getConfigStructure(): array
     {
@@ -108,6 +109,16 @@ class ApiShipHandler extends Base
                     'PROVIDER_CONNECT_ID' => [
                         'TYPE'    => 'STRING',
                         'NAME'    => Loc::getMessage('BEERALEX_APISHIP_CONFIG_PROVIDER_CONNECT_ID') ?: 'ID подключения ApiShip (providerConnectId)',
+                        'REQUIRED' => 'N',
+                    ],
+                    'PICKUP_TYPE' => [
+                        'TYPE'    => 'STRING',
+                        'NAME'    => 'Тип забора (pickupType): 1 — от двери, 2 — привоз на склад СД',
+                        'REQUIRED' => 'N',
+                    ],
+                    'POINT_IN_ID' => [
+                        'TYPE'    => 'STRING',
+                        'NAME'    => 'ID пункта приёма СД (pointInId), если отгрузка на склад СД',
                         'REQUIRED' => 'N',
                     ],
                 ],
@@ -137,9 +148,9 @@ class ApiShipHandler extends Base
             return $result;
         }
 
-        $result->setDeliveryPrice($tariff->getDeliveryCost());
-        $result->setPeriodFrom($tariff->getDaysMin());
-        $result->setPeriodTo($tariff->getDaysMax());
+        $result->setDeliveryPrice($tariff->deliveryCost);
+        $result->setPeriodFrom($tariff->daysMin);
+        $result->setPeriodTo($tariff->daysMax);
         $result->setPeriodType(CalculationResult::PERIOD_TYPE_DAY);
 
         return $result;
@@ -156,10 +167,10 @@ class ApiShipHandler extends Base
 
         if ($providerKey !== '' || $tariffId !== null) {
             foreach ($tariffs as $tariff) {
-                if ($providerKey !== '' && $tariff->getProviderKey() !== $providerKey) {
+                if ($providerKey !== '' && $tariff->providerKey !== $providerKey) {
                     continue;
                 }
-                if ($tariffId !== null && $tariff->getTariffId() !== $tariffId) {
+                if ($tariffId !== null && $tariff->tariffId !== $tariffId) {
                     continue;
                 }
                 return $tariff;
@@ -169,7 +180,7 @@ class ApiShipHandler extends Base
 
         $cheapest = null;
         foreach ($tariffs as $tariff) {
-            if ($cheapest === null || $tariff->getDeliveryCost() < $cheapest->getDeliveryCost()) {
+            if ($cheapest === null || $tariff->deliveryCost < $cheapest->deliveryCost) {
                 $cheapest = $tariff;
             }
         }

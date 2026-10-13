@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BasketItemDTO } from '~/types/basket'
+import type { BasketItemDTO } from '~/types/pages/basket'
 
 const props = defineProps<{
     item: BasketItemDTO

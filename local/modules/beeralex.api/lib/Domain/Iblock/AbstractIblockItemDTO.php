@@ -13,13 +13,14 @@ abstract class AbstractIblockItemDTO extends Resource
     /**
      * Поместит свойства если в выборке свойств был IBLOCK_PROPERTY_ID
      * обычно такая структура при декомпозиции в выборке через ORM
+     * @return PropertyItemDTO[]
      */
     public static function getFromDecomposeProperties(array $item): array
     {
         $properties = [];
         
         foreach ($item as $key => $value) {
-            if (in_array($key, ['PRESELECTED_OFFER', 'OFFERS', 'PRICE', 'CATALOG', 'PRODUCT'])) continue; // Пропускаем, если это предвыбранное предложение
+            if (in_array($key, ['PRESELECTED_OFFER', 'OFFERS', 'PRICE', 'CATALOG', 'PRODUCT', 'IBLOCK_MODEL_SECTION'])) continue; // Пропускаем, если это предвыбранное предложение
             if (is_array($value)) {
                 if (isset($value['IBLOCK_PROPERTY_ID'])) {
                     $properties[$key] = PropertyItemDTO::makeFromDecomposeData($value, $key);
@@ -35,6 +36,9 @@ abstract class AbstractIblockItemDTO extends Resource
         return $properties;
     }
 
+    /**
+     * @return PropertyItemDTO[]
+     */
     public static function getFromDisplayProperties(array $item): array
     {
         $properties = [];

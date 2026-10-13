@@ -5,6 +5,8 @@ namespace Beeralex\Apiship\Repository;
 
 use Beeralex\Apiship\Dto\WebhookEventDto;
 use Beeralex\Apiship\Model\WebhookLogTable;
+use Bitrix\Main\SystemException;
+use Beeralex\Core\Repository\Repository;
 
 /**
  * Репозиторий журнала входящих вебхуков (таблица beeralex_apiship_webhook_log).
@@ -13,11 +15,17 @@ use Beeralex\Apiship\Model\WebhookLogTable;
  * WebhookLogTable), поэтому повторная вставка того же события завершится ошибкой —
  * это и есть признак дубликата.
  */
-final class WebhookLogRepository
+final class WebhookLogRepository extends Repository
 {
+    public function __construct()
+    {
+        parent::__construct(WebhookLogTable::class);
+    }
+
     /**
      * Регистрирует событие. Возвращает true, если событие новое (успешно записано),
      * false — если это дубликат (уже было записано ранее).
+     * @throws SystemException
      */
     public function registerEvent(WebhookEventDto $event, string $rawBody): bool
     {
@@ -27,25 +35,19 @@ final class WebhookLogRepository
             return false;
         }
 
-        $result = WebhookLogTable::add([
+        $result = $this->add([
             'EVENT_ID'         => $eventId,
-            'EVENT_TYPE'       => $event->getType(),
-            'APISHIP_ORDER_ID' => $event->getOrderId() ?: null,
+            'EVENT_TYPE'       => $event->type,
+            'APISHIP_ORDER_ID' => $event->orderId ?: null,
             'RAW_BODY'         => $rawBody,
         ]);
 
-        // Гонка (два одновременных запроса с одним EVENT_ID): уникальный индекс не даст
-        // вставить дубликат — трактуем неуспех add() как "уже обработано".
-        return $result->isSuccess();
+        return $result > 0;
     }
 
     private function exists(string $eventId): bool
     {
-        return WebhookLogTable::getList([
-            'select' => ['ID'],
-            'filter' => ['=EVENT_ID' => $eventId],
-            'limit'  => 1,
-        ])->fetch() !== false;
+        return $this->one(['=EVENT_ID' => $eventId], ['ID']) !== null;
     }
 
     /**
@@ -54,11 +56,11 @@ final class WebhookLogRepository
      */
     private function resolveEventId(WebhookEventDto $event, string $rawBody): string
     {
-        $eventId = $event->getEventId();
+        $eventId = $event->eventId;
         if ($eventId !== '') {
             return $eventId;
         }
 
-        return $event->getType() . ':' . $event->getOrderId() . ':' . $event->getStatusKey() . ':' . md5($rawBody);
+        return $event->type . ':' . $event->orderId . ':' . $event->statusKey . ':' . md5($rawBody);
     }
 }

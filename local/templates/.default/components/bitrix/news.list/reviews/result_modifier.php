@@ -15,7 +15,10 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
  * @var CBitrixComponent $component
  */
 
-$arResult['DTO'] = SectionItemsDTO::makeFrom(array_map([ElementDTO::class, 'fromNewsListElement'], $arResult['ITEMS']), $arResult['NAV_RESULT'] ? PaginationDTO::fromResult($arResult['NAV_RESULT']) : null);
+$arResult['DTO'] = SectionItemsDTO::makeFrom(
+    array_map([ElementDTO::class, 'fromNewsListElement'], $arResult['ITEMS']),
+    $arResult['NAV_RESULT'] ? PaginationDTO::fromResult($arResult['NAV_RESULT']) : null
+);
 // или сделать вызов catalog.smart.filter
 $arResult['FILTER_DTO'] = FilterDTO::make([
     'sorting' => service(DIServiceKey::SORTING_SERVICE->value)->getSorting(),

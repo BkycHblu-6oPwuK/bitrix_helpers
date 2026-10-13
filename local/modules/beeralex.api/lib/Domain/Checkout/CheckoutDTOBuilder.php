@@ -19,7 +19,7 @@ class CheckoutDTOBuilder
     private bool $rules;
     private string $signedParameters;
     private string $siteId;
-    
+
     public function setRules(bool $rules): static
     {
         $this->rules = $rules;
@@ -76,13 +76,14 @@ class CheckoutDTOBuilder
 
     public function build(): CheckoutDTO
     {
+        global $USER;
         $basketData = $this->buildBasket();
-        $totalPrice = (new TotalBuilder())->build($this->order, $basketData['SUMMARY']);
+        $total = (new TotalBuilder())->build($this->order, $basketData['SUMMARY']);
 
         return CheckoutDTO::make([
             'items' => $basketData['ITEMS'],
             'delivery' => $this->buildDeliveries($this->deliveriesBuilder),
-            'totalPrice' => $totalPrice,
+            'total' => $total,
             'coupon' => $this->buildCoupon($basketData['COUPON']),
             'comment' => $this->buildComment(),
             'payments' => $this->paymentsBuilder->buildPayments(),
@@ -94,6 +95,7 @@ class CheckoutDTOBuilder
             'propIdsMap' => $this->buildPropIdsMap(),
             'signedParameters' => $this->signedParameters,
             'siteId' => $this->siteId,
+            'isAuthorized' => $USER->IsAuthorized(),
         ]);
     }
 
@@ -153,7 +155,6 @@ class CheckoutDTOBuilder
 
             // location
             'postCodeChanged' => 'ZIP_PROPERTY_CHANGED', // Y|N
-            'oldLocation' => 'OLD_LOCATION',
         ];
         return $map;
     }

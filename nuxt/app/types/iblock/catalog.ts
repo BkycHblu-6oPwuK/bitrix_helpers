@@ -148,6 +148,15 @@ export interface OffersTreePropsValuesItemDTO {
 }
 
 /**
+ * DTO для слайдера с продуктами: заголовок, ссылка "все" и массив товаров
+ */
+export interface ProductSliderDTO {
+    title: string
+    linkToAll: string
+    items: CatalogItemDTO[]
+}
+
+/**
  * Типы свойств товара в каталоге
  */
 export type CatalogItemPropertiesType = Record<string, PropertiesType> & { MORE_PHOTO?: PropertyItemDTO[] }

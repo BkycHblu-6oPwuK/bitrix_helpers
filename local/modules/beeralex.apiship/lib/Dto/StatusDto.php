@@ -8,30 +8,20 @@ use Beeralex\Core\Http\Resources\Resource;
 /**
  * Статус заказа ApiShip.
  *
- * @property-read int $orderId
- * @property-read string $key Код статуса ApiShip
- * @property-read string $name
- * @property-read string $date
+ * @property int $orderId
+ * @property string $key Код статуса ApiShip
+ * @property string|null $name
+ * @property string|null $date
  */
 final class StatusDto extends Resource
 {
-    public function getOrderId(): int
+    public static function make(array $data): static
     {
-        return (int)$this->getInt('orderId');
-    }
-
-    public function getKey(): string
-    {
-        return (string)$this->getString('key');
-    }
-
-    public function getName(): ?string
-    {
-        return $this->getString('name');
-    }
-
-    public function getDate(): ?string
-    {
-        return $this->getString('date');
+        return new static([
+            'orderId' => (int)($data['orderId'] ?? 0),
+            'key'     => (string)($data['key'] ?? ''),
+            'name'    => isset($data['name']) ? (string)$data['name'] : null,
+            'date'    => isset($data['date']) ? (string)$data['date'] : null,
+        ]);
     }
 }

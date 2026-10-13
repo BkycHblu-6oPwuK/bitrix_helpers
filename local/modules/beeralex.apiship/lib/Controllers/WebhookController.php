@@ -1,14 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Apiship\Controllers;
 
 use Bitrix\Main\Engine\Controller;
-use Bitrix\Main\Error;
 use Bitrix\Main\Web\Json;
 use Beeralex\Apiship\Contracts\WebhookServiceContract;
-use Beeralex\Apiship\Dto\WebhookEventDto;
 use Beeralex\Apiship\Options;
+use Beeralex\Apiship\Dto\WebhookEventDto;
 
 /**
  * Приём входящих вебхуков ApiShip (server-to-server, единственный HTTP-эндпоинт модуля —
@@ -48,12 +48,21 @@ class WebhookController extends Controller
                 continue;
             }
 
-            $isNew = \service(WebhookServiceContract::class)->handle(
-                WebhookEventDto::make($eventData),
-                Json::encode($eventData)
-            );
-
-            $isNew ? $processed++ : $duplicates++;
+            try {
+                $isNew = \service(WebhookServiceContract::class)->handle(
+                    WebhookEventDto::make($eventData),
+                    Json::encode($eventData)
+                );
+                $isNew ? $processed++ : $duplicates++;
+            } catch (\Throwable $e) {
+                $options = \service(Options::class);
+                if ($options->logsEnable) {
+                    \AddMessage2Log(
+                        "ApiShip: ошибка при обработке вебхука " . Json::encode($eventData) . ": {$e->getMessage()}",
+                        'beeralex.apiship'
+                    );
+                }
+            }
         }
 
         return [

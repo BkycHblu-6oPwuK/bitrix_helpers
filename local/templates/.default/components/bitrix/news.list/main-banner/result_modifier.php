@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-use Beeralex\Api\Domain\Iblock\Content\ContentItemDTO;
-use Beeralex\Api\Domain\Iblock\Content\Enum\MainContentTypes;
-use Beeralex\Api\Domain\Iblock\Content\MainBannerDTO;
+use Beeralex\Api\Domain\Iblock\Main\MainContentItemDTO;
+use Beeralex\Api\Domain\Iblock\Main\Enum\MainContentTypes;
+use Beeralex\Api\Domain\Iblock\Main\MainBannerDTO;
 
-$arResult['DTO'] = ContentItemDTO::makeFrom(
+$arResult['DTO'] = MainContentItemDTO::makeFrom(
     MainContentTypes::MAIN_BANNER,
     MainBannerDTO::make($arResult)
 );

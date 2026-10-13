@@ -3,53 +3,43 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Repository;
 
-use Beeralex\Apiship\Dto\StatusDto;
+use Beeralex\Apiship\Dto\WebhookEventDto;
 use Beeralex\Apiship\Model\StatusLogTable;
+use Beeralex\Apiship\Support\DateHelper;
+use Beeralex\Core\Repository\Repository;
+use Bitrix\Main\SystemException;
 
 /**
- * Репозиторий журнала статусов (таблица beeralex_apiship_status_log).
+ * История изменения статусов заказов ApiShip (таблица beeralex_apiship_status_log).
+ *
+ * Одна строка на каждое событие ORDER_STATUS. Историю переносов плановой даты доставки
+ * здесь НЕ ведём (по требованию) — только статусы.
  */
-final class StatusLogRepository
+final class StatusLogRepository extends Repository
 {
-    public function __construct(
-        private readonly OrderRepository $orderRepository
-    ) {}
-
-    /**
-     * Пишет статус в лог, если он отличается от последнего сохранённого для заказа.
-     * Возвращает true, если статус новый (была запись в лог).
-     */
-    public function logIfChanged(int $bitrixOrderId, StatusDto $status): bool
+    public function __construct()
     {
-        $order = $this->orderRepository->find($bitrixOrderId);
-        $lastStatusKey = $order['LAST_STATUS_KEY'] ?? null;
-
-        if ($lastStatusKey === $status->getKey()) {
-            return false;
-        }
-
-        StatusLogTable::add([
-            'BITRIX_ORDER_ID'   => $bitrixOrderId,
-            'APISHIP_ORDER_ID'  => $status->getOrderId() ?: null,
-            'STATUS_KEY'        => $status->getKey(),
-            'STATUS_NAME'       => $status->getName(),
-            'STATUS_DATE'       => $status->getDate() ? new \Bitrix\Main\Type\DateTime($status->getDate()) : null,
-        ]);
-
-        $this->orderRepository->updateLastStatus($bitrixOrderId, $status->getKey());
-
-        return true;
+        parent::__construct(StatusLogTable::class);
     }
 
     /**
-     * @return array<int,array<string,mixed>>
+     * Добавляет запись в историю статусов на основе данных вебхука.
+     * @throws SystemException
      */
-    public function getHistory(int $bitrixOrderId): array
+    public function addFromEvent(WebhookEventDto $event, ?int $bitrixOrderId) : int
     {
-        return StatusLogTable::getList([
-            'select' => ['STATUS_KEY', 'STATUS_NAME', 'STATUS_DATE', 'CREATED_AT'],
-            'filter' => ['=BITRIX_ORDER_ID' => $bitrixOrderId],
-            'order'  => ['CREATED_AT' => 'ASC'],
-        ])->fetchAll();
+        return $this->add([
+            'APISHIP_ORDER_ID'     => $event->orderId,
+            'BITRIX_ORDER_ID'      => $bitrixOrderId,
+            'STATUS_KEY'           => $event->statusKey,
+            'STATUS_NAME'          => $event->statusName,
+            'DESCRIPTION'          => $event->statusDescription,
+            'ERROR_CODE'           => $event->statusErrorCode,
+            'PROVIDER_CODE'        => $event->statusProviderCode,
+            'PROVIDER_NAME'        => $event->statusProviderName,
+            'PROVIDER_DESCRIPTION' => $event->statusProviderDescription,
+            'CREATED_PROVIDER'     => DateHelper::toDateTime($event->statusCreatedProvider),
+            'CREATED'              => DateHelper::toDateTime($event->statusCreated),
+        ]);
     }
 }

@@ -117,17 +117,15 @@ return [
             OrderRepository::class => [
                 'className' => OrderRepository::class,
             ],
-            StatusLogRepository::class => [
-                'constructor' => static fn() => new StatusLogRepository(
-                    service(OrderRepository::class)
-                ),
-            ],
             WebhookLogRepository::class => [
                 'className' => WebhookLogRepository::class,
             ],
+            StatusLogRepository::class => [
+                'className' => StatusLogRepository::class,
+            ],
             StatusMapper::class => [
                 'constructor' => static fn() => new StatusMapper(
-                    service(StatusLogRepository::class)
+                    service(Options::class)
                 ),
             ],
         ],

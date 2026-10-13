@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ArticleElementPageApiResponse } from '~/types/articles';
+import type { ArticleElementPageApiResponse } from '~/types/pages/articles';
 const route = useRoute();
 const { data } = await useApi<ArticleElementPageApiResponse>(`articles/${route.params.code}`)
 useSeoPage(data.value?.data?.seo);

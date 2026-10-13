@@ -1,5 +1,4 @@
 <?php
-
 namespace Beeralex\Api\Domain\Checkout;
 
 use Bitrix\Sale\BasketBase;

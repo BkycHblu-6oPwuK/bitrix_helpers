@@ -6,9 +6,9 @@ use Beeralex\Api\Domain\Pagination\PaginationDTO;
 use Beeralex\Core\Http\Resources\Resource;
 
 /** 
- * @property CatalogItemDTO[] $items
+ * @property ElementDTO[] $items
  * @property PaginationDTO|null $pagination
- * @property SectionDTO[] $path
+ * @property BreadcrumbsItemDTO[] $path
  * DTO для секции с элементами (каталог, статьи и т.д.)
  */
 class SectionItemsDTO extends Resource
@@ -21,7 +21,7 @@ class SectionItemsDTO extends Resource
     /**
      * @param Resource[] $sectionItems
      * @param PaginationDTO|null $pagination
-     * @param SectionDTO[] $path
+     * @param BreadcrumbsItemDTO[] $path
      */
     public static function makeFrom(array $sectionItems, ?PaginationDTO $pagination = null, array $path = []): static
     {

@@ -3,48 +3,37 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Dto;
 
+use Beeralex\Apiship\Dto\Concerns\NormalizesValues;
 use Beeralex\Core\Http\Resources\Resource;
 
 /**
- * Грузовое место (габариты + вес).
+ * Грузовое место (`places[]` запроса создания заказа ApiShip; также используется в расчёте).
  *
- * @property-read int $weight Вес в граммах
- * @property-read int $width  Ширина в см
- * @property-read int $height Высота в см
- * @property-read int $length Длина в см
+ * @property int $weight Вес места, г. Обязательно. Пример: 100
+ * @property array<int,array<string,mixed>> $items Содержимое места (ItemDto as array). Обязательно
+ * @property string|null $placeNumber Номер места в системе клиента. Пример: 1
+ * @property string|null $barcode Штрихкод места. Пример: 011-819
+ * @property int|null $height Высота, см
+ * @property int|null $width Ширина, см
+ * @property int|null $length Длина, см
  */
 final class PlaceDto extends Resource
 {
-    public function getWeight(): int
-    {
-        return (int)$this->getInt('weight');
-    }
+    use NormalizesValues;
 
-    public function getWidth(): int
+    public static function make(array $data): static
     {
-        return (int)$this->getInt('width');
-    }
-
-    public function getHeight(): int
-    {
-        return (int)$this->getInt('height');
-    }
-
-    public function getLength(): int
-    {
-        return (int)$this->getInt('length');
-    }
-
-    /**
-     * @return array<string,int>
-     */
-    public function toApiShip(): array
-    {
-        return [
-            'weight' => $this->getWeight(),
-            'width'  => $this->getWidth(),
-            'height' => $this->getHeight(),
-            'length' => $this->getLength(),
-        ];
+        return new static([
+            'weight'      => (int)($data['weight'] ?? 0),
+            'items'       => array_map(
+                static fn($item) => ItemDto::make((array)$item)->toArray(),
+                array_values((array)($data['items'] ?? []))
+            ),
+            'placeNumber' => self::nullableString($data['placeNumber'] ?? null),
+            'barcode'     => self::nullableString($data['barcode'] ?? null),
+            'height'      => self::nullableInt($data['height'] ?? null),
+            'width'       => self::nullableInt($data['width'] ?? null),
+            'length'      => self::nullableInt($data['length'] ?? null),
+        ]);
     }
 }

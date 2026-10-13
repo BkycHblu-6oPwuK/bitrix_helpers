@@ -16,6 +16,7 @@ const props = defineProps<{
 
 // Состояние открытия/закрытия поповера
 const isOpen = ref(false)
+const initedSelectedCount = props.selectedCount
 
 const emit = defineEmits<{
     toggleFilter: [controlId: string, value: string] // Переключение фильтра
@@ -29,7 +30,7 @@ const handleToggle = (controlId: string, value: string) => {
 
 // Когда поповер закрывается - применяем фильтры
 watch(isOpen, (newVal) => {
-    if (!newVal) {
+    if (!newVal /*&& initedSelectedCount !== props.selectedCount*/) {
         emit('applyFilter')
     }
 })

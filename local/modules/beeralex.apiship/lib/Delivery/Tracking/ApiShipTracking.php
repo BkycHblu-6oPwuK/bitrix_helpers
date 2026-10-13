@@ -54,9 +54,9 @@ class ApiShipTracking extends Base
         }
 
         $result->status = Statuses::UNKNOWN;
-        $result->description = $status->getName() ?? $status->getKey();
+        $result->description = $status->name ?? $status->key;
         $result->trackingNumber = (string)$apiShipOrderId;
-        $result->lastChangeTimestamp = $status->getDate() ? strtotime($status->getDate()) : time();
+        $result->lastChangeTimestamp = $status->date ? strtotime($status->date) : time();
 
         return $result;
     }

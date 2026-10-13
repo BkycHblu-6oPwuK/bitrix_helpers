@@ -4,28 +4,31 @@ import type { BreadcrumbItem } from '~/types/breadcrumbs';
 import type { SectionDTO } from '~/types/iblock';
 
 const props = defineProps<{
-    sections: SectionDTO[],
+    sections?: SectionDTO[],
     element?: BreadcrumbItem,
     items?: BreadcrumbItem[]
 }>();
 const items = computed<BreadcrumbItem[]>(() => {
+    const result: BreadcrumbItem[] = [{ title: 'Главная', to: '/' }]
+
     if (props.items) {
-        return props.items;
+        props.items.forEach(item => result.push(item))
+        return result
     }
 
-    const crumbs: BreadcrumbItem[] = [
-        { title: 'Главная', to: '/' }
-    ];
-
-    props.sections.forEach(section => {
-        crumbs.push({ title: section.name, to: section.url });
-    });
-
-    if (props.element) {
-        crumbs.push(props.element);
+    if (props.sections) {
+        props.sections.forEach(section => {
+            result.push({ title: section.name, to: section.url })
+        })
     }
 
-    return crumbs;
+    if (props.element) result.push(props.element)
+
+    if (result.length === 1) {
+        return []
+    }
+
+    return result
 });
 </script>
 

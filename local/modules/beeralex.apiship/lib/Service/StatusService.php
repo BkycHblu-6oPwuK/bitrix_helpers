@@ -13,7 +13,6 @@ use Beeralex\Apiship\Exception\ApiShipException;
 /**
  * Статусы заказов ApiShip.
  *
- * logStatus() пишет в beeralex_apiship_status_log (Фаза 4, Repository\StatusLogRepository).
  * До появления репозитория метод только сообщает "изменился ли статус" в рамках вызова.
  */
 final class StatusService implements StatusServiceContract
@@ -58,18 +57,6 @@ final class StatusService implements StatusServiceContract
         }
 
         return $result;
-    }
-
-    public function logStatus(int $bitrixOrderId, StatusDto $status): bool
-    {
-        $repositoryClass = 'Beeralex\\Apiship\\Repository\\StatusLogRepository';
-
-        if (!class_exists($repositoryClass)) {
-            // Репозиторий появится в Фазе 4 — до этого просто подтверждаем "новый статус".
-            return true;
-        }
-
-        return \service($repositoryClass)->logIfChanged($bitrixOrderId, $status);
     }
 
     private function toDto(int $apiShipOrderId, StatusResponse $response): StatusDto

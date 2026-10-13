@@ -11,13 +11,12 @@ import type { MenuType, MenuData } from '~/types/menu'
 const props = defineProps<{ menuType: MenuType }>()
 
 // Получаем данные меню из composable
-const { topMenu, bottomMenu } = useMenu()
+const { getTopMenu, getBottomMenu } = useMenu()
 
 // Маппинг типов меню на данные
-const menuDataMap: Record<MenuType, MenuData | null> = {
-    top_menu: topMenu,        // Верхнее меню
-    catalog_menu: null,       // Меню каталога (загружается отдельно)
-    bottom_menu: bottomMenu,  // Нижнее меню (футер)
+const menuDataMap: Record<MenuType, (() => MenuData) | null> = {
+    top_menu: getTopMenu,        // Верхнее меню
+    bottom_menu: getBottomMenu,  // Нижнее меню (футер)
 }
 
 // Маппинг типов меню на компоненты Vue
@@ -39,5 +38,5 @@ const menu = menuDataMap[props.menuType]
 </script>
 
 <template>
-    <component v-if="menu?.menu" :is="resolveComponent(props.menuType)" :data="menu.menu" />
+    <component v-if="menu?.()" :is="resolveComponent(props.menuType)" :data="menu?.().menu" />
 </template>

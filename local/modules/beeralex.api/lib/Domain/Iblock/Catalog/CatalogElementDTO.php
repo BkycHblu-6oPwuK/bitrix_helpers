@@ -2,12 +2,12 @@
 
 namespace Beeralex\Api\Domain\Iblock\Catalog;
 
-use Beeralex\Api\Domain\Iblock\SectionDTO;
+use Beeralex\Api\Domain\Iblock\BreadcrumbsItemDTO;
 use Beeralex\Core\Http\Resources\Resource;
 
 /** 
  * @property CatalogItemDTO $element
- * @property SectionDTO[] $path
+ * @property BreadcrumbsItemDTO[] $path
  * DTO для элемента каталога
  */
 class CatalogElementDTO extends Resource
@@ -21,7 +21,7 @@ class CatalogElementDTO extends Resource
     {
         return new static([
             'element' => CatalogItemDTO::make($elementData),
-            'path' => array_map([SectionDTO::class, 'make'], $arResult['PATH'] ?? $arResult['SECTION']['PATH'] ?? []),
+            'path' => array_map([BreadcrumbsItemDTO::class, 'make'], $arResult['PATH'] ?? $arResult['SECTION']['PATH'] ?? []),
         ]);
     }
 }

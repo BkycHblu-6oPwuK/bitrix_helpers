@@ -5,9 +5,7 @@ use Beeralex\Api\Domain\Checkout\CheckoutDTOBuilder;
 use Beeralex\Api\Domain\Checkout\DeliveriesBuilder;
 use Beeralex\Api\Domain\Checkout\PaymentsBuilder;
 use Beeralex\Api\Domain\Checkout\PersonTypeBuilder;
-use Beeralex\Catalog\Location\Contracts\BitrixLocationResolverContract;
 use Beeralex\Catalog\Service\OrderService;
-use Beeralex\Core\Service\LocationService;
 use Beeralex\User\Auth\AuthCredentialsDto;
 use Beeralex\User\Auth\Contracts\EmailAuthenticatorContract;
 use Beeralex\User\Contracts\UserRepositoryContract;
@@ -23,12 +21,7 @@ CBitrixComponent::includeComponentClass('bitrix:sale.order.ajax');
 
 class BeeralexSaleOrderAjax extends SaleOrderAjax
 {
-    /**
-     * @var DeliveriesBuilder
-     */
-    protected $deliveriesBuilder;
-
-    protected ?BitrixLocationResolverContract $locationResolver = null;
+    protected ?DeliveriesBuilder $deliveriesBuilder = null;
     protected ApiResult $apiResult;
     protected OrderService $orderService;
 
@@ -36,7 +29,6 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
     {
         Loader::requireModule('beeralex.catalog');
         Loader::requireModule('beeralex.user');
-        $this->locationResolver = service(BitrixLocationResolverContract::class);
         $this->apiResult = service(ApiResult::class);
         $this->orderService = service(OrderService::class);
         $eventManager = \Bitrix\Main\EventManager::getInstance();
@@ -45,14 +37,65 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
     }
 
     /**
+     * Модифицирует свойства заказа перед выбором доставки, заполняя их значениями по умолчанию из данных текущего пользователя.
+     *
+     * @param array $arUserResult Массив с данными заказа и свойствами пользователя.
+     */
+    public function modifyOrderPropsBeforeDelivery(&$arUserResult)
+    {
+        $props = \Bitrix\Sale\Property::getList([
+            'select' => ['ID', 'CODE'],
+            'filter' => ['ID' => array_keys($arUserResult['ORDER_PROP'])]
+        ])->fetchAll();
+        $props = collect($props)
+            ->mapWithKeys(function ($prop) {
+                return [$prop['CODE'] => $prop];
+            });
+        $user = \service(UserRepositoryContract::class)->getCurrentUser();
+
+        // заполняем данные по умолчанию из полей пользователя
+        foreach ($props as $prop) {
+            $val = $arUserResult['ORDER_PROP'][$prop['ID']];
+            switch ($prop['CODE']) {
+                case 'NAME':
+                    if (empty($val)) {
+                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getName();
+                    }
+                    break;
+                case 'LAST_NAME':
+                    if (empty($val)) {
+                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getLastName();
+                    }
+                    break;
+                case 'EMAIL':
+                    if (empty($val)) {
+                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getEmail();
+                    }
+                    break;
+                case 'PHONE':
+                    if (empty($val)) {
+                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getPhoneAsString();
+                    }
+                    break;
+                case 'FIO':
+                    if (empty($val)) {
+                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getFullName();
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
      * Переопределяем чтобы возвращать результат в api формате в виде объекта ApiResult
+     * @param array $result
      */
     protected function showAjaxAnswer($result)
     {
         foreach (GetModuleEvents("sale", 'OnSaleComponentOrderShowAjaxAnswer', true) as $arEvent)
             ExecuteModuleEventEx($arEvent, [&$result]);
 
-        if($result['error']) {
+        if ($result['error']) {
             $this->apiResult->addError(new \Bitrix\Main\Error($result['error']));
         } else {
             $this->apiResult->addPageData($result);
@@ -73,44 +116,9 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
             ->build();
     }
 
-    private function getPaymentsBuilder(Order $order): PaymentsBuilder
-    {
-        $paySystemList = $this->arParams['DELIVERY_TO_PAYSYSTEM'] === 'p2d' ? $this->arActivePaySystems : $this->arPaySystemServiceAll;
-        $selectedPayment = $this->getExternalPayment($order);
-        $paymentId = $selectedPayment ? $selectedPayment->getPaymentSystemId() : 0;
-        return new PaymentsBuilder($paySystemList, $paymentId);
-    }
-
-    private function getDeliveriesBuilder(\Bitrix\Sale\Order $order): DeliveriesBuilder
-    {
-        $deliveries = collect($this->arResult['DELIVERY'])
-            ->map(function ($delivery, $deliveryId) {
-                $delivery['ID'] = $deliveryId;
-                return $delivery;
-            });
-        return new DeliveriesBuilder(
-            $deliveries,
-            $this->arDeliveryServiceAll,
-            $order
-        );
-    }
-
-    private function getPersonTypeBuilder(): PersonTypeBuilder
-    {
-        return new PersonTypeBuilder(
-            $this->arResult['PERSON_TYPE'],
-            $this->order->getPersonTypeId() ?? 0
-        );
-    }
-
     /**
-     * @return bool
+     * @param int $userId ID пользователя, для которого создается заказ.
      */
-    private function getRequestedRules(): bool
-    {
-        return $this->request->get('rules') !== 'false';
-    }
-
     protected function createOrder($userId)
     {
         $order = parent::createOrder($userId);
@@ -162,84 +170,6 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
         parent::saveOrder($saveToSession);
     }
 
-    public function modifyOrderPropsBeforeDelivery(&$arUserResult)
-    {
-        $props = \Bitrix\Sale\Property::getList([
-            'select' => ['ID', 'CODE'],
-            'filter' => ['ID' => array_keys($arUserResult['ORDER_PROP'])]
-        ])->fetchAll();
-        $props = collect($props)
-            ->mapWithKeys(function ($prop) {
-                return [$prop['CODE'] => $prop];
-            });
-        $requestProperties = $this->getPropertyValuesFromRequest();
-        $user = \service(UserRepositoryContract::class)->getCurrentUser();
-
-        if ($this->locationResolver) {
-            $variants = [];
-            $oldLocation = $this->request->get('OLD_LOCATION');
-            $requestAddress = $requestProperties[$props->get('ADDRESS')['ID']];
-            if (empty($requestAddress) && !empty($oldLocation)) {
-                $location = service(LocationService::class)->getNearestCityByLocationCode($oldLocation, 3600000);
-                if (!empty($location)) {
-                    $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['LOCATION_NAME_NAME'];
-                    $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['CODE'];
-                }
-            } else {
-                $requestCity = $requestProperties[$props->get('CITY')['ID']];
-                $city = firstNotEmpty('', $requestCity, $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']]);
-                $address = firstNotEmpty('', $requestAddress, $arUserResult['ORDER_PROP'][$props->get('ADDRESS')['ID']]);
-                if ($address) {
-                    $variants[] = $address;
-                }
-                if ($city) {
-                    $variants[] = $city;
-                }
-
-                foreach ($variants as $variant) {
-                    $location = $this->locationResolver->getBitrixLocationByAddress($variant);
-                    if ($location) {
-                        $arUserResult['ORDER_PROP'][$props->get('CITY')['ID']] = $location['city'];
-                        $arUserResult['ORDER_PROP'][$props->get('LOCATION')['ID']] = $location['code'];
-                        break;
-                    }
-                }
-            }
-        }
-
-        // заполняем данные по умолчанию из полей пользователя
-
-        foreach ($props as $prop) {
-            $val = $arUserResult['ORDER_PROP'][$prop['ID']];
-            switch ($prop['CODE']) {
-                case 'NAME':
-                    if (empty($val)) {
-                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getName();
-                    }
-                    break;
-                case 'LAST_NAME':
-                    if (empty($val)) {
-                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getLastName();
-                    }
-                    break;
-                case 'EMAIL':
-                    if (empty($val)) {
-                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getEmail();
-                    }
-                    break;
-                case 'PHONE':
-                    if (empty($val)) {
-                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getPhoneAsString();
-                    }
-                    break;
-                case 'FIO':
-                    if (empty($val)) {
-                        $arUserResult['ORDER_PROP'][$prop['ID']] = $user->getFullName();
-                    }
-                    break;
-            }
-        }
-    }
 
     protected function getOrderProperties()
     {
@@ -251,9 +181,6 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
         return $orderProps;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function registerAndLogIn($userProps)
     {
         $userId = false;
@@ -300,6 +227,41 @@ class BeeralexSaleOrderAjax extends SaleOrderAjax
             'last_name' => $orderProps['LAST_NAME']['VALUE'],
             'group' => $userProps['GROUP_ID'],
         ]);
+    }
+
+    private function getDeliveriesBuilder(\Bitrix\Sale\Order $order): DeliveriesBuilder
+    {
+        $deliveries = collect($this->arResult['DELIVERY'])
+            ->map(function ($delivery, $deliveryId) {
+                $delivery['ID'] = $deliveryId;
+                return $delivery;
+            });
+        return new DeliveriesBuilder(
+            $deliveries,
+            $this->arDeliveryServiceAll,
+            $order
+        );
+    }
+
+    private function getPaymentsBuilder(Order $order): PaymentsBuilder
+    {
+        $paySystemList = $this->arParams['DELIVERY_TO_PAYSYSTEM'] === 'p2d' ? $this->arActivePaySystems : $this->arPaySystemServiceAll;
+        $selectedPayment = $this->getExternalPayment($order);
+        $paymentId = $selectedPayment ? $selectedPayment->getPaymentSystemId() : 0;
+        return new PaymentsBuilder($paySystemList, $paymentId);
+    }
+
+    private function getPersonTypeBuilder(): PersonTypeBuilder
+    {
+        return new PersonTypeBuilder(
+            $this->arResult['PERSON_TYPE'],
+            $this->order->getPersonTypeId() ?? 0
+        );
+    }
+
+    private function getRequestedRules(): bool
+    {
+        return $this->request->get('rules') === 'true';
     }
 
     /**

@@ -1,24 +1,15 @@
 <?php
+
 namespace Beeralex\Api\Domain\Checkout\Delivery;
 
 use Bitrix\Sale\Delivery\Services\Base;
 
 class BaseDelivery
 {
-    /**
-     * @var array from sale.order.ajax $arResult['DELIVERY']
-     */
-    protected $delivery;
-    /**
-     * @var Base
-     */
-    protected $deliveryHandler;
-
-    /**
-     * @var array
-     */
-    protected $storeList;
-
+    /** from sale.order.ajax $arResult['DELIVERY'] */
+    protected array $delivery;
+    protected Base $deliveryHandler;
+    protected array $storeList;
 
     /**
      * @param $delivery array from sale.order.ajax $arResult['DELIVERY']
@@ -26,7 +17,7 @@ class BaseDelivery
      * @throws \Bitrix\Main\ArgumentNullException
      * @throws \Bitrix\Main\SystemException
      */
-    public function __construct(array $delivery, \Bitrix\Sale\Delivery\Services\Base $handler)
+    public function __construct(array $delivery, Base $handler)
     {
         if (!$delivery['ID']) {
             throw new \InvalidArgumentException('Delivery ID not specified');
@@ -35,7 +26,6 @@ class BaseDelivery
         $this->deliveryHandler = $handler;
         $this->storeList = \Bitrix\Sale\Delivery\ExtraServices\Manager::getStoresList($handler->getId());
     }
-
 
     /**
      * @return bool эта доставка выбрана в чекауте
@@ -108,9 +98,25 @@ class BaseDelivery
         return htmlspecialchars(strip_tags($this->deliveryHandler->getDescription()));
     }
 
-    public function isStoreDelivery() : bool
+    public function isStoreDelivery(): bool
     {
-        return !empty($this->storeList);
+        return !empty($this->storeList) || $this->deliveryHandler->getCode() == 'store_pickup';
+    }
+
+    /**
+     * Курьерская доставка (код содержит 'courier')
+     */
+    public function isCourier(): bool
+    {
+        return str_contains($this->getCode(), 'courier');
+    }
+
+    /**
+     * Доставка в пункт выдачи (код содержит 'pickup')
+     */
+    public function isPickup(): bool
+    {
+        return str_contains($this->getCode(), 'pickup');
     }
 
     public function getStoreList(): array

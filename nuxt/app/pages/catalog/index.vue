@@ -4,11 +4,10 @@
   Загружает данные с сервера и устанавливает SEO мета-теги
 -->
 <script setup lang="ts">
-import type { SectionsPageApiResponse } from '~/types/catalog.ts'
+import type { SectionsPageApiResponse } from '~/types/pages/catalog'
 
 // Загрузка списка разделов каталога
 const { data } = await useApi<SectionsPageApiResponse>('catalog')
-
 // Установка SEO мета-тегов страницы
 if (data.value?.data?.seo) {
     useSeoPage(data.value.data.seo)
@@ -17,6 +16,6 @@ if (data.value?.data?.seo) {
 
 <template>
     <div class="container mx-auto px-4 py-8">
-        <CatalogSections v-if="data?.data?.page?.sectionList" :sections="data.data.page.sectionList" />
+        <CatalogSections v-if="data?.data?.page?.sectionList" :section-list="data.data.page.sectionList" />
     </div>
 </template>

@@ -3,7 +3,8 @@
  * Элементы, разделы, свойства
  */
 
-import type { FileSrc } from "../file"
+import type { FileDTO, FileSrc } from "../file"
+import type { LocationDTO } from "../location"
 
 /**
  * Базовый элемент инфоблока
@@ -35,11 +36,13 @@ export interface PropertyItemDTO {
     id: number                            // Уникальный ID свойства
     code: string                           // Символьный код свойства
     name: string                           // Название свойства
-    value: string | number | boolean | null // Значение свойства
+    value: string | number | boolean | null | FileDTO[] | LocationDTO // Значение свойства
     type?: string | null                   // Тип свойства (string, number, file, list и т.д.)
+    userType?: string | null                  // Пользовательский тип свойства (если применимо)
     xmlId?: string | null                  // Внешний код свойства
     link?: string | null                   // Ссылка на ресурс (если применимо)
-    pictureSrc?: string | null             // URL картинки (если свойство - картинка)
+    pictureSrc?: FileSrc | null             // URL картинки (если свойство - картинка)
+    item?: any[] | null                     // Дополнительные данные свойства (например, для привязанных элементов, список, HL и т.д.)
 }
 
 /**
@@ -47,7 +50,6 @@ export interface PropertyItemDTO {
  * Может быть одиночным значением, массивом (множественное) или null
  */
 export type PropertiesType = PropertyItemDTO | PropertyItemDTO[] | null
-
 
 /**
  * Раздел инфоблока (категория)

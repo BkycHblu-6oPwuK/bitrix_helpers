@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { FavouriteResponse, FavouriteToggleResponse } from '~/types/favourite';
+import type { FavouriteResponse, FavouriteToggleResponse } from '~/types/pages/favourite';
 
 export const useFavouriteStore = defineStore('favourite', {
     state: () => ({

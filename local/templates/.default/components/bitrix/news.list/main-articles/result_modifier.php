@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Beeralex\Api\Domain\Iblock\Content\ContentItemDTO;
-use Beeralex\Api\Domain\Iblock\Content\Enum\MainContentTypes;
-use Beeralex\Api\Domain\Iblock\Content\ListArticlesDTO;
+use Beeralex\Api\Domain\Iblock\Main\MainContentItemDTO;
+use Beeralex\Api\Domain\Iblock\Main\Enum\MainContentTypes;
+use Beeralex\Api\Domain\Iblock\Main\MainListArticlesDTO;
 
-$arResult['DTO'] = ContentItemDTO::makeFrom(
+$arResult['DTO'] = MainContentItemDTO::makeFrom(
     MainContentTypes::ARTICLES,
-    ListArticlesDTO::make([
+    MainListArticlesDTO::make([
         'LINK' => $arParams['LINK_TO_ALL'] ?? '',
         'ITEMS' => $arResult['ITEMS'],
     ])

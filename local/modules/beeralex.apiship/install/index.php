@@ -1,5 +1,10 @@
 <?php
 
+use Beeralex\Apiship\Delivery\ApiShipHandler;
+use Beeralex\Apiship\EventHandlers;
+use Beeralex\Apiship\Model\OrderTable;
+use Beeralex\Apiship\Model\StatusLogTable;
+use Beeralex\Apiship\Model\WebhookLogTable;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
@@ -9,15 +14,6 @@ Loc::loadMessages(__FILE__);
 
 class beeralex_apiship extends CModule
 {
-    /**
-     * FQCN классов, создаваемых на поздних фазах разработки.
-     * Держим строками, чтобы установка/удаление работали до появления самих классов.
-     */
-    private const ORDER_TABLE       = 'Beeralex\\Apiship\\Model\\OrderTable';
-    private const STATUS_LOG_TABLE  = 'Beeralex\\Apiship\\Model\\StatusLogTable';
-    private const WEBHOOK_LOG_TABLE = 'Beeralex\\Apiship\\Model\\WebhookLogTable';
-    private const DELIVERY_HANDLER  = 'Beeralex\\Apiship\\Delivery\\ApiShipHandler';
-    private const EVENT_HANDLERS    = 'Beeralex\\Apiship\\EventHandlers';
     public function __construct()
     {
         if (is_file(__DIR__ . '/version.php')) {
@@ -60,32 +56,15 @@ class beeralex_apiship extends CModule
 
     public function InstallDB()
     {
-        foreach ([self::ORDER_TABLE, self::STATUS_LOG_TABLE, self::WEBHOOK_LOG_TABLE] as $table) {
-            if (class_exists($table)) {
-                $table::createTable();
-            }
-        }
-
-        // UNIQUE INDEX обеспечивает идемпотентность вебхуков (ADR-007).
-        $connection = \Bitrix\Main\Application::getConnection();
-        if ($connection->isTableExists('beeralex_apiship_webhook_log')) {
-            try {
-                $connection->queryExecute(
-                    'CREATE UNIQUE INDEX ix_apiship_webhook_event_id
-                     ON beeralex_apiship_webhook_log (EVENT_ID)'
-                );
-            } catch (\Exception $e) {
-                // индекс уже существует — норма при повторной установке
-            }
+        foreach ([OrderTable::class, WebhookLogTable::class, StatusLogTable::class] as $table) {
+            $table::createTable();
         }
     }
 
     public function UnInstallDB()
     {
-        foreach ([self::WEBHOOK_LOG_TABLE, self::STATUS_LOG_TABLE, self::ORDER_TABLE] as $table) {
-            if (class_exists($table)) {
-                $table::dropTable();
-            }
+        foreach ([StatusLogTable::class, WebhookLogTable::class, OrderTable::class] as $table) {
+            $table::dropTable();
         }
     }
 
@@ -93,27 +72,20 @@ class beeralex_apiship extends CModule
     {
         $eventManager = EventManager::getInstance();
 
-        // Регистрация обработчика доставки в списке классов служб доставки.
-        if (class_exists(self::DELIVERY_HANDLER)) {
-            $eventManager->registerEventHandler(
-                'sale',
-                'onSaleDeliveryHandlersClassNamesBuildList',
-                $this->MODULE_ID,
-                self::DELIVERY_HANDLER,
-                'onSaleDeliveryHandlersClassNamesBuildList'
-            );
-        }
-
-        // Смена статуса заказа -> отправка заказа в ApiShip (момент задаётся в настройках).
-        if (class_exists(self::EVENT_HANDLERS)) {
-            $eventManager->registerEventHandler(
-                'sale',
-                'OnSaleStatusOrderChange',
-                $this->MODULE_ID,
-                self::EVENT_HANDLERS,
-                'onSaleStatusOrderChange'
-            );
-        }
+        $eventManager->registerEventHandler(
+            'sale',
+            'onSaleDeliveryHandlersClassNamesBuildList',
+            $this->MODULE_ID,
+            ApiShipHandler::class,
+            'onSaleDeliveryHandlersClassNamesBuildList'
+        );
+        $eventManager->registerEventHandler(
+            'sale',
+            'OnSaleStatusOrderChange',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSaleStatusOrderChange'
+        );
     }
 
     public function UnInstallEvents()
@@ -124,15 +96,14 @@ class beeralex_apiship extends CModule
             'sale',
             'onSaleDeliveryHandlersClassNamesBuildList',
             $this->MODULE_ID,
-            self::DELIVERY_HANDLER,
+            ApiShipHandler::class,
             'onSaleDeliveryHandlersClassNamesBuildList'
         );
-
         $eventManager->unRegisterEventHandler(
             'sale',
             'OnSaleStatusOrderChange',
             $this->MODULE_ID,
-            self::EVENT_HANDLERS,
+            EventHandlers::class,
             'onSaleStatusOrderChange'
         );
     }

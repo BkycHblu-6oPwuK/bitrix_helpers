@@ -1,10 +1,18 @@
 /**
  * Типы для страниц на основе инфоблоков (фильтрация, сортировка и элементы с пагинацией и разделами)
- * например - каталолог, статьи, новости и т.д.
+ * например - каталог, статьи, новости и т.д.
  */
 
 import type { SectionDTO } from "."
+import type { BreadcrumbItem } from "../breadcrumbs"
 import type { PaginationDTO } from "../pagination"
+
+/**
+ * Список разделов
+ */
+export interface SectionsDTO<T = SectionDTO[]> {
+    sectionList: T // Массив разделов
+}
 
 /**
  * Универсальная структура данных для секции с фильтрацией и пагинацией
@@ -12,8 +20,7 @@ import type { PaginationDTO } from "../pagination"
  * @template F - Тип данных фильтра
  * @template SL - Тип списка разделов (массив или null)
  */
-export interface SectionData<SL = any[] | null, F = FilterDTO | null, S = any> {
-    sectionList: SL // Список дочерних разделов (для навигации)
+export interface SectionData<SL = any[] | null, F = FilterDTO, S = any> extends SectionsDTO<SL> {
     filter: F // Данные фильтра (поля, сортировка, выбранные значения)
     section: SectionItemsDTO<S> // Элементы с пагинацией
 }
@@ -25,7 +32,7 @@ export interface SectionData<SL = any[] | null, F = FilterDTO | null, S = any> {
 export interface SectionItemsDTO<T = any> {
     items: T[]
     pagination: PaginationDTO | null,
-    path: SectionDTO[] | null // хлебные крошки
+    path: BreadcrumbItem[] | null // хлебные крошки
 }
 
 /**
@@ -60,6 +67,7 @@ export interface SortingItemDTO {
 export interface FilterDTO {
     filterUrl: string        // URL для применения фильтров
     clearUrl: string         // URL для сброса всех фильтров
+    sectionUrl: string         // URL базовый страницы
     items: FilterItemDTO[]   // Массив всех доступных фильтров
     sorting: SortingDTO      // Настройки сортировки
     types: {                 // Константы типов отображения фильтров
@@ -96,11 +104,4 @@ export interface FilterItemDTO {
     displayType: string         // Тип отображения (checkbox, radio, range)
     displayExpanded: boolean    // Развернут ли фильтр по умолчанию
     values: FilterValueItemDTO[] // Массив доступных значений
-}
-
-/**
- * Список разделов каталога
- */
-export interface SectionsDTO {
-    sectionList: SectionDTO[] // Массив разделов
 }

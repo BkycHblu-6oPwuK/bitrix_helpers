@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { BasketApiResponse, BasketDataDTO, BasketIdsApiResponse, BasketItemDTO } from '~/types/basket'
+import type { BasketApiResponse, BasketDataDTO, BasketIdsApiResponse, BasketItemDTO } from '~/types/pages/basket'
 
 export const useBasketStore = defineStore('basket', {
     state: () => ({

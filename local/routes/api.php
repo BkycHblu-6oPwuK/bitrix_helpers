@@ -12,7 +12,7 @@ use Beeralex\Api\V1\Controllers\AuthController;
 use Beeralex\Api\V1\Controllers\FavoriteController;
 use Beeralex\Api\V1\Controllers\BasketController;
 use Beeralex\Api\V1\Controllers\CheckoutController;
-use Beeralex\Apiship\Controllers\WebhookController;
+use Beeralex\Api\V1\Controllers\SearchController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes): void {
@@ -148,6 +148,9 @@ return function (RoutingConfigurator $routes): void {
                         [CheckoutController::class, 'store']
                     );
                 });
+
+                $routes->get('search/init', [SearchController::class, 'init']);
+                $routes->get('search/suggest/{query}', [SearchController::class, 'suggest']);
             });
         });
     });

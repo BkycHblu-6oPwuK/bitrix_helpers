@@ -2,6 +2,7 @@
 
 use App\Repository\OffersRepository;
 use App\Repository\ProductsRepository;
+use App\Services\VideoEmbedUrlService;
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Repository\CatalogViewedProductRepository;
 use Beeralex\Core\Service\CatalogService;
@@ -55,6 +56,9 @@ return [
                     return new OffersRepository('offers', service(CatalogService::class), service(UrlService::class));
                 }
             ],
+            VideoEmbedUrlService::class => [
+                'className' => VideoEmbedUrlService::class,
+            ]
         ]
     ]
 ];

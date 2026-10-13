@@ -1,8 +1,8 @@
 <?php
 
 use App\Repository\ProductsRepository;
-use Beeralex\Api\Domain\Iblock\Content\Enum\MainContentTypes;
-use Beeralex\Api\Domain\Iblock\Content\MainRepository;
+use Beeralex\Api\Domain\Iblock\Main\Enum\MainContentTypes;
+use Beeralex\Api\Domain\Iblock\Main\MainRepository;
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Bitrix\Main\Loader;
 

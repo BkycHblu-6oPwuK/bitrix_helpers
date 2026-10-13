@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace Beeralex\Api\Domain\Iblock;
 
 use Beeralex\Api\Domain\File\FileDTO;
+use Beeralex\Api\Domain\Location\LocationDTO;
 use Beeralex\Core\Http\Resources\Resource;
 
 /**
  * @property int $id
  * @property string $code
  * @property string $name
- * @property mixed $value
+ * @property string|array|int|FileDTO[]|LocationDTO|null $value
+ * @property string|null $cleanValue
  * @property string|null $type
+ * @property string|null $userType
  * @property string|null $xmlId
  * @property string|null $link
  * @property string|null $pictureSrc
  * @property int $fileSize
- * @property array|null $item
+ * @property ElementDTO[]|null $item
  * DTO для свойств инфоблока
  */
 class PropertyItemDTO extends Resource
@@ -31,8 +34,9 @@ class PropertyItemDTO extends Resource
         $value = null;
         $item = null;
         $type = $property['PROPERTY_TYPE'] ?? null;
+        $userType = $property['USER_TYPE'] ?? null;
         if (isset($property['FILE_VALUE'])) {
-            if(is_array($property['FILE_VALUE']) && isset($property['FILE_VALUE']['SRC'])) {
+            if (is_array($property['FILE_VALUE']) && isset($property['FILE_VALUE']['SRC'])) {
                 $value[] = FileDTO::make($property['FILE_VALUE']);
             } elseif (is_array($property['FILE_VALUE'])) {
                 $files = [];
@@ -45,12 +49,23 @@ class PropertyItemDTO extends Resource
             }
         } elseif (is_array($property['VALUE']) && isset($property['VALUE']['TEXT'])) {
             $value = trim((string)$property['VALUE']['TEXT']);
-        } elseif($property['VALUE_ENUM']) {
+        } elseif ($property['VALUE_ENUM']) {
             $value = is_array($property['VALUE_ENUM']) ? $property['VALUE_ENUM'] : (string)$property['VALUE_ENUM'];
+        } elseif ($userType && str_contains($userType, 'map_')) {
+            if ($property['VALUE']) {
+                $coordinates = \explode(',', $property['VALUE']);
+                if (!empty($coordinates)) {
+                    $coordinates = [
+                        'LATITUDE' => (float)($coordinates[0] ?? 0),
+                        'LONGITUDE' => (float)($coordinates[1] ?? 0),
+                    ];
+                    $value = LocationDTO::make($coordinates);
+                }
+            }
         } else {
             $value = !empty($property['LINK_ELEMENT_VALUE']) ? $property['LINK_ELEMENT_VALUE'][array_key_first($property['LINK_ELEMENT_VALUE'])]['ID'] : (string)$property['DISPLAY_VALUE'];
         }
-        if(!empty($property['LINK_ELEMENT_VALUE'])) {
+        if (!empty($property['LINK_ELEMENT_VALUE'])) {
             $item = array_values(array_map([ElementDTO::class, 'make'], $property['LINK_ELEMENT_VALUE']));
         }
         return new static([
@@ -58,7 +73,9 @@ class PropertyItemDTO extends Resource
             'code' => (string)$property['CODE'],
             'name' => (string)$property['NAME'],
             'value' => $value,
+            'cleanValue' => $property['~VALUE'] ?? null,
             'type' => $type,
+            'userType' => $userType,
             'xmlId' => $property['VALUE_XML_ID'] ?? $property['XML_ID'] ?? null,
             'link' => $property['LINK'] ?? null,
             'pictureSrc' => $property['PICTURE_SRC'] ?? null,
@@ -73,13 +90,15 @@ class PropertyItemDTO extends Resource
     {
         $hlData = $property['HL_DATA'] ?? [];
         $itemData = $property['LINK_ELEMENT_VALUE'] ? array_values(array_map([ElementDTO::class, 'fromDecomposeData'], $property['LINK_ELEMENT_VALUE'])) : $property['ITEM'] ?? [];
-        
+
         return new static([
             'id' => (int)($property['ID'] ?? 0),
             'code' => $code,
             'name' => $property['NAME'] ?? '',
             'value' => $hlData['UF_NAME'] ?? $itemData['VALUE'] ?? $property['VALUE'] ?? null,
+            'cleanValue' => $hlData['UF_NAME'] ?? $itemData['VALUE'] ?? $property['VALUE'] ?? null,
             'type' => $property['PROPERTY_TYPE'] ?? null,
+            'userType' => $property['USER_TYPE'] ?? null,
             'xmlId' => $hlData['UF_XML_ID'] ?? $itemData['XML_ID'] ?? null,
             'link' => $hlData['UF_LINK'] ?? $property['LINK'] ?? null,
             'pictureSrc' => $hlData['PICTURE_SRC'] ?? $property['PICTURE_SRC'] ?? null,

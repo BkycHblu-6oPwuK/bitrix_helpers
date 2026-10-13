@@ -14,6 +14,8 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property int $sort
  * @property ExtraServiceDTO[] $extraServices
  * @property bool $isStoreDelivery
+ * @property bool $isCourier
+ * @property bool $isPickup
  * @property string $logotip
  * @property bool $isSelected
  * @property StoreDTO[] $storeList
@@ -40,6 +42,8 @@ class DeliveryDTO extends Resource
             'sort' => $data['sort'] ?? 0,
             'extraServices' => $extraServices,
             'isStoreDelivery' => $data['isStoreDelivery'] ?? false,
+            'isCourier' => $data['isCourier'] ?? false,
+            'isPickup' => $data['isPickup'] ?? false,
             'logotip' => $data['logotip'] ?? '',
             'isSelected' => $data['isSelected'] ?? false,
             'storeList' => $storeList,

@@ -1,4 +1,3 @@
-
 export type FileSrc = string;
 
 export interface FileDTO {

@@ -53,12 +53,12 @@ final class CalculatorService implements CalculatorServiceContract
     private function buildRequest(CalculationRequestDto $request): CalculatorRequest
     {
         $calculatorRequest = (new CalculatorRequest())
-            ->setFrom($this->hydrate(new From(), $request->getFrom()))
-            ->setTo($this->hydrate(new To(), $request->getTo()))
-            ->setAssessedCost($request->getAssessedCost())
-            ->setCodCost($request->getCodCost());
+            ->setFrom($this->hydrate(new From(), $request->from))
+            ->setTo($this->hydrate(new To(), $request->to))
+            ->setAssessedCost($request->assessedCost)
+            ->setCodCost($request->codCost);
 
-        foreach ($request->getPlaces() as $place) {
+        foreach ($request->places as $place) {
             $calculatorRequest->addPlace(
                 (new CalculatorPlace())
                     ->setWeight((int)($place['weight'] ?? 0))
@@ -68,7 +68,7 @@ final class CalculatorService implements CalculatorServiceContract
             );
         }
 
-        if ($providerKeys = $request->getProviderKeys()) {
+        if ($providerKeys = $request->providerKeys) {
             $calculatorRequest->setProviderKeys($providerKeys);
         }
 

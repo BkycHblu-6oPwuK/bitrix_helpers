@@ -10,7 +10,7 @@ use Eshoplogistic\Delivery\Controller\AjaxHandler;
 use Beeralex\Catalog\Basket\BasketFacade;
 use Beeralex\Catalog\Dto\PickPointDTO;
 
-Loader::includeModule('eshoplogistic.delivery');
+Loader::requireModule('eshoplogistic.delivery');
 
 /**
  * @todo по новому перенести в роуты -> контроллеры, здесь старая реализация

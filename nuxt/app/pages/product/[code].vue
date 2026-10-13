@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CatalogDetailPageApiResponse } from '~/types/catalog';
+import type { CatalogDetailPageApiResponse } from '~/types/pages/catalog';
 
 const route = useRoute();
 

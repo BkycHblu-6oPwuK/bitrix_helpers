@@ -6,7 +6,7 @@
 /**
  * Типы меню в системе
  */
-export type MenuType = 'catalog_menu' | 'bottom_menu' | 'top_menu' | string
+export type MenuType = 'bottom_menu' | 'top_menu' | string
 
 /**
  * Пункт меню (рекурсивная структура)

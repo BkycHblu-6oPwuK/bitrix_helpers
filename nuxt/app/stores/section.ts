@@ -1,319 +1,233 @@
 import { defineStore } from 'pinia'
-import type { SectionDTO } from '~/types/iblock';
-import type { FilterDTO, SectionData } from '~/types/iblock/page';
-import type { PageData } from '~/types/page';
+import type { BreadcrumbItem } from '~/types/breadcrumbs'
+import type { FilterDTO, SectionData } from '~/types/iblock/page'
+import type { PageData } from '~/types/page'
 import type { PaginationDTO } from '~/types/pagination'
 
-const getSelectedFilterHash = (selectedFilters: Record<string, string>) => {
-    return JSON.stringify(JSON.parse(JSON.stringify(selectedFilters)));
+export type SectionInitParams = {
+    apiUrl: string | URL
+    /** true: меняет адресную строку (страница каталога); false: работает без неё (блок на главной) */
+    syncUrl?: boolean
 }
 
-/**
- * Универсальное хранилище для работы с секциями, фильтрацией и пагинацией
- * Подходит для каталогов товаров, списков статей и любых других разделов с фильтрами
- */
-export const useSectionStore = defineStore('section', {
-    state: () => ({
-        // Данные фильтра (поля, доступные значения, настройки сортировки)
-        filterData: null as FilterDTO | null,
+type LoadOptions = {
+    /** дописать товары к списку («Показать ещё») */
+    append?: boolean
+    /** адрес в строке уже изменён (Назад/Вперёд, ссылка): это и есть публичный адрес, push не нужен */
+    restoreTo?: string
+}
 
-        // Текущие выбранные значения фильтров {controlId: htmlValue}
-        selectedFilters: {} as Record<string, string>,
+const SERVICE_PARAMS = ['ajax']
 
-        // ID текущей выбранной сортировки
-        currentSortId: null as string | null,
+const canon = (raw: string | URL) => {
+    const u = new URL(raw.toString(), 'http://localhost')
+    SERVICE_PARAMS.forEach(k => u.searchParams.delete(k))
+    u.searchParams.sort()
+    let p = u.pathname
+    try { p = decodeURI(p) } catch { /* как есть */ }
+    return `${p.replace(/\/+$/, '')}?${u.searchParams}`
+}
 
-        // Массив элементов (товары, статьи и т.д.)
-        items: [] as any[],
+const withoutService = (u: URL) => {
+    const c = new URL(u.toString())
+    SERVICE_PARAMS.forEach(k => c.searchParams.delete(k))
+    return c.toString()
+}
 
-        // Данные пагинации (текущая страница, общее кол-во страниц и т.д.)
-        pagination: null as PaginationDTO | null,
+export const useSectionStore = defineStore('section', () => {
+    const router = useRouter()
 
-        // Путь для хлебных крошек (объект с ключами - ID разделов)
-        path: null as Record<string, SectionDTO> | null,
+    const filterData = ref<FilterDTO | null>(null)
+    const items = ref<any[]>([])
+    const pagination = ref<PaginationDTO | null>(null)
+    const path = ref<BreadcrumbItem[] | null>(null)
+    const sectionList = ref<any[] | null>(null)
+    const additionalData = ref<Record<string, unknown>>({})
+    const seo = ref<PageData<SectionData>['seo'] | null>(null)
+    const isLoading = ref(false)
+    const error = ref<Error | null>(null)
 
-        // Список дочерних разделов для отображения навигации
-        sectionList: null as any[] | null,
+    const syncUrl = ref(false)
+    const apiUrl = ref<string | null>(null)
+    /** Путь к текущему разделу */
+    const sectionPath = ref<string | null>(null)
+    /** URL запроса в GET-форме применённого состояния */
+    const requestUrl = ref<string | null>(null)
+    let origin = ''
+    /** Публичный адрес, которому соответствуют данные */
+    let publicKey: string | null = null
+    /** Соответствие публичного адреса и запроса */
+    const requestByPublic = new Map<string, string>()  // публичный → запрос, для Назад/Вперёд
+    /** Флаг, указывающий, были ли добавлены элементы к списку (для "Показать ещё") */
+    let listAppended = false
+    /** Последовательный номер запроса, увеличивается при каждом новом запросе */
+    let requestSeq = 0
+    /** Базовый URL для построения ссылок с фильтрами и пагинацией, без служебных параметров. */
+    const baseUrl = computed(() => {
+        if (!apiUrl.value) return null
+        if (!syncUrl.value) return apiUrl.value
+        const u = new URL(apiUrl.value)
+        if(filterData.value?.sectionUrl) {
+            u.pathname = filterData.value.sectionUrl
+        } else if (sectionPath.value) {
+            u.pathname = sectionPath.value
+        }
+        u.search = ''
+        return u.toString()
+    })
 
-        // Индикатор загрузки данных
-        isLoading: false,
+    const filters = useSectionFilters(filterData, pagination, baseUrl)
+    const pager = useSectionPagination(pagination)
 
-        // Объект ошибки, если произошла
-        error: null as Error | null,
+    /** Вывод текущего URL без служебных параметров */
+    const deriveRequestUrl = () => withoutService(filters.buildPageUrl(pager.currentPage.value))
 
-        // Флаг режима добавления элементов (true = дозагрузка, false = замена)
-        nextAppendMode: false,
+    /** Применение данных страницы к состоянию */
+    const applyPage = (page: SectionData, source: URL) => {
+        const { filter, section, sectionList: list, ...additional } = page
+        items.value = section?.items ?? []
+        pagination.value = section?.pagination ?? null
+        path.value = section?.path ?? null
+        sectionList.value = list ?? null
+        filterData.value = filter ?? null
+        additionalData.value = additional
+        sectionPath.value = source.pathname
+        filters.initializeFiltersFromChecked()
+        requestUrl.value = deriveRequestUrl()
+    }
 
-        // Хеш выбранных фильтров для отслеживания изменений
-        oldSelectedFilterHash: '{}' as string,
+    /** Инициализация состояния страницы */
+    const initialize = (data: SectionData, params: SectionInitParams) => {
+        origin = useRequestURL().origin
+        syncUrl.value = !!params.syncUrl
 
-        // Флаг для пропуска следующего срабатывания watch при программной навигации
-        skipNextRouteWatch: false,
+        const s = params.apiUrl.toString()
+        apiUrl.value = new URL(s.startsWith('/') || /^https?:/.test(s) ? s : `/${s}`, origin).toString()
 
-        apiUrl: null as URL | null,
+        applyPage(JSON.parse(JSON.stringify(data)), new URL(apiUrl.value))
 
-        // Дополнительные данные для расширенных типов
-        additionalData: {} as Record<string, any>,
-    }),
+        publicKey = canon(apiUrl.value)
+        requestByPublic.clear()
+        requestByPublic.set(publicKey, requestUrl.value!)
+        listAppended = false
+        requestSeq++
+        isLoading.value = false
+    }
 
-    getters: {
-        // Проверка наличия активных фильтров
-        hasActiveFilters: (state) => Object.keys(state.selectedFilters).length > 0,
+    /** Преобразование запроса в публичный URL */
+    const toPublicUrl = (filterUrl?: string | null) => {
+        const state = filters.buildPageUrl(pager.currentPage.value)
+        const target = filterUrl ? new URL(filterUrl, origin) : new URL(state.pathname, origin)
 
-        // Количество выбранных фильтров
-        selectedFilterCount: (state) => Object.keys(state.selectedFilters).length,
-
-        // Номер текущей страницы
-        currentPage: (state) => state.pagination?.currentPage || 1,
-
-        // Общее количество страниц
-        pageCount: (state) => state.pagination?.pageCount || 1,
-
-        // Есть ли следующая страница
-        hasMore: (state) => state.pagination ? state.pagination.currentPage < state.pagination.pageCount : false,
-
-        // Есть ли предыдущая страница
-        hasPrevious: (state) => state.pagination ? state.pagination.currentPage > 1 : false,
-    },
-
-    actions: {
-        /**
-         * Инициализация store с данными с сервера
-         * Вызывается при первой загрузке страницы
-         */
-        initialize<T extends SectionData>(sectionData: T) {
-            this.filterData = sectionData.filter
-            this.items = sectionData.section.items
-            this.pagination = sectionData.section.pagination
-            this.sectionList = sectionData.sectionList
-
-            // Сохраняем дополнительные поля (все кроме базовых полей SectionData)
-            const { filter, section, sectionList, ...additional } = sectionData as any
-            this.additionalData = additional
-
-            this.initializeFiltersFromChecked()
-        },
-
-        setApiUrl(url: URL | string) {
-            if (typeof url === 'string') {
-                url = new URL(url, window.location.origin);
-            }
-            this.apiUrl = url;
-        },
-
-        /**
-         * Восстановление состояния фильтров из URL параметров
-         * Читает query параметры и устанавливает соответствующие фильтры
-         */
-        initializeFiltersFromChecked() {
-            if (!this.filterData || typeof window === 'undefined') return
-
-            let selectedFilters: Record<string, string> = {}
-
-            for (const item of Object.values(this.filterData.items)) {
-                for (const val of Object.values(item?.values || {})) {
-                    if ((val as any).checked) {
-                        selectedFilters[(val as any).controlId] = (val as any).htmlValue;
-                    }
-                }
-            }
-
-            this.selectedFilters = selectedFilters
-
-            // Включаем в хеш все параметры из URL, чтобы отслеживать изменения страницы при навигации
-            const urlParams = new URLSearchParams(window.location.search)
-            if (Object.keys(this.selectedFilters).length > 0 && !urlParams.has('ajax')) {
-                urlParams.set('ajax', 'y')
-            }
-            const allParams = {
-                ...selectedFilters,
-                ...Object.fromEntries(urlParams)
-            }
-            this.oldSelectedFilterHash = getSelectedFilterHash(allParams);
-            this.currentSortId = this.filterData.sorting.currentSortId
-        },
-
-        /**
-         * Переключение значения фильтра (включить/выключить)
-         * @param controlId - ID контрола фильтра
-         * @param value - Значение фильтра
-         */
-        toggleFilter(controlId: string, value: string) {
-            if (this.selectedFilters[controlId]) {
-                // Убираем фильтр, если он уже выбран
-                const { [controlId]: _, ...rest } = this.selectedFilters
-                this.selectedFilters = rest
-            } else {
-                // Добавляем фильтр
-                this.selectedFilters = {
-                    ...this.selectedFilters,
-                    [controlId]: value
-                }
-            }
-        },
-
-        /**
-         * Очистка всех выбранных фильтров
-         */
-        clearFilters() {
-            this.selectedFilters = {}
-        },
-
-        /**
-         * Установка текущей сортировки
-         * @param sortId - ID варианта сортировки
-         */
-        setSorting(sortId: string) {
-            this.currentSortId = sortId
-        },
-
-        /**
-         * Построение URL с учетом выбранных фильтров и сортировки
-         * @returns URL объект с параметрами фильтрации
-         */
-        buildFilterUrl(): URL {
-            const url = new URL(this.apiUrl?.toString() || '')
-            if (!url) {
-                throw new Error('API URL is not set');
-            }
-            const params = new URLSearchParams(url.search)
-            const selectedFilters = Object.entries(this.selectedFilters)
-
-            // Добавляем все выбранные фильтры в параметры
-            selectedFilters.forEach(([controlId, value]) => {
-                params.set(controlId, value)
+        if (filterUrl) {
+            const keep = [filterData.value?.sorting?.requestParam || 'sort', pagination.value?.paginationUrlParam]
+            keep.forEach(k => {
+                if (!k) return
+                if (state.searchParams.has(k)) target.searchParams.set(k, state.searchParams.get(k)!)
+                else target.searchParams.delete(k)
             })
+        } else {
+            target.search = state.search
+        }
+        SERVICE_PARAMS.forEach(k => target.searchParams.delete(k))
+        return target.pathname + target.search
+    }
 
-            // Добавляем сортировку, если она отличается от дефолтной
-            if (this.currentSortId && this.currentSortId !== this.filterData?.sorting.defaultSortId) {
-                params.set(this.filterData?.sorting.requestParam || 'sort', this.currentSortId)
-            }
+    /** Загрузка страницы */
+    const loadPage = async (url: URL, { append = false, restoreTo }: LoadOptions = {}) => {
+        const reqUrl = new URL(url)
+        reqUrl.searchParams.set('ajax', 'y')
 
-            // Помечаем запрос как AJAX для серверной обработки
-            // Добавляем флаг ajax только если в параметрах есть другие параметры
-            if (Object.keys(this.selectedFilters).length > 0 && !params.has('ajax')) {
-                params.set('ajax', 'y')
-            }
+        const seq = ++requestSeq
+        isLoading.value = true
+        error.value = null
 
-            url.search = params.toString()
-            return url
-        },
+        try {
+            const res = await useApiFetch<PageData<SectionData>>(reqUrl.pathname, {
+                query: Object.fromEntries(reqUrl.searchParams),
+            })
+            if (seq !== requestSeq) return
+            const page = res?.data?.page
+            if (!page) throw new Error('Invalid response format')
 
-        /**
-         * Получение URL для конкретной страницы пагинации
-         * @param page - Номер страницы
-         * @returns URL объект или null если пагинация недоступна
-         */
-        getPageUrl(page: number): URL | null {
-            if (!this.pagination || typeof window === 'undefined') return null
-            const url = new URL(this.apiUrl?.toString() || '')
-            if (!url) {
-                throw new Error('API URL is not set');
-            }
-            const params = new URLSearchParams(url.search)
-
-            // Для первой страницы удаляем параметр пагинации из URL
-            if (page === 1) {
-                params.delete(this.pagination.paginationUrlParam)
+            if (append) {
+                items.value = [...items.value, ...(page.section?.items ?? [])]
+                pagination.value = page.section?.pagination ?? null
+                requestUrl.value = deriveRequestUrl()
             } else {
-                params.set(this.pagination.paginationUrlParam, page.toString())
+                applyPage(page, reqUrl)
             }
-            url.search = params.toString()
-            return url
-        },
+            listAppended = append
+            if (res.data.seo) seo.value = res.data.seo
 
-        /**
-         * Установка режима загрузки следующей порции данных
-         * @param append - true = дозагрузка элементов, false = замена списка
-         */
-        setAppendMode(append: boolean) {
-            this.nextAppendMode = append
-        },
+            if (syncUrl.value) {
+                const filterUrl = Object.keys(filters.appliedFilters.value).length ? page.filter?.filterUrl : null
+                const target = restoreTo ?? toPublicUrl(filterUrl)
 
-        /**
-         * Загрузка страницы с данными (применение фильтров или переход на другую страницу)
-         * @param url - URL для загрузки
-         * @param options - Настройки загрузки
-         *   - append: добавить элементы к существующим (true) или заменить (false)
-         *   - navigateFilter: навигация на URL фильтра после загрузки (по умолчанию false)
-         *   - pushState: добавлять в историю url
-         */
-        async loadPage<T extends SectionData>(url: URL, options?: { append?: boolean; navigateFilter?: boolean; pushState?: boolean; isOnMounted?: boolean }) {
-            this.isLoading = true
-            this.error = null
+                publicKey = canon(target)
+                requestByPublic.set(publicKey, requestUrl.value!)
 
-            try {
-                const path = url.pathname
-                const query = Object.fromEntries(url.searchParams);
-
-                const oldSelectedFilterHash = getSelectedFilterHash({
-                    ...this.selectedFilters,
-                    ...query,
-                    pathname: path,
-                });
-
-                if (!options?.isOnMounted && oldSelectedFilterHash === this.oldSelectedFilterHash) {
-                    return;
+                if (!restoreTo && import.meta.client && canon(router.currentRoute.value.fullPath) !== publicKey) {
+                    await router.push(target)
                 }
-
-                this.oldSelectedFilterHash = oldSelectedFilterHash;
-
-                // Определяем режим загрузки: дозагрузка или замена
-                const shouldAppend = options?.append || false
-
-                // useApi (useAsyncData) нельзя безопасно вызывать внутри Pinia actions
-                // поэтому используем прямой fetch-варинт useApiFetch, который возвращает результат сразу
-                const res = await useApiFetch<PageData<T>>(path, { query })
-                if (!res?.data?.page) {
-                    throw new Error('Invalid response format')
-                }
-
-                const newPageData = res.data.page
-
-                if (shouldAppend) {
-                    // Режим "показать еще" - добавляем элементы к существующим
-                    this.items = [...this.items, ...(newPageData.section?.items || [])]
-                    this.pagination = newPageData.section?.pagination || null
-                } else {
-                    // Режим замены - обновляем всё (новая страница или применение фильтров)
-                    this.items = newPageData.section?.items || []
-                    this.pagination = newPageData.section?.pagination || null
-                    this.sectionList = newPageData.sectionList
-                    this.filterData = newPageData.filter
-
-                    // Обновляем дополнительные поля
-                    const { filter, section, sectionList, ...additional } = newPageData as any
-                    this.additionalData = additional
-                }
-
-                this.nextAppendMode = false
-
-                if (options?.pushState) {
-                    let newUrl = ''
-                    if (options?.navigateFilter && res.data.page.filter?.filterUrl) {
-                        newUrl = res.data.page.filter.filterUrl // чпу фильтра
-                    } else {
-                        if (url.toString() === this.apiUrl?.toString()) {
-                            newUrl = window.location.pathname + url.search // текущий URL с параметрами
-                        } else {
-                            newUrl = url.pathname + url.search
-                        }
-                        // полная ссылка с параметрами
-                    }
-
-                    // Добавляем в историю только если URL изменился
-                    if (window.location.pathname + window.location.search !== newUrl) {
-                        window.history.pushState({ timestamp: Date.now() }, '', newUrl)
-                    }
-                }
-
-                return res
-            } catch (err) {
-                this.error = err as Error
-                throw err
-            } finally {
-                this.isLoading = false
             }
-        },
-    },
+        } catch (e) {
+            if (seq === requestSeq) error.value = e as Error
+        } finally {
+            if (seq === requestSeq) isLoading.value = false
+        }
+    }
+
+    /** Назад/Вперёд и внешние переходы внутри каталога; собственные push пропускаются */
+    const syncFromRoute = (fullPath: string) => {
+        if (!syncUrl.value || canon(fullPath) === publicKey) return
+        const req = requestByPublic.get(canon(fullPath)) ?? fullPath
+        return loadPage(new URL(req, origin), { restoreTo: fullPath })
+    }
+
+    /** запрос только если фильтры или сортировка реально изменились */
+    const applyFilters = async () => {
+        if (filters.isDirty.value) await loadPage(filters.buildFilterUrl())
+    }
+    /** Сброс фильтров к исходному состоянию */
+    const resetFilters = () => { filters.clearFilters(); return applyFilters() }
+    /** Применение сортировки */
+    const applySorting = (sortId: string) => { filters.setSorting(sortId); return applyFilters() }
+
+    /** та же страница не перезагружается, кроме случая, когда список дописан «Показать ещё» */
+    const goToPage = async (page: number) => {
+        if (page === pager.currentPage.value && !listAppended) return
+        await loadPage(filters.buildPageUrl(page))
+    }
+    /** Обработчик показать ещё */
+    const showMore = async () => {
+        if (!pager.hasMore.value) return
+        await loadPage(filters.buildPageUrl(pager.currentPage.value + 1), { append: true })
+    }
+
+    return {
+        filterData,
+        items,
+        pagination,
+        path,
+        sectionList,
+        additionalData,
+        seo,
+        isLoading,
+        error,
+        selectedFilters: filters.selectedFilters,
+        currentSortId: filters.currentSortId,
+        hasActiveFilters: filters.hasActiveFilters,
+        selectedFilterCount: filters.selectedFilterCount,
+        isDirty: filters.isDirty,
+        toggleFilter: filters.toggleFilter,
+        initialize,
+        syncFromRoute,
+        applyFilters,
+        resetFilters,
+        applySorting,
+        goToPage,
+        showMore,
+        ...pager,
+    }
 })

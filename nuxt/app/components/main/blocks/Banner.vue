@@ -5,7 +5,7 @@
 -->
 <script setup lang="ts">
 import Dump from '~/components/dev/Dump.vue';
-import type { MainBannerContent } from '~/types/iblock/content'
+import type { MainBannerContent } from '~/types/iblock/main'
 
 // Пропсы: данные баннера (текст, изображения, ссылки)
 const props = defineProps<{

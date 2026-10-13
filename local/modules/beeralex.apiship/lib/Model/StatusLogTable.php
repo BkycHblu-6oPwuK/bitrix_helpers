@@ -8,10 +8,10 @@ use Bitrix\Main\ORM;
 use Bitrix\Main\Type;
 
 /**
- * Журнал статусов заказов ApiShip.
+ * История изменения статусов заказов ApiShip (таблица beeralex_apiship_status_log).
  *
- * Одна запись на каждую фиксацию статуса (для истории/аудита и для проверки
- * "статус изменился" перед сменой STATUS_ID заказа Bitrix).
+ * Одна строка на каждое событие вебхука ORDER_STATUS (см. WebhookService::handleOrderStatus).
+ * Историю переносов плановой даты доставки здесь НЕ ведём — только статусы.
  */
 class StatusLogTable extends ORM\Data\DataManager
 {
@@ -30,16 +30,16 @@ class StatusLogTable extends ORM\Data\DataManager
                 'autocomplete' => true,
             ]),
 
-            new ORM\Fields\IntegerField('BITRIX_ORDER_ID', [
+            new ORM\Fields\IntegerField('APISHIP_ORDER_ID', [
                 'required' => true,
             ]),
 
-            new ORM\Fields\IntegerField('APISHIP_ORDER_ID', [
+            new ORM\Fields\IntegerField('BITRIX_ORDER_ID', [
                 'required' => false,
             ]),
 
             new ORM\Fields\StringField('STATUS_KEY', [
-                'required' => true,
+                'required' => false,
                 'size'     => 64,
             ]),
 
@@ -48,10 +48,40 @@ class StatusLogTable extends ORM\Data\DataManager
                 'size'     => 255,
             ]),
 
-            new ORM\Fields\DatetimeField('STATUS_DATE', [
+            new ORM\Fields\TextField('DESCRIPTION', [
                 'required' => false,
             ]),
 
+            new ORM\Fields\StringField('ERROR_CODE', [
+                'required' => false,
+                'size'     => 16,
+            ]),
+
+            new ORM\Fields\StringField('PROVIDER_CODE', [
+                'required' => false,
+                'size'     => 128,
+            ]),
+
+            new ORM\Fields\StringField('PROVIDER_NAME', [
+                'required' => false,
+                'size'     => 255,
+            ]),
+
+            new ORM\Fields\TextField('PROVIDER_DESCRIPTION', [
+                'required' => false,
+            ]),
+
+            // Когда статус создан в системе СД.
+            new ORM\Fields\DatetimeField('CREATED_PROVIDER', [
+                'required' => false,
+            ]),
+
+            // Когда статус получен на стороне ApiShip.
+            new ORM\Fields\DatetimeField('CREATED', [
+                'required' => false,
+            ]),
+
+            // Когда строка записана нами.
             new ORM\Fields\DatetimeField('CREATED_AT', [
                 'default_value' => fn() => new Type\DateTime(),
             ]),

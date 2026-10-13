@@ -1,28 +1,18 @@
 <?php
 namespace Beeralex\Api\Domain\Checkout;
 
+use Illuminate\Support\Collection;
 use Beeralex\Api\Domain\Checkout\DTO\PersonTypeDTO;
 
 class PersonTypeBuilder
 {
-    private $personTypeMap = [
-        'physical' => 'physical',
-        'legal' => 'legal',
-    ];
-
-    /**
-     * @var \Illuminate\Support\Collection from sale.order.ajax
-     */
-    private $personType;
-
-    /**
-     * @var string
-     */
-    private $selectedPersonType;
+    /** массив типов плательщиков из sale.order.ajax */
+    private Collection $personType;
+    private int $selectedPersonType;
 
     public function __construct(array $personType, int $selectedPersonType)
     {
-        $this->personType = collect($personType)->filter(fn($person) => $this->personTypeMap[$person['CODE']] ?? false);
+        $this->personType = collect($personType);
         $this->selectedPersonType = $this->getPersonDTOKey($selectedPersonType);
     }
 
@@ -43,9 +33,9 @@ class PersonTypeBuilder
                     'mobile' => $person['NAME'],
                 ]
             };
-            
+
             return [
-                $this->personTypeMap[$person['CODE']] => [
+                $this->getKey($person) => [
                     'name' => $name,
                     'checked' => $person['CHECKED'] === 'Y',
                 ]
@@ -65,17 +55,22 @@ class PersonTypeBuilder
     public function buildIdsMap(): array
     {
         return $this->personType->mapWithKeys(fn($person) => [
-            $this->personTypeMap[$person['CODE']] ?? '' => (int)$person['ID']
+            $this->getKey($person) => (int)$person['ID']
         ])->toArray();
     }
 
     protected function getPersonDTOKey(int $id): string
     {
         $person = $this->personType->first(fn($person) => $person['ID'] == $id);
-        if(!$person['CODE']){
+        if(!$person){
             $person = $this->personType->first();
         }
-        return $this->personTypeMap[$person['CODE'] ?? ''] ?? '';
+        return $this->getKey($person);
+    }
+
+    protected function getKey(array $person): string
+    {
+        return (string)($person['CODE'] ?: $person['ID']);
     }
 
 }

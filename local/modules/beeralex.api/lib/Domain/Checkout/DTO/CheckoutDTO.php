@@ -6,12 +6,12 @@ use Beeralex\Core\Http\Resources\Resource;
 
 /**
  * @property CheckoutItemDTO[] $items
- * @property TotalPriceDTO $totalPrice
- * @property FormDTO $form
+ * @property TotalDTO $total
  * @property string $activePay
  * @property PaymentDTO[] $payments
  * @property DeliveryiesDTO $delivery
  * @property string $comment
+ * @property PropertyDTO[] $properties
  * @property PersonTypeDTO $personType
  * @property string $profileId
  * @property array $propIdsMap
@@ -19,6 +19,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property CouponDTO|null $coupon
  * @property string $signedParameters
  * @property string $siteId
+ * @property bool $isAuthorized
  * 
  * DTO данных для чекаута
  */
@@ -38,21 +39,22 @@ class CheckoutDTO extends Resource
 
         return new static([
             'items' => $items,
-            'totalPrice' => isset($data['totalPrice']) && is_array($data['totalPrice']) 
-                ? TotalPriceDTO::make($data['totalPrice']) 
-                : $data['totalPrice'] ?? [],
-            'form' => isset($data['form']) ? FormDTO::make($data['form']) : FormDTO::make([]),
+            'total' => isset($data['total']) && is_array($data['total']) 
+                ? TotalDTO::make($data['total']) 
+                : $data['total'] ?? [],
             'activePay' => $data['activePay'] ?? '',
             'payments' => $payments,
             'delivery' => $data['delivery'],
             'comment' => $data['comment'] ?? '',
+            'properties' => $data['properties'] ?? [],
             'personType' => $data['personType'],
             'profileId' => $data['profileId'] ?? '',
             'propIdsMap' => $data['propIdsMap'] ?? [],
-            'rules' => $data['rules'] ?? ['checked' => true],
+            'rules' => $data['rules'] ?? ['checked' => false],
             'coupon' => $data['coupon'],
             'signedParameters' => $data['signedParameters'] ?? '',
             'siteId' => $data['siteId'] ?? '',
+            'isAuthorized' => $data['isAuthorized'],
         ]);
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MainPageContent } from '~/types/iblock/content'
+import type { MainPageContent } from '~/types/iblock/main'
 
 const props = defineProps<{ data: MainPageContent }>()
 

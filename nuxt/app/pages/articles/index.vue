@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ArticlesListPageApiResponse } from '~/types/articles';
+import type { ArticlesListPageApiResponse } from '~/types/pages/articles';
 const { data } = await useApi<ArticlesListPageApiResponse>('articles')
 useSeoPage(data.value?.data?.seo);
 </script>

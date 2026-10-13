@@ -11,41 +11,24 @@ use Beeralex\Core\Http\Resources\Resource;
  * Собирается вызывающим кодом (обработчиком доставки/сервисом заказа) и передаётся
  * в CalculatorService::calculate(). from/to — AddressDto (as array), places — PlaceDto[].
  *
- * @property-read array $from
- * @property-read array $to
- * @property-read array $places
+ * @property array $from AddressDto as array
+ * @property array $to AddressDto as array
+ * @property array<int,array<string,mixed>> $places PlaceDto[] as array
+ * @property float $assessedCost
+ * @property float $codCost
+ * @property array<int,string> $providerKeys
  */
 final class CalculationRequestDto extends Resource
 {
-    public function getFrom(): array
+    public static function make(array $data): static
     {
-        return (array)($this->get('from') ?? []);
-    }
-
-    public function getTo(): array
-    {
-        return (array)($this->get('to') ?? []);
-    }
-
-    /** @return array<int,array<string,mixed>> */
-    public function getPlaces(): array
-    {
-        return (array)($this->get('places') ?? []);
-    }
-
-    public function getAssessedCost(): float
-    {
-        return (float)$this->getFloat('assessedCost');
-    }
-
-    public function getCodCost(): float
-    {
-        return (float)$this->getFloat('codCost');
-    }
-
-    /** @return array<int,string> */
-    public function getProviderKeys(): array
-    {
-        return (array)($this->get('providerKeys') ?? []);
+        return new static([
+            'from'         => (array)($data['from'] ?? []),
+            'to'           => (array)($data['to'] ?? []),
+            'places'       => (array)($data['places'] ?? []),
+            'assessedCost' => (float)($data['assessedCost'] ?? 0),
+            'codCost'      => (float)($data['codCost'] ?? 0),
+            'providerKeys' => (array)($data['providerKeys'] ?? []),
+        ]);
     }
 }

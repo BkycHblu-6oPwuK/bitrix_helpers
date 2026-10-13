@@ -5,7 +5,7 @@ use Beeralex\Api\Domain\Form\FormAnswerRepository;
 use Beeralex\Api\Domain\Form\FormHandlers;
 use Beeralex\Api\Domain\Form\FormRepository;
 use Beeralex\Api\Domain\Form\FormService;
-use Beeralex\Api\Domain\Iblock\Content\MainRepository;
+use Beeralex\Api\Domain\Iblock\Main\MainRepository;
 use Beeralex\Api\Domain\User\UserService;
 use Beeralex\Api\Options;
 

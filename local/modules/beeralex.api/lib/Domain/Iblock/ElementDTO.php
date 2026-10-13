@@ -22,6 +22,9 @@ use Beeralex\Core\Service\UrlService;
  */
 class ElementDTO extends AbstractIblockItemDTO
 {
+    /**
+     * на основе данных news.list или news.detail
+     */
     public static function make(array $data): static
     {
         $props = static::getFromDisplayProperties($data);
@@ -40,6 +43,9 @@ class ElementDTO extends AbstractIblockItemDTO
         ]);
     }
 
+    /**
+     * на основе данных news.list
+     */
     public static function fromNewsListElement(array $element): static
     {
         $props = static::getFromDisplayProperties($element);
@@ -58,6 +64,9 @@ class ElementDTO extends AbstractIblockItemDTO
         ]);
     }
 
+    /**
+     * на основе данных news.detail
+     */
     public static function fromNewsDetailElement(array $element): static
     {
         $props = static::getFromDisplayProperties($element);
@@ -76,6 +85,9 @@ class ElementDTO extends AbstractIblockItemDTO
         ]);
     }
 
+    /**
+     * Для элементов инфоблока полученных с помощью ORM и Beeralex\Core\Service\QueryService::fetchGroupedEntities или Beeralex\Core\Repository\AbstractRepository с включенным useDecompose у репозитория, у репозиториев IblockRepository - по умолчанию true
+     */
     public static function fromDecomposeData(array $data): static
     {
         $props = static::getFromDecomposeProperties($data);
@@ -85,8 +97,8 @@ class ElementDTO extends AbstractIblockItemDTO
             'code' => (string)$data['CODE'],
             'previewText' => $data['PREVIEW_TEXT'] ?? '',
             'detailText' => $data['DETAIL_TEXT'] ?? '',
-            'previewPictureSrc' => $data['PREVIEW_PICTURE']['SRC'] ?? '',
-            'detailPictureSrc' => $data['DETAIL_PICTURE']['SRC'] ?? '',
+            'previewPictureSrc' => $data['PREVIEW_PICTURE_SRC'] ?? (is_array($data['PREVIEW_PICTURE'] ?? null) ? $data['PREVIEW_PICTURE']['SRC'] ?? '' : ''),
+            'detailPictureSrc' => $data['DETAIL_PICTURE_SRC'] ?? (is_array($data['DETAIL_PICTURE'] ?? null) ? $data['DETAIL_PICTURE']['SRC'] ?? '' : ''),
             'detailPageUrl' => $data['DETAIL_PAGE_URL'] ? service(UrlService::class)->cleanUrl($data['DETAIL_PAGE_URL']) : '',
             'listPageUrl' => $data['LIST_PAGE_URL'] ? service(UrlService::class)->cleanUrl($data['LIST_PAGE_URL']) : '',
             'dateCreate' => $data['DATE_CREATE'] ?? '',

@@ -17,7 +17,4 @@ interface StatusServiceContract
      * @return StatusDto[]
      */
     public function getStatuses(array $apiShipOrderIds): array;
-
-    /** Записать полученный статус в лог и вернуть, изменился ли статус. */
-    public function logStatus(int $bitrixOrderId, StatusDto $status): bool;
 }

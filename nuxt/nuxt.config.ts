@@ -75,10 +75,42 @@ export default defineNuxtConfig({
         ],
     },
 
-    modules: ['@pinia/nuxt', 'nuxt-toast', '@nuxt/ui', '@nuxtjs/sitemap'],
+    modules: [
+        '@pinia/nuxt',
+        '@nuxt/ui',
+        'nuxt-toast',
+        '@nuxtjs/sitemap',
+        '@nuxt/image',
+        '@balalarast/vue-bottom-sheet/nuxt',
+        //'vue-yandex-maps/nuxt'
+    ],
 
     features: {
         inlineStyles: true
+    },
+
+    image: {
+        format: ['webp', 'avif']
+    },
+
+    toast: {
+        settings: {
+            rtl: true,
+            position: 'topRight',
+        }
+    },
+
+    imports: {
+        dirs: [
+            '~/composables/**'
+        ],
+        imports: [
+            {
+                from: 'vue-imask',
+                name: 'useIMask',
+                as: 'useIMask'
+            },
+        ]
     },
 
     routeRules: {

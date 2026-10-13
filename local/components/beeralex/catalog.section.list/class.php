@@ -8,11 +8,6 @@ use Beeralex\Core\Service\IblockService;
 
 class BeeralexCatalogSectionList extends \CBitrixComponent
 {
-    /**
-     * @var \Bitrix\Iblock\ORM\CommonElementTable|string
-     */
-    protected $sectionEntity;
-
     protected IblockRepository $iblockRepository;
     protected IblockSectionRepository $iblockSectionRepository;
     protected FileService $fileService;
@@ -40,7 +35,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         $this->iblockRepository = new IblockRepository((int)$params['IBLOCK_ID']);
         $this->iblockSectionRepository = $this->iblockRepository->getIblockSectionRepository();
         $this->fileService = service(FileService::class);
-
+        $params['IS_CATALOG_IBLOCK'] = (bool)($params['IS_CATALOG_IBLOCK'] ?? true);
         $params['SMART_FILTER_NAME'] = $params['SMART_FILTER_NAME'] ?: 'arrFilter';
         $params['SECTION_ID'] = (int)($params['SECTION_ID'] ?? 0);
         $params['DEPTH_LEVEL'] = (int)($params['DEPTH_LEVEL'] ?? 1);
@@ -51,31 +46,18 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     public function executeComponent()
     {
         $filter = $this->getFilter();
+        $isRootRequest = empty($filter) && !$this->arParams['SECTION_ID'];
 
-        if (empty($filter) && !$this->arParams['SECTION_ID']) {
-            if ($this->startResultCache(false, 'catalog_section_list_all', 'beeralex/catalog.section.list')) {
-                $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
-                $taggedCache->startTagCache('beeralex/catalog.section.list');
-                try {
-                    $taggedCache->registerTag('iblock_id_' . $this->arParams['IBLOCK_ID']);
-                    $this->arResult['SECTIONS'] = $this->getRootSections();
-                    $this->includeComponentTemplate();
-                } catch (\Throwable $e) {
-                    $this->abortResultCache();
-                    throw $e;
-                } finally {
-                    $taggedCache->endTagCache();
-                }
-            }
-            return $this->arResult;
-        }
-
-        if ($this->startResultCache(false, [$this->arParams['SECTION_ID'], $filter], 'beeralex/catalog.section.list')) {
+        $cacheId = $isRootRequest
+            ? 'catalog_section_list_all'
+            : [$this->arParams['SECTION_ID'], $filter];
+        $dir = '/' . SITE_ID . '/beeralex/catalog.section.list';
+        if ($this->startResultCache(false, $cacheId, $dir)) {
             $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
-            $taggedCache->startTagCache('beeralex/catalog.section.list');
+            $taggedCache->startTagCache($dir);
             try {
-                $taggedCache->registerTag('iblock_id_' . service(IblockService::class)->getIblockIdByCode('catalog'));
-                $this->arResult['sections'] = $this->getSections();
+                $taggedCache->registerTag('iblock_id_' . $this->arParams['IBLOCK_ID']);
+                $this->arResult['SECTIONS'] = $this->getSections();
                 $this->includeComponentTemplate();
             } catch (\Throwable $e) {
                 $this->abortResultCache();
@@ -93,23 +75,12 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         return $GLOBALS[$this->arParams['SMART_FILTER_NAME']] ?? [];
     }
 
-    protected function getRootSections(): array
-    {
-        $sections = $this->fileService->addPictireSrcInQuery($this->iblockSectionRepository->query(), 'PICTURE')
-            ->setSelect(array_merge($this->defaultSelect, ['PICTURE_SRC']))
-            ->where('ACTIVE', 'Y')
-            ->where('GLOBAL_ACTIVE', 'Y')
-            ->whereNull('IBLOCK_SECTION_ID')
-            ->setOrder(['SORT' => 'ASC'])
-            ->exec()->fetchAll();
-        foreach ($sections as &$item) {
-            $item['SELECTED'] = $this->arParams['SELECTED_SECTION_ID'] == $item['ID'];
-            $this->replaceUrl($item);
-        }
-        return $sections;
-    }
-
-    protected function getSections()
+    /**
+     * Работает как для конкретного SECTION_ID, так и для "корня" (SECTION_ID = 0):
+     * в обоих случаях возвращает только разделы, в которых (с учётом DEPTH_LEVEL)
+     * реально есть активные и доступные товары.
+     */
+    protected function getSections(): array
     {
         $sections = [];
         $sectionIds = $this->getSectionIds();
@@ -122,6 +93,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                 ->whereIn('ID', $sectionIds)
                 ->setOrder(['LEFT_MARGIN' => 'ASC'])
                 ->exec()->fetchAll();
+
             foreach ($sections as &$item) {
                 $item['SELECTED'] = $this->arParams['SELECTED_SECTION_ID'] == $item['ID'];
                 $this->replaceUrl($item);
@@ -137,14 +109,15 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         $depthLevel = $this->arParams['DEPTH_LEVEL'];
         $excludedLeft = null;
         $excludedRight = null;
-        $baseDepth = null;
+        $baseDepth = 0; // виртуальный корень имеет глубину 0
+
         $sections = $this->getSectionsMap($sectionId);
-        if (isset($sections[$sectionId])) {
+
+        if ($sectionId > 0 && isset($sections[$sectionId])) {
             $excludedLeft = $sections[$sectionId]['LEFT'];
             $excludedRight = $sections[$sectionId]['RIGHT'];
             $baseDepth = $sections[$sectionId]['DEPTH_LEVEL'];
         }
-
 
         $resultSectionIds = [];
 
@@ -167,7 +140,7 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                         continue;
                     }
 
-                    if ($depthLevel !== null && $baseDepth !== null) {
+                    if ($depthLevel !== null) {
                         $relativeDepth = $candidate['DEPTH_LEVEL'] - $baseDepth;
                         if ($relativeDepth > $depthLevel || $relativeDepth <= 0) {
                             continue;
@@ -177,33 +150,38 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
                 }
             }
         }
+
         return array_values(array_unique($resultSectionIds));
     }
 
+    /**
+     * @param int $sectionId 0 означает "весь инфоблок" (виртуальный корень).
+     */
     protected function getSectionsMap(int $sectionId): array
     {
         $sectionMap = [];
+        $query = $this->iblockSectionRepository->query()
+            ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN', 'DEPTH_LEVEL'])
+            ->setCacheTtl(86400);
 
-        $base = $this->iblockSectionRepository->query()
-            ->setSelect(['LEFT_MARGIN', 'RIGHT_MARGIN'])
-            ->where('ID', $sectionId)
-            ->setCacheTtl(86400)
-            ->exec()
-            ->fetch();
+        if ($sectionId > 0) {
+            $base = $this->iblockSectionRepository->query()
+                ->setSelect(['LEFT_MARGIN', 'RIGHT_MARGIN'])
+                ->where('ID', $sectionId)
+                ->setCacheTtl(86400)
+                ->exec()
+                ->fetch();
 
-        if (!$base) {
-            return [];
+            if (!$base) {
+                return [];
+            }
+
+            $query
+                ->where('LEFT_MARGIN', '>=', (int)$base['LEFT_MARGIN'])
+                ->where('RIGHT_MARGIN', '<=', (int)$base['RIGHT_MARGIN']);
         }
 
-        $left = (int)$base['LEFT_MARGIN'];
-        $right = (int)$base['RIGHT_MARGIN'];
-
-        $result = $this->iblockSectionRepository->query()
-            ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN', 'DEPTH_LEVEL'])
-            ->where('LEFT_MARGIN', '>=', $left)
-            ->where('RIGHT_MARGIN', '<=', $right)
-            ->setCacheTtl(86400)
-            ->exec();
+        $result = $query->exec();
 
         while ($row = $result->fetch()) {
             $sectionMap[$row['ID']] = [
@@ -217,18 +195,27 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
         return $sectionMap;
     }
 
+    /**
+     * @param int $sectionId 0 означает поиск товаров по всему инфоблоку,
+     *                       без ограничения по конкретному разделу.
+     */
     protected function getProductSectionIds(int $sectionId): array
     {
-        $filter = array_merge(
-            [
-                'IBLOCK_ID' => $this->arParams['IBLOCK_ID'],
-                'ACTIVE' => 'Y',
-                '=AVAILABLE' => 'Y',
-                'SECTION_ID' => $sectionId,
-                'INCLUDE_SUBSECTIONS' => 'Y',
-            ],
-            $this->getFilter()
-        );
+        $filter = [
+            'IBLOCK_ID' => $this->arParams['IBLOCK_ID'],
+            'ACTIVE' => 'Y'
+        ];
+
+        if ($this->arParams['IS_CATALOG_IBLOCK'] === true) {
+            $filter['=AVAILABLE'] = 'Y';
+        }
+
+        if ($sectionId > 0) {
+            $filter['SECTION_ID'] = $sectionId;
+            $filter['INCLUDE_SUBSECTIONS'] = 'Y';
+        }
+
+        $filter = array_merge($filter, $this->getFilter());
 
         $productSectionIds = [];
         $res = \CIBlockElement::GetList([], $filter, false, false, ['ID', 'IBLOCK_SECTION_ID']);

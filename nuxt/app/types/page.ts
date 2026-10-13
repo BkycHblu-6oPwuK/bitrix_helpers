@@ -1,4 +1,4 @@
-import type { SectionDTO } from "./iblock"
+import type { BreadcrumbItem } from "./breadcrumbs"
 import type { SeoData } from "./seo"
 
 /**
@@ -15,7 +15,7 @@ export interface PageData<T> {
  */
 export interface DetailPageDTO<T = any> {
     element: T
-    path: SectionDTO[] // путь к элементу, хлебные крошки
+    path: BreadcrumbItem[] // путь к элементу, хлебные крошки
 }
 
 /**

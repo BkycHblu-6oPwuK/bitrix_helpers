@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Api\Domain\Iblock\Content\Enum\MainContentTypes;
+use Beeralex\Api\Domain\Iblock\Main\Enum\MainContentTypes;
 use Beeralex\Core\Service\IblockService;
 
 
@@ -104,6 +104,8 @@ foreach ($arResult as $item) {
 				[
 					"CACHE_TYPE" => "A",
 					"CACHE_TIME" => "3600000",
+                    "CACHE_FILTER" => "Y",
+					"CACHE_GROUPS" => "Y",
 					"FILTER_NAME" => "arrFilterArticles",
 					"IBLOCK_ID" => service(IblockService::class)->getIblockIdByCode('articles'),
 					"NEWS_COUNT" => "20",
@@ -113,6 +115,7 @@ foreach ($arResult as $item) {
 					"SET_META_KEYWORDS" => "N",
 					"SET_STATUS_404" => "N",
 					"SET_TITLE" => "N",
+                    "CHECK_DATES" => "Y",
 					"DISPLAY_DATE" => "N",
 					"SORT_BY1" => $sortBy1,
 					"SORT_ORDER1" => $sortOrder1,
