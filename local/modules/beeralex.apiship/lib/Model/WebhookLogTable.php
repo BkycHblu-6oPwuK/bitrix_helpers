@@ -49,6 +49,15 @@ class WebhookLogTable extends ORM\Data\DataManager
                 'required' => false,
             ]),
 
+            // 0 = принято, 1 = обработано, 2 = ошибка
+            new ORM\Fields\IntegerField('PROCESSED', [
+                'default_value' => 0,
+            ]),
+
+            new ORM\Fields\TextField('ERROR_MESSAGE', [
+                'required' => false,
+            ]),
+
             new ORM\Fields\DatetimeField('CREATED_AT', [
                 'default_value' => fn() => new Type\DateTime(),
             ]),

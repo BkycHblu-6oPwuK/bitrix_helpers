@@ -3,6 +3,7 @@
 use Beeralex\Apiship\Builder\ApiShipOrderRequestBuilder;
 use Beeralex\Apiship\Client\ClientFactory;
 use Beeralex\Apiship\Contracts\CalculatorServiceContract;
+use Beeralex\Apiship\Contracts\ConnectionServiceContract;
 use Beeralex\Apiship\Contracts\CourierServiceContract;
 use Beeralex\Apiship\Contracts\OrderServiceContract;
 use Beeralex\Apiship\Contracts\PointServiceContract;
@@ -15,6 +16,7 @@ use Beeralex\Apiship\Repository\OrderRepository;
 use Beeralex\Apiship\Repository\StatusLogRepository;
 use Beeralex\Apiship\Repository\WebhookLogRepository;
 use Beeralex\Apiship\Service\CalculatorService;
+use Beeralex\Apiship\Service\ConnectionService;
 use Beeralex\Apiship\Service\CourierService;
 use Beeralex\Apiship\Service\OrderService;
 use Beeralex\Apiship\Service\PointService;
@@ -43,9 +45,16 @@ return [
                     service(Options::class)
                 ),
             ],
+            ConnectionServiceContract::class => [
+                'constructor' => static fn() => new ConnectionService(
+                    service(ClientFactory::class),
+                    service(Options::class)
+                ),
+            ],
             PointServiceContract::class => [
                 'constructor' => static fn() => new PointService(
-                    service(ClientFactory::class)
+                    service(ClientFactory::class),
+                    service(Options::class)
                 ),
             ],
             ProviderServiceContract::class => [
@@ -56,7 +65,9 @@ return [
             OrderServiceContract::class => [
                 'constructor' => static fn() => new OrderService(
                     service(ClientFactory::class),
-                    service(Options::class)
+                    service(Options::class),
+                    service(OrderRepository::class),
+                    service(ApiShipOrderRequestBuilder::class),
                 ),
             ],
             CourierServiceContract::class => [
@@ -71,7 +82,11 @@ return [
             ],
             WebhookServiceContract::class => [
                 'constructor' => static fn() => new WebhookService(
-                    service(ClientFactory::class)
+                    service(ClientFactory::class),
+                    service(WebhookLogRepository::class),
+                    service(OrderRepository::class),
+                    service(StatusLogRepository::class),
+                    service(StatusMapper::class),
                 ),
             ],
             TrackingServiceContract::class => [
@@ -84,6 +99,9 @@ return [
             // удобно, когда контракт избыточен (например, внутри самого модуля).
             CalculatorService::class => [
                 'constructor' => static fn() => service(CalculatorServiceContract::class),
+            ],
+            ConnectionService::class => [
+                'constructor' => static fn() => service(ConnectionServiceContract::class),
             ],
             PointService::class => [
                 'constructor' => static fn() => service(PointServiceContract::class),

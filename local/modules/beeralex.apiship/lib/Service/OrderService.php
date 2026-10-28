@@ -13,6 +13,7 @@ use Apiship\Entity\Request\Part\Orders\Sender;
 use Apiship\Exception\ResponseException;
 use Beeralex\Apiship\Sdk\Entity\Request\Part\Cost;
 use Beeralex\Apiship\Sdk\Entity\Request\Part\Item;
+use Beeralex\Apiship\Builder\ApiShipOrderRequestBuilder;
 use Beeralex\Apiship\Repository\OrderRepository;
 use Beeralex\Apiship\Client\ClientFactory;
 use Beeralex\Apiship\Contracts\OrderServiceContract;
@@ -21,22 +22,19 @@ use Beeralex\Apiship\Dto\OrderResultDto;
 use Beeralex\Apiship\Exception\ApiShipException;
 use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Service\Support\RequestHydrator;
+use Beeralex\Apiship\Support\ShipmentLocator;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\Order;
 
-/**
- * Создание и управление заказами ApiShip.
- *
- * createForBitrixOrder() — точка входа для события смены статуса заказа Bitrix
- * (см. docs/DECISIONS.md ADR-005): собирает CreateOrderDto через
- * ApiShipOrderRequestBuilder и создаёт заказ асинхронно (ADR-006).
- */
 final class OrderService implements OrderServiceContract
 {
     use RequestHydrator;
 
     public function __construct(
         private readonly ClientFactory $clientFactory,
-        private readonly Options $options
+        private readonly Options $options,
+        private readonly OrderRepository $orderRepository,
+        private readonly ApiShipOrderRequestBuilder $builder,
     ) {}
 
     /**
@@ -59,7 +57,7 @@ final class OrderService implements OrderServiceContract
         ]);
 
         if ($dto->bitrixOrderId > 0) {
-            \service(OrderRepository::class)->saveCreated($dto, $result, (string)$request->asJson());
+            $this->orderRepository->saveCreated($dto, $result, (string)$request->asJson());
         }
 
         return $result;
@@ -72,6 +70,7 @@ final class OrderService implements OrderServiceContract
         } catch (ResponseException $e) {
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
         }
+        $this->orderRepository->markCancelled($apiShipOrderId);
         return true;
     }
 
@@ -82,6 +81,7 @@ final class OrderService implements OrderServiceContract
         } catch (ResponseException $e) {
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
         }
+        $this->orderRepository->remove($apiShipOrderId);
         return true;
     }
 
@@ -97,14 +97,43 @@ final class OrderService implements OrderServiceContract
     }
 
     /**
-     * Создать заказ ApiShip для существующего заказа Bitrix. Связь и снимок запроса пишет create().
+     * Создать заказ ApiShip для заказа Bitrix. Идемпотентен: повторный вызов возвращает
+     * уже созданный результат без нового запроса к API.
      */
     public function createForBitrixOrder(int $bitrixOrderId): OrderResultDto
     {
-        $builder = \service(\Beeralex\Apiship\Builder\ApiShipOrderRequestBuilder::class);
-        $dto = $builder->buildFromBitrixOrder($bitrixOrderId);
+        $existingApiShipId = $this->orderRepository->getApiShipOrderId($bitrixOrderId);
+        if ($existingApiShipId !== null && $existingApiShipId > 0) {
+            return OrderResultDto::make(['orderId' => $existingApiShipId]);
+        }
 
-        return $this->create($dto);
+        $dto = $this->builder->buildFromBitrixOrder($bitrixOrderId);
+        $result = $this->create($dto);
+
+        // Записываем TRACKING_NUMBER на отгрузку — нужно для ApiShipTracking::getStatus
+        if ($result->orderId > 0) {
+            $this->setTrackingNumber($bitrixOrderId, $result->orderId);
+        }
+
+        return $result;
+    }
+
+    private function setTrackingNumber(int $bitrixOrderId, int $apiShipOrderId): void
+    {
+        try {
+            $order = Order::load($bitrixOrderId);
+            if ($order === null) {
+                return;
+            }
+            $shipment = ShipmentLocator::findApiShipShipment($order);
+            if ($shipment === null) {
+                return;
+            }
+            $shipment->setField('TRACKING_NUMBER', (string)$apiShipOrderId);
+            $order->save();
+        } catch (\Throwable $e) {
+            \AddMessage2Log('ApiShip: не удалось записать TRACKING_NUMBER: ' . $e->getMessage(), 'beeralex.apiship');
+        }
     }
 
     private function buildRequest(CreateOrderDto $dto): CreateOrderRequest

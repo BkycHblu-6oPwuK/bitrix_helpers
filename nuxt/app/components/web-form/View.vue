@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useDynamicForm } from '~/composables/useDynamicForm'
 import type { FormDTO } from '~/types/web-form';
 
 const props = defineProps<{ form: FormDTO }>()

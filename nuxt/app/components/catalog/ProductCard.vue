@@ -9,12 +9,8 @@ const props = defineProps<{
     item: CatalogItemDTO
 }>()
 const item = toRef(props, 'item');
-const { isAvailable, images, price } = useCatalogItem(item);
-
-// ID предложения для корзины (либо preselectedOffer, либо сам товар)
-const offerId = computed(() =>
-    item.value.preselectedOffer?.id || item.value.id
-)
+const { images } = useCatalogItem(item);
+const { isAvailable, price, purchasableId } = useCatalogOfferInfo(item, item.value.preselectedOffer);
 </script>
 
 <template>
@@ -49,8 +45,8 @@ const offerId = computed(() =>
         </NuxtLink>
 
         <!-- Кнопка добавления в корзину -->
-        <div class="mt-4" @click.stop>
-            <BasketAdd :offer-id="offerId" :disabled="!isAvailable" size="sm" variant="compact" />
+        <div v-if="purchasableId" class="mt-4" @click.stop>
+            <BasketAdd :offer-id="purchasableId" :disabled="!isAvailable" size="sm" variant="compact" />
         </div>
     </div>
 </template>

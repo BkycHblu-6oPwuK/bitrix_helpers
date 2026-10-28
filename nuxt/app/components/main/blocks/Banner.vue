@@ -4,7 +4,6 @@
   Пока используется Dump для отладки
 -->
 <script setup lang="ts">
-import Dump from '~/components/dev/Dump.vue';
 import type { MainBannerContent } from '~/types/iblock/main'
 
 // Пропсы: данные баннера (текст, изображения, ссылки)
@@ -14,5 +13,5 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Dump :data="props.data" :label="'MainBanner.vue'"></Dump>
+    <DevDump :data="props.data" :label="'MainBanner.vue'"></DevDump>
 </template>

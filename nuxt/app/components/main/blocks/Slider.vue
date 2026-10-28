@@ -4,7 +4,6 @@
   Пока используется Dump для отладки
 -->
 <script setup lang="ts">
-import Dump from '~/components/dev/Dump.vue';
 import type { MainSliderContent } from '~/types/iblock/main'
 
 // Пропсы: данные слайдов (изображения, тексты, ссылки)
@@ -14,5 +13,5 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Dump :data="props.data" :label="'Slider.vue'"></Dump>
+    <DevDump :data="props.data" :label="'Slider.vue'"></DevDump>
 </template>

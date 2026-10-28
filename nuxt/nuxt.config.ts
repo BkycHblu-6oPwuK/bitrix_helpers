@@ -2,6 +2,13 @@ import tailwindcss from "@tailwindcss/vite";
 
 const isDev = process.env.NODE_ENV === 'development';
 const buildAtIso = process.env.NUXT_BUILD_AT || new Date().toISOString();
+const bitrixOrigin = (() => {
+    try {
+        return new URL(process.env.NUXT_API_BASE_SERVER || '').origin; // либо отдельная переменная для origin
+    } catch {
+        return 'http://localhost';
+    }
+})();
 
 export default defineNuxtConfig({
     compatibilityDate: '2026-01-01',
@@ -29,6 +36,7 @@ export default defineNuxtConfig({
     },
 
     sitemap: {
+        //xsl: false, // браузеры прекращают поддержку
         urls: [
             {
                 loc: '/',
@@ -36,10 +44,9 @@ export default defineNuxtConfig({
             }
         ],
         cacheMaxAgeSeconds: isDev ? 0 : 600,
-        // sources: [
-        //     '/api/sitemap',
-        // ],
-        strictNuxtContentPaths: true,
+        sources: [
+            '/api/__sitemap__/urls',
+        ],
         xslColumns: [
             { label: 'URL', width: '50%' },
             { label: 'Last Modified', select: 'sitemap:lastmod', width: '12.5%' },
@@ -75,29 +82,41 @@ export default defineNuxtConfig({
         ],
     },
 
-    modules: [
-        '@pinia/nuxt',
-        '@nuxt/ui',
-        'nuxt-toast',
-        '@nuxtjs/sitemap',
-        '@nuxt/image',
-        '@balalarast/vue-bottom-sheet/nuxt',
-        //'vue-yandex-maps/nuxt'
-    ],
+    modules: ['@pinia/nuxt', '@nuxt/ui', 'nuxt-toast', '@nuxtjs/sitemap', '@nuxt/image', //'vue-yandex-maps/nuxt'
+        '@balalarast/vue-bottom-sheet/nuxt', 'nuxt-csurf'],
 
     features: {
         inlineStyles: true
     },
 
     image: {
-        format: ['webp', 'avif']
+        format: ['webp', 'avif'],
+        alias: {
+            '/upload': `${bitrixOrigin}/upload`,
+        },
+        domains: [new URL(bitrixOrigin).host],
     },
+
+    // yandexMaps: {
+    //     apikey: process.env.NUXT_YANDEX_MAPS_API_KEY,
+    // },
 
     toast: {
         settings: {
             rtl: true,
             position: 'topRight',
         }
+    },
+
+    csurf: {
+        https: !isDev, // в проде cookie __Host-csrf + Secure, в dev обычный http
+        cookie: {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'strict',
+        },
+        methodsToProtect: ['POST', 'PUT', 'PATCH', 'DELETE'], // GET не трогаем
+        encryptSecret: process.env.NUXT_CSURF_ENCRYPT_SECRET
     },
 
     imports: {

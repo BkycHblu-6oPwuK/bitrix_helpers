@@ -1,4 +1,4 @@
-<?
+<?php
 $localOptionsFileName = 'beeralex_apiship_options.php';
 $moduleDirPath = __DIR__;
 $bitrixPath = $_SERVER['DOCUMENT_ROOT'] . '/bitrix';

@@ -45,20 +45,20 @@ class BeeralexMenu extends CBitrixComponent
             return [];
         }
 
-        if ($this->startResultCache(false, $this->getCacheId())) {
-
-            Loader::requireModule('iblock');
-
+        if ($this->startResultCache()) {
             $taggedCache = Application::getInstance()->getTaggedCache();
             $taggedCache->startTagCache($this->getCachePath());
 
-            $taggedCache->registerTag('iblock_id_' . $this->arParams['IBLOCK_ID']);
-
-            $this->arResult['MENU'] = $this->getMenu();
-
-            $taggedCache->endTagCache();
-
-            $this->includeComponentTemplate();
+            try {
+                $taggedCache->registerTag('iblock_id_' . $this->arParams['IBLOCK_ID']);
+                $this->arResult['MENU'] = $this->getMenu();
+                $this->includeComponentTemplate();
+                $taggedCache->endTagCache();
+            } catch (\Throwable $e) {
+                $this->abortResultCache();
+                $taggedCache->abortTagCache();
+                throw $e;
+            }
         }
 
         return $this->arResult['MENU'];

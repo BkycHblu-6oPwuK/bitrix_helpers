@@ -1,6 +1,6 @@
 <?
 
-use Beeralex\Catalog\Service\CatalogElementService;
+use Beeralex\Catalog\Service\CatalogService;
 use Beeralex\Core\Service\IblockService;
 use Bitrix\Main\Loader;
 
@@ -8,7 +8,7 @@ CBitrixComponent::includeComponentClass("bitrix:catalog.element");
 
 class BeeralexCatalogElement extends \CatalogElementComponent
 {
-    protected CatalogElementService $catalogElementService;
+    protected CatalogService $catalogService;
 
     public function onPrepareComponentParams($params)
     {
@@ -22,17 +22,17 @@ class BeeralexCatalogElement extends \CatalogElementComponent
 
     protected function processServices(array &$params)
     {
-        $catalogElementService = $params['CATALOG_ELEMENT_SERVICE'] ?? null;
-        if ($catalogElementService === null || !($catalogElementService instanceof CatalogElementService)) {
+        $catalogService = $params['CATALOG_SERVICE'] ?? null;
+        if ($catalogService === null || !($catalogService instanceof CatalogService)) {
             Loader::requireModule('beeralex.catalog');
-            $catalogElementService = service(CatalogElementService::class);
+            $catalogService = service(CatalogService::class);
         }
-        $this->catalogElementService = $catalogElementService;
-        unset($params['CATALOG_ELEMENT_SERVICE']);
+        $this->catalogService = $catalogService;
+        unset($params['CATALOG_SERVICE']);
     }
 
-    public function getCatalogElementService(): CatalogElementService
+    public function getCatalogService(): CatalogService
     {
-        return $this->catalogElementService;
+        return $this->catalogService;
     }
 }

@@ -5,19 +5,15 @@ declare(strict_types=1);
 namespace Beeralex\Apiship\Controllers;
 
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Error;
 use Bitrix\Main\Web\Json;
 use Beeralex\Apiship\Contracts\WebhookServiceContract;
-use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Dto\WebhookEventDto;
 
 /**
- * Приём входящих вебхуков ApiShip (server-to-server, единственный HTTP-эндпоинт модуля —
- * фронт/Nuxt в это НЕ вовлечён, см. docs/ARCHITECTURE.md).
- *
- * CSRF/сессионные prefilters отключены (пустой массив в configureActions) — как и для
- * прочих публичных эндпоинтов проекта (см. beeralex.api контроллеры). Аутентификация
- * входящего запроса — по секрету в пути маршрута (см. site/local/routes/api.php) и/или
- * дополнительной проверке подписи, если ApiShip её предоставляет.
+ * Приём входящих вебхуков ApiShip (server-to-server).
+ * CSRF/сессионные prefilters отключены — эндпоинт публичный, вызывается ApiShip.
+ * При ошибке обработки возвращает 5xx: ApiShip повторит запрос (3 попытки, таймаут 30 с).
  */
 class WebhookController extends Controller
 {
@@ -29,19 +25,27 @@ class WebhookController extends Controller
     }
 
     /**
-     * @return array<string,mixed>
+     * @return array<string,mixed>|null
      */
-    public function handleAction(): array
+    public function handleAction(): ?array
     {
         $rawBody = (string)$this->getRequest()->getInput();
-        $decoded = Json::decode($rawBody) ?: [];
 
-        // ApiShip может присылать как один объект события, так и массив событий —
-        // нормализуем к списку.
+        try {
+            $decoded = Json::decode($rawBody) ?: [];
+        } catch (\Throwable $e) {
+            // Невалидный JSON — ретраить бессмысленно, возвращаем 400
+            $this->addError(new Error('Invalid JSON body'));
+            return null;
+        }
+
+        // ApiShip может присылать как один объект события, так и массив
         $events = isset($decoded[0]) ? $decoded : [$decoded];
 
         $processed = 0;
         $duplicates = 0;
+
+        $service = \service(WebhookServiceContract::class);
 
         foreach ($events as $eventData) {
             if (!is_array($eventData)) {
@@ -49,19 +53,20 @@ class WebhookController extends Controller
             }
 
             try {
-                $isNew = \service(WebhookServiceContract::class)->handle(
+                $isNew = $service->handle(
                     WebhookEventDto::make($eventData),
                     Json::encode($eventData)
                 );
                 $isNew ? $processed++ : $duplicates++;
             } catch (\Throwable $e) {
-                $options = \service(Options::class);
-                if ($options->logsEnable) {
-                    \AddMessage2Log(
-                        "ApiShip: ошибка при обработке вебхука " . Json::encode($eventData) . ": {$e->getMessage()}",
-                        'beeralex.apiship'
-                    );
-                }
+                \AddMessage2Log(
+                    'ApiShip: ошибка при обработке вебхука: ' . $e->getMessage(),
+                    'beeralex.apiship'
+                );
+                // 5xx → ApiShip повторит запрос
+                \Bitrix\Main\Context::getCurrent()->getResponse()->setStatus('500 Internal Server Error');
+                $this->addError(new Error('Internal Server Error'));
+                return null;
             }
         }
 

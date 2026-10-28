@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Apiship\Builder;
@@ -7,9 +8,11 @@ use Beeralex\Apiship\Dto\CreateOrderDto;
 use Beeralex\Apiship\Exception\ApiShipValidationException;
 use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Support\ShipmentLocator;
+use Beeralex\Apiship\Delivery\ApiShipHandler;
 use Bitrix\Main\Config\Option;
 use Bitrix\Sale\BasketItem;
 use Bitrix\Sale\Order;
+use Bitrix\Sale\PropertyValueCollectionBase;
 use Bitrix\Sale\Shipment;
 
 /**
@@ -22,8 +25,6 @@ use Bitrix\Sale\Shipment;
  */
 final class ApiShipOrderRequestBuilder
 {
-    private const VAT_RATES = [0, 5, 7, 10, 20, 22];
-
     public function __construct(
         private readonly Options $options
     ) {}
@@ -41,36 +42,54 @@ final class ApiShipOrderRequestBuilder
         }
 
         $config = $this->getProfileConfig($shipment);
-        $providerKey = (string)($config['PROVIDER_KEY'] ?? '');
+
+        // Читаем CONNECTION_KEY = "{connectId}|{providerKey}" (новый формат) или PROVIDER_KEY (старый)
+        [$connectId, $providerKey] = ApiShipHandler::parseConnectionKey($config);
         $tariffId = (int)($config['TARIFF_ID'] ?? 0);
+
         if ($providerKey === '' || $tariffId <= 0) {
             throw new ApiShipValidationException(
                 "В службе доставки заказа #{$bitrixOrderId} не заданы PROVIDER_KEY/TARIFF_ID"
             );
         }
 
-        $items = $this->buildItems($shipment);
+        // Определяем COD один раз: items.cost = 0 для предоплаты, реальная цена для наложенного платежа
+        $isCod = false;
+        foreach ($order->getPaymentCollection() as $payment) {
+            if (!$payment->isPaid() && $payment->getPaySystem()?->isCash()) {
+                $isCod = true;
+                break;
+            }
+        }
+
+        $items = $this->buildItems($shipment, $isCod);
         if ($items === []) {
             throw new ApiShipValidationException("В отгрузке заказа #{$bitrixOrderId} нет товаров");
         }
 
         $properties = $order->getPropertyCollection();
-        $pointOutId = (int)$this->getPropertyValue($properties, 'PICKUP_POINT_ID');
+        $pointOutId = (int)$this->getPropertyValue($properties, $this->options->propPickupPointId);
         $pointInId = (int)($config['POINT_IN_ID'] ?? 0);
         $pickupType = (int)($config['PICKUP_TYPE'] ?? 0) ?: ($pointInId > 0 ? 2 : 1);
+
+        // providerConnectId: из CONNECTION_KEY или из явного PROVIDER_CONNECT_ID (старый формат)
+        $providerConnectId = $connectId !== ''
+            ? $connectId
+            : (string)($config['PROVIDER_CONNECT_ID'] ?? '');
+        $providerConnectId = $providerConnectId ?: ((string)$this->options->defaultProviderConnectId ?: null);
 
         $weight = 0;
         foreach ($items as $item) {
             $weight += $item['weight'] * $item['quantity'];
         }
-        $weight = $weight ?: 1000;
+        $weight = $weight ?: $this->options->defaultWeight;
 
         return CreateOrderDto::make([
             'bitrixOrderId'     => $order->getId(),
             'clientNumber'      => (string)$order->getField('ACCOUNT_NUMBER') ?: (string)$order->getId(),
             'providerKey'       => $providerKey,
             'tariffId'          => $tariffId,
-            'providerConnectId' => (int)($config['PROVIDER_CONNECT_ID'] ?? 0) ?: ($this->options->defaultProviderConnectId ?: null),
+            'providerConnectId' => $providerConnectId,
             'pickupType'        => $pickupType,
             'deliveryType'      => $pointOutId > 0 ? 2 : 1,
             'pointInId'         => $pointInId > 0 ? $pointInId : null,
@@ -79,7 +98,7 @@ final class ApiShipOrderRequestBuilder
             'weight'            => $weight,
             'cost'              => $this->buildCost($order, $shipment, $items),
             'sender'            => $this->options->sender,
-            'recipient'         => $this->buildRecipient($properties),
+            'recipient'         => $this->buildRecipient($properties, $order->getUserId()),
             'places'            => [[
                 'placeNumber' => '1',
                 'weight'      => $weight,
@@ -106,18 +125,30 @@ final class ApiShipOrderRequestBuilder
     /**
      * @return array<string,mixed>
      */
-    private function buildRecipient($properties): array
+    private function buildRecipient(PropertyValueCollectionBase $properties, int $userId): array
     {
-        $name = $this->getPropertyValue($properties, 'FIO')
-            ?: trim(($this->getPropertyValue($properties, 'NAME') ?? '') . ' ' . ($this->getPropertyValue($properties, 'LAST_NAME') ?? ''));
+        $name = $this->getPropertyValue($properties, $this->options->propFio)
+            ?: trim(
+                ($this->getPropertyValue($properties, 'NAME') ?? '')
+                    . ' '
+                    . ($this->getPropertyValue($properties, 'LAST_NAME') ?? '')
+            );
+            
+        if(empty($name)) {
+            /** @var \CUser $USER */
+            global $USER;
+            $userData = $USER->GetByID($userId)->Fetch();
+            $name = trim(($userData['NAME'] ?? '') . ' ' . ($userData['LAST_NAME'] ?? ''));
+        }
 
         return [
             'contactName'   => $name,
-            'phone'         => $this->getPropertyValue($properties, 'PHONE'),
+            'phone'         => $this->getPropertyValue($properties, $this->options->propPhone),
             'email'         => $this->getPropertyValue($properties, 'EMAIL'),
-            'city'          => $this->getPropertyValue($properties, 'CITY'),
+            'city'          => $this->getPropertyValue($properties, $this->options->propCity),
+            'cityGuid'      => $this->getPropertyValue($properties, $this->options->propCityGuid),
             'postIndex'     => $this->getPropertyValue($properties, 'ZIP'),
-            'addressString' => $this->getPropertyValue($properties, 'ADDRESS'),
+            'addressString' => $this->getPropertyValue($properties, $this->options->propAddress),
             'countryCode'   => 'RU',
         ];
     }
@@ -148,16 +179,19 @@ final class ApiShipOrderRequestBuilder
             'assessedCost'               => $assessedCost,
             'codCost'                    => $codCost,
             'deliveryCost'               => $isCod ? (float)$shipment->getPrice() : null,
-            'deliveryCostVat'            => $this->normalizeVat((float)$shipment->getVatRate()),
+            'deliveryCostVat' => $this->normalizeVat(
+                $shipment->getDelivery()?->getVatId() > 0 ? (float)$shipment->getVatRate() : null
+            ),
             'isDeliveryPayedByRecipient' => $isCod ? 1 : 0,
             'paymentMethod'              => $isCod ? 1 : null,
         ];
     }
 
     /**
+     * @param bool $isCod items.cost = реальная цена (COD) или 0 (предоплата, страховка через assessedCost)
      * @return array<int,array<string,mixed>>
      */
-    private function buildItems(Shipment $shipment): array
+    private function buildItems(Shipment $shipment, bool $isCod): array
     {
         $seller = $this->options->sender;
         $items = [];
@@ -176,7 +210,7 @@ final class ApiShipOrderRequestBuilder
                 'description'  => (string)$basketItem->getField('NAME'),
                 'articul'      => (string)$basketItem->getField('PRODUCT_XML_ID'),
                 'quantity'     => (int)$shipmentItem->getQuantity(),
-                'cost'         => (float)$basketItem->getPrice(),
+                'cost'         => $isCod ? (float)$basketItem->getPrice() : 0.0,
                 'assessedCost' => (float)$basketItem->getPrice(),
                 'costVat'      => $this->normalizeVat($vatRate === null ? null : (float)$vatRate),
                 'weight'       => (int)$basketItem->getWeight(),
@@ -194,15 +228,12 @@ final class ApiShipOrderRequestBuilder
     }
 
     /**
-     * Ставка Bitrix (доля, 0.2) -> процент ApiShip. Ставка не задана или вне допустимого набора -> -1 (без НДС).
+     * Ставка Bitrix (доля, 0.2) -> процент ApiShip. null -> -1 (без НДС). Ставка вне набора -> -1.
      */
     private function normalizeVat(?float $rate): int
     {
-        $percent = (int)round(($rate ?? 0) * 100);
-
-        return $percent > 0 && in_array($percent, self::VAT_RATES, true) ? $percent : -1;
+        return $rate === null ? -1 : (int)round($rate * 100);
     }
-
     /**
      * Габариты позиции Bitrix (мм) -> см. Нет данных — null.
      *
@@ -238,9 +269,9 @@ final class ApiShipOrderRequestBuilder
         return $host !== '' ? 'https://' . $host . $path : null;
     }
 
-    private function getPropertyValue($propertyCollection, string $code): ?string
+    private function getPropertyValue(PropertyValueCollectionBase $properties, string $code): ?string
     {
-        $property = $propertyCollection->getItemByOrderPropertyCode($code);
+        $property = $properties->getItemByOrderPropertyCode($code);
         if ($property === null) {
             return null;
         }

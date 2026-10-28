@@ -6,16 +6,8 @@ namespace Beeralex\Apiship;
 use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
 use Beeralex\Apiship\Contracts\OrderServiceContract;
-use Beeralex\Apiship\Exception\ApiShipException;
-use Bitrix\Main\SystemException;
+use Beeralex\Apiship\Support\ShipmentLocator;
 
-/**
- * Обработчики событий модуля sale.
- *
- * onSaleStatusOrderChange реализует ADR-005: заказ отправляется в ApiShip при переходе
- * в статус, заданный в настройках модуля (Options::sendOnStatusId). Если настройка пуста —
- * автоотправка отключена (создание заказа доступно только через OrderServiceContract явно).
- */
 final class EventHandlers
 {
     public static function onSaleStatusOrderChange(Event $event): void
@@ -34,22 +26,18 @@ final class EventHandlers
             return;
         }
 
+        // Пропускаем заказы без доставки ApiShip — это норма, не ошибка
+        if (ShipmentLocator::findApiShipShipment($order) === null) {
+            return;
+        }
+
         try {
             \service(OrderServiceContract::class)->createForBitrixOrder($order->getId());
-        } catch (ApiShipException $e) {
-            if ($options->logsEnable) {
-                \AddMessage2Log(
-                    "ApiShip: не удалось отправить заказ #{$order->getId()}: {$e->getMessage()}",
-                    'beeralex.apiship'
-                );
-            }
-        } catch (SystemException $e) {
-            if ($options->logsEnable) {
-                \AddMessage2Log(
-                    "ApiShip: системная ошибка при сохранении заказа в таблицу #{$order->getId()}: {$e->getMessage()}",
-                    'beeralex.apiship'
-                );
-            }
+        } catch (\Throwable $e) {
+            \AddMessage2Log(
+                "ApiShip: не удалось отправить заказ #{$order->getId()}: {$e->getMessage()}",
+                'beeralex.apiship'
+            );
         }
     }
 }

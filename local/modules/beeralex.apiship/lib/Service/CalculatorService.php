@@ -17,6 +17,7 @@ use Beeralex\Apiship\Dto\TariffDto;
 use Beeralex\Apiship\Exception\ApiShipException;
 use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Service\Support\RequestHydrator;
+use Bitrix\Main\Data\Cache;
 
 /**
  * Расчёт стоимости и сроков доставки через ApiShip.
@@ -32,34 +33,53 @@ final class CalculatorService implements CalculatorServiceContract
 
     /**
      * @return TariffDto[]
+     * @throws ApiShipException
      */
     public function calculate(CalculationRequestDto $request): array
     {
-        $calculatorRequest = $this->buildRequest($request);
+        $cache = null;
+        if ($this->options->cacheEnabled) {
+            $cache = Cache::createInstance();
+            $cacheKey = 'calc_' . md5(serialize($request));
+            if ($cache->initCache($this->options->cacheTtl, $cacheKey, '/beeralex/apiship/calculator')) {
+                return $cache->getVars();
+            }
+            $cache->startDataCache();
+        }
+
+        $sdkRequest = $this->buildRequest($request);
 
         try {
-            $response = $this->clientFactory->getClient()->calculator()->calculate($calculatorRequest);
+            $response = $this->clientFactory->getClient()->calculator()->calculate($sdkRequest);
         } catch (ResponseException $e) {
             throw new ApiShipException(
                 $e->getErrorMessage() ?: $e->getMessage(),
                 (int)$e->getCode(),
                 $e
             );
+        } catch (\Throwable $e) {
+            throw new ApiShipException($e->getMessage(), 0, $e);
         }
 
-        return $this->normalizeResponse($response);
+        $result = $this->normalizeResponse($response);
+
+        if ($cache !== null) {
+            $cache->endDataCache($result);
+        }
+
+        return $result;
     }
 
     private function buildRequest(CalculationRequestDto $request): CalculatorRequest
     {
-        $calculatorRequest = (new CalculatorRequest())
+        $sdkRequest = (new CalculatorRequest())
             ->setFrom($this->hydrate(new From(), $request->from))
             ->setTo($this->hydrate(new To(), $request->to))
             ->setAssessedCost($request->assessedCost)
             ->setCodCost($request->codCost);
 
         foreach ($request->places as $place) {
-            $calculatorRequest->addPlace(
+            $sdkRequest->addPlace(
                 (new CalculatorPlace())
                     ->setWeight((int)($place['weight'] ?? 0))
                     ->setWidth((int)($place['width'] ?? 0))
@@ -68,11 +88,23 @@ final class CalculatorService implements CalculatorServiceContract
             );
         }
 
-        if ($providerKeys = $request->providerKeys) {
-            $calculatorRequest->setProviderKeys($providerKeys);
+        if ($request->providerKeys !== []) {
+            $sdkRequest->setProviderKeys($request->providerKeys);
+        }
+        if ($request->tariffIds !== []) {
+            $sdkRequest->setTariffIds($request->tariffIds);
+        }
+        if ($request->deliveryTypes !== []) {
+            $sdkRequest->setDeliveryTypes($request->deliveryTypes);
+        }
+        if ($request->pointInId > 0) {
+            $sdkRequest->setPointInId($request->pointInId);
+        }
+        if ($request->pointOutId > 0) {
+            $sdkRequest->setPointOutId($request->pointOutId);
         }
 
-        return $calculatorRequest;
+        return $sdkRequest;
     }
 
     /**

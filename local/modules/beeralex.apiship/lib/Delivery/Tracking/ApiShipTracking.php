@@ -9,18 +9,31 @@ use Bitrix\Sale\Delivery\Tracking\Base;
 use Bitrix\Sale\Delivery\Tracking\StatusResult;
 use Bitrix\Sale\Delivery\Tracking\Statuses;
 use Beeralex\Apiship\Contracts\StatusServiceContract;
-use Beeralex\Apiship\Exception\ApiShipException;
 
 Loc::loadMessages(__FILE__);
 
-/**
- * Трекинг заказа ApiShip для покупателя (история статусов).
- *
- * $trackingNumber здесь — ID заказа в ApiShip (apiShipOrderId), а не физический трек-номер ТК,
- * т.к. единая точка получения статуса — сам ApiShip (агрегатор уже транслирует статус СД).
- */
 class ApiShipTracking extends Base
 {
+    /** Маппинг ключей статусов ApiShip -> константы Bitrix Statuses */
+    private const STATUS_MAP = [
+        'delivered'            => Statuses::HANDED,
+        'delivering'           => Statuses::ON_THE_WAY,
+        'onWay'                => Statuses::ON_THE_WAY,
+        'readyForRecipient'    => Statuses::ARRIVED,
+        'uploaded'             => Statuses::WAITING_SHIPMENT,
+        'onPointIn'            => Statuses::WAITING_SHIPMENT,
+        'uploading'            => Statuses::WAITING_SHIPMENT,
+        'returned'             => Statuses::RETURNED,
+        'returning'            => Statuses::RETURNED,
+        'returnedFromDelivery' => Statuses::RETURNED,
+        'partialReturn'        => Statuses::RETURNED,
+        'lost'                 => Statuses::PROBLEM,
+        'deliveryCanceled'     => Statuses::PROBLEM,
+        'uploadingError'       => Statuses::PROBLEM,
+        'unknown'              => Statuses::UNKNOWN,
+        'notApplicable'        => Statuses::UNKNOWN,
+    ];
+
     public function getClassTitle(): string
     {
         return Loc::getMessage('BEERALEX_APISHIP_TRACKING_TITLE') ?: 'ApiShip';
@@ -48,15 +61,18 @@ class ApiShipTracking extends Base
 
         try {
             $status = \service(StatusServiceContract::class)->getStatus($apiShipOrderId);
-        } catch (ApiShipException $e) {
+        } catch (\Throwable $e) {
             $result->addError(new Error($e->getMessage()));
             return $result;
         }
 
-        $result->status = Statuses::UNKNOWN;
-        $result->description = $status->name ?? $status->key;
+        $statusKey = $status->key ?? '';
+        $result->status = static::STATUS_MAP[$statusKey] ?? Statuses::UNKNOWN;
+        $result->description = $status->name ?? $statusKey;
         $result->trackingNumber = (string)$apiShipOrderId;
-        $result->lastChangeTimestamp = $status->date ? strtotime($status->date) : time();
+
+        $ts = $status->date ? strtotime((string)$status->date) : false;
+        $result->lastChangeTimestamp = $ts !== false ? $ts : time();
 
         return $result;
     }

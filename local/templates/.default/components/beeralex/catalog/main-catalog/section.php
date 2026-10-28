@@ -13,7 +13,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
  * @var CBitrixComponent $component
  * @var array $arParams
  * @var array $arResult
- * @var array $arCurSection
+ * @var int|null $sectionId
  */
 require_once __DIR__ . '/base-section-filter.php';
 
@@ -37,7 +37,7 @@ $APPLICATION->IncludeComponent(
     array(
         "IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
         "IBLOCK_ID" => $arParams["IBLOCK_ID"],
-        "SECTION_ID" => $arCurSection['ID'],
+        "SECTION_ID" => $sectionId,
         "FILTER_NAME" => $arParams["FILTER_NAME"],
         "PREFILTER_NAME" => $arParams["PREFILTER_NAME"],
         "PRICE_CODE" => $arParams["~PRICE_CODE"],
@@ -77,14 +77,14 @@ $APPLICATION->IncludeComponent(
         "CACHE_TIME" => $arParams["CACHE_TIME"],
         "CACHE_TYPE" => $arParams["CACHE_TYPE"],
         "SMART_FILTER_NAME" => $arParams["FILTER_NAME"],
-        "SECTION_ID" => $arCurSection['ID'],
+        "SECTION_ID" => $sectionId,
     ),
     $component
 );
 
 $sort = $sortService->getRequestedSort();
 
-$intSectionID = $APPLICATION->IncludeComponent(
+$APPLICATION->IncludeComponent(
     "beeralex:catalog.section",
     ".default",
     array(
@@ -206,7 +206,7 @@ $intSectionID = $APPLICATION->IncludeComponent(
         'SHOW_CLOSE_POPUP' => isset($arParams['COMMON_SHOW_CLOSE_POPUP']) ? $arParams['COMMON_SHOW_CLOSE_POPUP'] : '',
         'COMPARE_PATH' => $arResult['FOLDER'] . $arResult['URL_TEMPLATES']['compare'],
         'COMPARE_NAME' => $arParams['COMPARE_NAME'],
-        'USE_COMPARE_LIST' => 'Y',
+        'USE_COMPARE_LIST' => 'N',
         'BACKGROUND_IMAGE' => (isset($arParams['SECTION_BACKGROUND_IMAGE']) ? $arParams['SECTION_BACKGROUND_IMAGE'] : ''),
         'COMPATIBLE_MODE' => (isset($arParams['COMPATIBLE_MODE']) ? $arParams['COMPATIBLE_MODE'] : ''),
         'DISABLE_INIT_JS_IN_COMPONENT' => (isset($arParams['DISABLE_INIT_JS_IN_COMPONENT']) ? $arParams['DISABLE_INIT_JS_IN_COMPONENT'] : ''),

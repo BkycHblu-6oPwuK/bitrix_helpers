@@ -1,68 +1,35 @@
-import type { CatalogItemDTO } from "~/types/iblock/catalog"
+import type { CatalogItemDTO } from '~/types/iblock/catalog'
 
 /**
- * Композабл для работы с элементом каталога
- * Предоставляет вычисляемые свойства для удобного доступа к данным элемента
+ * Данные товара, которые НЕ зависят от выбранного торгового предложения:
+ * картинки, метка, артикул. Принимает ref, геттер или значение.
  */
-export function useCatalogItem(item: Ref<CatalogItemDTO | null>) {
-    const isAvailable = computed(() => {
-        const v = item.value
-        if (!v) return false
-
-        return v.catalog?.available
-            ?? v.preselectedOffer?.catalog.available
-            ?? v.offers?.[0]?.catalog.available
-            ?? false
-    })
-
+export function useCatalogItem(item: MaybeRefOrGetter<CatalogItemDTO | null | undefined>) {
     const images = computed(() => {
-        const v = item.value
+        const v = toValue(item)
         if (!v) return null
 
-        const images: string[] = []
+        const result: string[] = []
+        if (v.previewPictureSrc) result.push(v.previewPictureSrc)
+        if (v.detailPictureSrc) result.push(v.detailPictureSrc)
 
-        if (v.previewPictureSrc) {
-            images.push(v.previewPictureSrc)
-        }
-        if (v.detailPictureSrc && v.detailPictureSrc !== v.previewPictureSrc) {
-            images.push(v.detailPictureSrc)
-        }
-        if (v.properties?.MORE_PHOTO) {
-            const morePhotos = Array.isArray(v.properties.MORE_PHOTO)
-                ? v.properties.MORE_PHOTO
-                : [v.properties.MORE_PHOTO]
-            morePhotos.forEach((photo: any) => {
-                if (photo?.pictureSrc) {
-                    images.push(photo.pictureSrc)
-                }
-            })
+        // MORE_PHOTO: значения — файлы ({ src }) или готовые строки.
+        // Внимание: в разных проектах DTO свойства называется valuesDto / values — подстройте под свой тип.
+        for (const photo of v.properties?.MORE_PHOTO?.valuesDto ?? []) {
+            const raw = photo?.value as string | { src?: string } | null | undefined
+            const src = typeof raw === 'string' ? raw : raw?.src
+            if (src) result.push(src)
         }
 
-        return images.length > 0 ? images : null
+        // Set убирает дубли (превью == детальная и т.п.)
+        return result.length ? [...new Set(result)] : null
+    })
+    /** Артикул: свойство ARTNUMBER, если его нет — символьный код */
+    const article = computed(() => {
+        const v = toValue(item)
+        const art = v?.properties?.ARTNUMBER?.valuesDto?.[0]?.value
+        return art ? String(art) : (v?.code ?? null)
     })
 
-    const price = computed(() => {
-        const v = item.value
-        if (!v) return null
-
-        if (v.preselectedOffer && v.preselectedOffer.prices.length > 0) {
-            const price = v.preselectedOffer.prices.find(p => p.catalogGroup?.base === true) || v.preselectedOffer.prices[0];
-            return price;
-        }
-
-        if (v.offers && v.offers.length > 0 && v.offers[0]) {
-            const firstOffer = v.offers[0];
-            const price = firstOffer.prices.find(p => p.catalogGroup?.base === true) || firstOffer.prices[0];
-            return price;
-        }
-
-        if (v.prices && v.prices.length > 0) {
-            const price = v.prices.find(p => p.catalogGroup?.base === true) || v.prices[0];
-            return price;
-        }
-
-        return null;
-    })
-
-    return { isAvailable, images, price }
+    return { images, article }
 }

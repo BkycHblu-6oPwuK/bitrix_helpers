@@ -25,7 +25,7 @@ class RawResponse extends AbstractResponse
      */
     public function fill(mixed $decoded): static
     {
-        $this->data = self::normalize($decoded);
+        $this->data = static::normalize($decoded);
         return $this;
     }
 

@@ -67,7 +67,8 @@ abstract class AbstractExtendedApi extends AbstractApi
         if (is_string($body)) {
             return $body;
         }
-        return json_encode($body, JSON_UNESCAPED_UNICODE) ?: '';
+        $encoded = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        return $encoded;
     }
 
     private function toResponse(string $json): RawResponse

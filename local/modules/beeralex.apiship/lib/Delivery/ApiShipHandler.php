@@ -8,10 +8,7 @@ use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Delivery\CalculationResult;
 use Bitrix\Sale\Delivery\Services\Base;
 use Bitrix\Sale\Shipment;
-use Beeralex\Apiship\Contracts\CalculatorServiceContract;
-use Beeralex\Apiship\Dto\CalculationRequestDto;
-use Beeralex\Apiship\Dto\TariffDto;
-use Beeralex\Apiship\Exception\ApiShipException;
+use Beeralex\Apiship\Contracts\ConnectionServiceContract;
 
 Loc::loadMessages(__FILE__);
 
@@ -30,7 +27,6 @@ class ApiShipHandler extends Base
 {
     /** @var string */
     protected $handlerCode = 'BEERALEX_APISHIP';
-
     protected static $canHasProfiles = true;
 
     public function __construct(array $initParams)
@@ -48,7 +44,8 @@ class ApiShipHandler extends Base
         return new EventResult(
             EventResult::SUCCESS,
             [
-                self::class => __FILE__,
+                static::class        => str_replace($_SERVER['DOCUMENT_ROOT'], '', __FILE__),
+                ApiShipProfile::class => str_replace($_SERVER['DOCUMENT_ROOT'], '', __DIR__ . '/ApiShipProfile.php'),
             ],
             'sale'
         );
@@ -77,153 +74,34 @@ class ApiShipHandler extends Base
      */
     public function getProfilesList(): array
     {
-        return [
-            [
-                'CLASS_NAME' => ApiShipProfile::class,
-                'PARENT_ID'  => $this->getId(),
-            ],
-        ];
+        $list = [];
+        try {
+            foreach (\service(ConnectionServiceContract::class)->getConnections() as $conn) {
+                $id          = (string)($conn['id'] ?? '');
+                $providerKey = (string)($conn['providerKey'] ?? '');
+                $name        = (string)($conn['name'] ?? $providerKey);
+
+                if ($id !== '' && $providerKey !== '') {
+                    $list["{$id}|{$providerKey}"] = "{$name} ({$providerKey})";
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+        return $list;
     }
 
-    /**
-     * Минимальная конфигурация: providerKey/tariffId/providerConnectId опциональны —
-     * если не заданы, расчёт делается по всем подключённым ТК ApiShip (см. CalculatorService).
-     * @todo - настройки здесь бесполезны, это должно быть в профилях доставок
-     */
-    public function getConfigStructure(): array
+    public static function getChildrenClassNames(): array
     {
-        return [
-            'MAIN' => [
-                'NAME'  => Loc::getMessage('BEERALEX_APISHIP_CONFIG_MAIN') ?: 'Основные настройки',
-                'ITEMS' => [
-                    'PROVIDER_KEY' => [
-                        'TYPE'    => 'STRING',
-                        'NAME'    => Loc::getMessage('BEERALEX_APISHIP_CONFIG_PROVIDER_KEY') ?: 'Ключ ТК в ApiShip (providerKey)',
-                        'REQUIRED' => 'N',
-                    ],
-                    'TARIFF_ID' => [
-                        'TYPE'    => 'STRING',
-                        'NAME'    => Loc::getMessage('BEERALEX_APISHIP_CONFIG_TARIFF_ID') ?: 'ID тарифа ApiShip (tariffId)',
-                        'REQUIRED' => 'N',
-                    ],
-                    'PROVIDER_CONNECT_ID' => [
-                        'TYPE'    => 'STRING',
-                        'NAME'    => Loc::getMessage('BEERALEX_APISHIP_CONFIG_PROVIDER_CONNECT_ID') ?: 'ID подключения ApiShip (providerConnectId)',
-                        'REQUIRED' => 'N',
-                    ],
-                    'PICKUP_TYPE' => [
-                        'TYPE'    => 'STRING',
-                        'NAME'    => 'Тип забора (pickupType): 1 — от двери, 2 — привоз на склад СД',
-                        'REQUIRED' => 'N',
-                    ],
-                    'POINT_IN_ID' => [
-                        'TYPE'    => 'STRING',
-                        'NAME'    => 'ID пункта приёма СД (pointInId), если отгрузка на склад СД',
-                        'REQUIRED' => 'N',
-                    ],
-                ],
-            ],
-        ];
+        return [ApiShipProfile::class];
     }
 
     protected function calculateConcrete(Shipment $shipment): CalculationResult
     {
         $result = new CalculationResult();
-
-        try {
-            $tariffs = $this->getCalculatorService()->calculate(
-                $this->buildCalculationRequest($shipment)
-            );
-        } catch (ApiShipException $e) {
-            $result->addError(new \Bitrix\Main\Error($e->getMessage(), 'APISHIP_CALCULATE'));
-            return $result;
-        }
-
-        $tariff = $this->pickTariff($tariffs);
-        if ($tariff === null) {
-            $result->addError(new \Bitrix\Main\Error(
-                Loc::getMessage('BEERALEX_APISHIP_NO_TARIFF') ?: 'Не удалось рассчитать стоимость доставки',
-                'APISHIP_NO_TARIFF'
-            ));
-            return $result;
-        }
-
-        $result->setDeliveryPrice($tariff->deliveryCost);
-        $result->setPeriodFrom($tariff->daysMin);
-        $result->setPeriodTo($tariff->daysMax);
-        $result->setPeriodType(CalculationResult::PERIOD_TYPE_DAY);
-
+        $result->addError(new \Bitrix\Main\Error(
+            Loc::getMessage('BEERALEX_APISHIP_PARENT_CALC') ?: 'Расчёт выполняется в профилях доставки ApiShip',
+            'APISHIP_PARENT_CALC'
+        ));
         return $result;
-    }
-
-    /**
-     * Выбирает тариф согласно CONFIG (PROVIDER_KEY/TARIFF_ID), либо самый дешёвый из всех.
-     */
-    protected function pickTariff(array $tariffs): ?TariffDto
-    {
-        $config = $this->getConfigValues()['MAIN'] ?? [];
-        $providerKey = (string)($config['PROVIDER_KEY'] ?? '');
-        $tariffId = isset($config['TARIFF_ID']) && $config['TARIFF_ID'] !== '' ? (int)$config['TARIFF_ID'] : null;
-
-        if ($providerKey !== '' || $tariffId !== null) {
-            foreach ($tariffs as $tariff) {
-                if ($providerKey !== '' && $tariff->providerKey !== $providerKey) {
-                    continue;
-                }
-                if ($tariffId !== null && $tariff->tariffId !== $tariffId) {
-                    continue;
-                }
-                return $tariff;
-            }
-            return null;
-        }
-
-        $cheapest = null;
-        foreach ($tariffs as $tariff) {
-            if ($cheapest === null || $tariff->deliveryCost < $cheapest->deliveryCost) {
-                $cheapest = $tariff;
-            }
-        }
-
-        return $cheapest;
-    }
-
-    /**
-     * Собирает данные для расчёта из Shipment. Адрес отправителя — из настроек модуля/точки
-     * отгрузки (TODO: единый источник склада, сейчас placeholder "from" пуст — заполняется
-     * при интеграции с конкретным проектом).
-     */
-    protected function buildCalculationRequest(Shipment $shipment): CalculationRequestDto
-    {
-        $order = $shipment->getOrder();
-        $to = [];
-
-        if ($order !== null) {
-            $properties = $order->getPropertyCollection();
-            $city = $properties->getItemByOrderPropertyCode('CITY');
-            $address = $properties->getItemByOrderPropertyCode('ADDRESS');
-
-            $to = array_filter([
-                'city'          => $city?->getValue(),
-                'addressString' => $address?->getValue(),
-                'countryCode'   => 'RU',
-            ], static fn($v) => $v !== null && $v !== '');
-        }
-
-        return CalculationRequestDto::make([
-            'from'   => [],
-            'to'     => $to,
-            'places' => [[
-                'weight' => (int)($shipment->getWeight() ?: 1000),
-                'width'  => 20,
-                'height' => 20,
-                'length' => 20,
-            ]],
-        ]);
-    }
-
-    protected function getCalculatorService(): CalculatorServiceContract
-    {
-        return \service(CalculatorServiceContract::class);
     }
 }

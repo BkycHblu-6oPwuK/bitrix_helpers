@@ -29,11 +29,11 @@ final class PlaceDto extends Resource
                 static fn($item) => ItemDto::make((array)$item)->toArray(),
                 array_values((array)($data['items'] ?? []))
             ),
-            'placeNumber' => self::nullableString($data['placeNumber'] ?? null),
-            'barcode'     => self::nullableString($data['barcode'] ?? null),
-            'height'      => self::nullableInt($data['height'] ?? null),
-            'width'       => self::nullableInt($data['width'] ?? null),
-            'length'      => self::nullableInt($data['length'] ?? null),
+            'placeNumber' => static::nullableString($data['placeNumber'] ?? null),
+            'barcode'     => static::nullableString($data['barcode'] ?? null),
+            'height'      => static::nullableInt($data['height'] ?? null),
+            'width'       => static::nullableInt($data['width'] ?? null),
+            'length'      => static::nullableInt($data['length'] ?? null),
         ]);
     }
 }

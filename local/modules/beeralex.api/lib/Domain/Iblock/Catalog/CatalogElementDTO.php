@@ -19,9 +19,10 @@ class CatalogElementDTO extends Resource
 
     public static function makeFrom(array $elementData, array $arResult)
     {
+        $path = array_merge($arResult['SECTION']['PATH'] ?? [], [['NAME' => $arResult['META_TAGS']['ELEMENT_CHAIN'] ?? $arResult['NAME'], 'URL' => $arResult['DETAIL_PAGE_URL'] ?? '']]);
         return new static([
             'element' => CatalogItemDTO::make($elementData),
-            'path' => array_map([BreadcrumbsItemDTO::class, 'make'], $arResult['PATH'] ?? $arResult['SECTION']['PATH'] ?? []),
+            'path' => array_map([BreadcrumbsItemDTO::class, 'make'], $path),
         ]);
     }
 }

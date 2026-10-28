@@ -24,32 +24,86 @@ export interface ElementDTO {
     listPageUrl: string            // URL списка/раздела
     dateCreate: string             // Дата создания (ISO формат)
 
-    properties: PropertyItemDTO[]  // Массив пользовательских свойств
+    properties: PropertiesMap      // Свойства элемента, ключ - символьный код свойства
 }
 
 /**
- * Свойство элемента инфоблока
- * Может содержать различные типы данных: текст, число, файл, список и т.д.
+ * Запись справочника (HL-блок, свойство типа directory).
+ * Поля UF_* зависят от конкретного HL-блока, поэтому остальные ключи допускаются.
  */
+export interface HlItem {
+    ID: string
+    UF_XML_ID: string
+    UF_NAME?: string
+    UF_FILE?: string
+    UF_LINK?: string
+    UF_DESCRIPTION?: string
+    UF_FULL_DESCRIPTION?: string
+    UF_SORT?: string
+    UF_EXTERNAL_CODE?: string
+    PICTURE_SRC?: string | null
+    [field: string]: unknown
+}
 
-export interface PropertyItemDTO {
-    id: number                            // Уникальный ID свойства
+
+/**
+ * Значение свойства типа "список" (enum).
+ */
+export interface EnumItem {
+    ID: number
+    PROPERTY_ID?: number | null
+    VALUE: string
+    DEF?: boolean | null
+    SORT: number
+    XML_ID: string
+    TMP_ID?: string | null
+}
+
+/**
+ * Привязанный элемент инфоблока (свойство типа "привязка к элементам").
+ * Набор полей зависит от выборки, гарантирован только ID.
+ */
+export interface LinkedElementItem {
+    ID: number
+    NAME?: string
+    CODE?: string
+    DETAIL_PAGE_URL?: string
+    [field: string]: unknown
+}
+
+/**
+ * Данные, прикреплённые к значению свойства
+ */
+export type PropertyValueItem = HlItem | EnumItem | LinkedElementItem
+
+/**
+ * Одно значение свойства.
+ * Общие данные свойства (code, name, type) лежат в PropertyItemDTO.
+ */
+export interface PropertyValueDTO<TItem extends PropertyValueItem = PropertyValueItem> {
+    value: string | number | boolean | null | FileDTO | LocationDTO // Значение (для файла - один FileDTO на значение)
+    cleanValue: unknown                    // Исходное значение без обработки (~VALUE)
+    description: string                    // Описание значения
+    item: TItem | null                     // Доп. данные: запись HL, элемент списка, привязанный элемент
+}
+
+/**
+ * Свойство элемента инфоблока.
+ * Метаданные хранятся один раз, значения - списком (и для одиночных, и для множественных свойств).
+ */
+export interface PropertyItemDTO<TItem extends PropertyValueItem = PropertyValueItem> {
+    id: number                             // ID свойства
     code: string                           // Символьный код свойства
     name: string                           // Название свойства
-    value: string | number | boolean | null | FileDTO[] | LocationDTO // Значение свойства
-    type?: string | null                   // Тип свойства (string, number, file, list и т.д.)
-    userType?: string | null                  // Пользовательский тип свойства (если применимо)
-    xmlId?: string | null                  // Внешний код свойства
-    link?: string | null                   // Ссылка на ресурс (если применимо)
-    pictureSrc?: FileSrc | null             // URL картинки (если свойство - картинка)
-    item?: any[] | null                     // Дополнительные данные свойства (например, для привязанных элементов, список, HL и т.д.)
+    type: string | null                    // Тип свойства: S, N, L, F, E, G
+    userType: string | null                // Пользовательский тип (directory, HTML, map_google и т.д.)
+    valuesDto: PropertyValueDTO<TItem>[]      // Значения свойства
 }
 
 /**
- * Тип значения свойства.
- * Может быть одиночным значением, массивом (множественное) или null
+ * Свойства элемента: код свойства -> свойство
  */
-export type PropertiesType = PropertyItemDTO | PropertyItemDTO[] | null
+export type PropertiesMap = Record<string, PropertyItemDTO>
 
 /**
  * Раздел инфоблока (категория)

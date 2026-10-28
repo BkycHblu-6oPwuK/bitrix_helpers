@@ -4,7 +4,7 @@
  */
 
 import type { FilterDTO, SectionData } from './page'
-import type { SectionDTO, PropertiesType, PropertyItemDTO } from '.'
+import type { SectionDTO, PropertyItemDTO } from '.'
 import type { FileSrc } from '../file'
 
 
@@ -91,11 +91,11 @@ export interface CatalogOfferDTO {
     id: number                               // ID предложения
     active: boolean                          // Активно ли предложение
     productId: number                        // ID родительского товара
-    catalog: CatalogProductDTO               // Торговая информация предложения
-    prices: CatalogPriceDTO[]                // Цены предложения
-    storeProduct: CatalogStoreProductItemDTO[] // Остатки на складах
+    catalog: CatalogProductDTO | null       // Торговая информация предложения
+    prices: CatalogPriceDTO[] | null          // Цены предложения
+    storeProduct: CatalogStoreProductItemDTO[] | null // Остатки на складах
     detailPageUrl: string                    // URL детальной страницы
-    properties: Record<string, PropertiesType>    // Свойства товара
+    properties: Record<string, PropertyItemDTO>    // Свойства товара
 }
 
 /**
@@ -112,12 +112,12 @@ export interface CatalogItemDTO {
     detailPictureSrc: FileSrc            // URL детальной картинки
     detailTextType: string               // Тип текста (html/text)
     searchableContent: string            // Индексируемый контент для поиска
-    offers: CatalogOfferDTO[]            // Массив торговых предложений (для товаров с SKU)
+    offers: CatalogOfferDTO[] | null            // Массив торговых предложений (для товаров с SKU)
     preselectedOffer: CatalogOfferDTO | null // Предвыбранное предложение
-    prices: CatalogPriceDTO[]            // Цены товара (для простых товаров)
+    prices: CatalogPriceDTO[] | null             // Цены товара (для простых товаров)
     catalog: CatalogProductDTO | null    // Торговая информация (для простых товаров)
-    properties: CatalogItemPropertiesType // Свойства товара
-    offersTree: OffersTreeDTO            // Карта предложений
+    properties: Record<string, PropertyItemDTO> // Свойства товара
+    offersTree: OffersTreeDTO | null    // Карта предложений
 }
 
 /**
@@ -155,11 +155,6 @@ export interface ProductSliderDTO {
     linkToAll: string
     items: CatalogItemDTO[]
 }
-
-/**
- * Типы свойств товара в каталоге
- */
-export type CatalogItemPropertiesType = Record<string, PropertiesType> & { MORE_PHOTO?: PropertyItemDTO[] }
 
 /**
  * Полные данные страницы каталога

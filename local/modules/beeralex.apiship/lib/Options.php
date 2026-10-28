@@ -46,6 +46,42 @@ final class Options extends AbstractOptions
      */
     public readonly array $shipmentStatusMap;
 
+    /** Кешировать запросы к ApiShip (расчёт, подключения, ПВЗ). */
+    public readonly bool $cacheEnabled;
+
+    /** Время жизни кэша в секундах. */
+    public readonly int $cacheTtl;
+
+    /** Вес по умолчанию (г), используется если вес товара не задан. */
+    public readonly int $defaultWeight;
+
+    /** Ширина по умолчанию (см). */
+    public readonly int $defaultWidth;
+
+    /** Высота по умолчанию (см). */
+    public readonly int $defaultHeight;
+
+    /** Длина по умолчанию (см). */
+    public readonly int $defaultLength;
+
+    /** Код свойства заказа: телефон получателя. */
+    public readonly string $propPhone;
+
+    /** Код свойства заказа: ФИО получателя. */
+    public readonly string $propFio;
+
+    /** Код свойства заказа: город. */
+    public readonly string $propCity;
+
+    /** Код свойства заказа: GUID города. */
+    public readonly string $propCityGuid;
+
+    /** Код свойства заказа: адрес. */
+    public readonly string $propAddress;
+
+    /** Код свойства заказа: ID ПВЗ (pointOutId). */
+    public readonly string $propPickupPointId;
+
     protected function mapOptions(array $options): void
     {
         $this->login = (string)($options['login'] ?? '');
@@ -78,6 +114,18 @@ final class Options extends AbstractOptions
         ], static fn(string $v) => $v !== '');
         $this->orderStatusMap = $this->decodeMap($options['order_status_map'] ?? '');
         $this->shipmentStatusMap = $this->decodeMap($options['shipment_status_map'] ?? '');
+        $this->cacheEnabled = ($options['cache_enabled'] ?? '') === 'Y';
+        $this->cacheTtl = max(60, (int)($options['cache_ttl'] ?? 3600));
+        $this->defaultWeight = max(1, (int)($options['default_weight'] ?? 1000));
+        $this->defaultWidth = max(1, (int)($options['default_width'] ?? 20));
+        $this->defaultHeight = max(1, (int)($options['default_height'] ?? 20));
+        $this->defaultLength = max(1, (int)($options['default_length'] ?? 20));
+        $this->propPhone = (string)($options['prop_phone'] ?? '') ?: 'PHONE';
+        $this->propFio = (string)($options['prop_fio'] ?? '') ?: 'FIO';
+        $this->propCity = (string)($options['prop_city'] ?? '') ?: 'CITY';
+        $this->propCityGuid = (string)($options['prop_city_guid'] ?? '') ?: 'CITY_GUID';
+        $this->propAddress = (string)($options['prop_address'] ?? '') ?: 'ADDRESS';
+        $this->propPickupPointId = (string)($options['prop_pickup_point_id'] ?? '') ?: 'PICKUP_POINT_ID';
     }
 
     /**

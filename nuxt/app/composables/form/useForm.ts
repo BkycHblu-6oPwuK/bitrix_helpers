@@ -1,14 +1,16 @@
+import type { ApiErrors } from '~/types/api'
+
 interface UseFormOptions<T> {
     initialValues: T
     successMessage?: string
     onSubmit: (values: T) => Promise<void>
-    validate?: (values: T) => Record<string, string> | null
-    onInvalid?: (errors: Record<string, string>, fromServer?: boolean) => void
+    validate?: (values: T) => ApiErrors | null
+    onInvalid?: (errors: ApiErrors, fromServer?: boolean) => void
 }
 
 interface UseFormReturn<T> {
     values: T
-    errors: Ref<Record<string, string>>
+    errors: Ref<ApiErrors>
     isLoading: Ref<boolean>
     isSuccess: Ref<boolean>
     handleSubmit: (e?: Event) => Promise<void>
@@ -18,26 +20,18 @@ interface UseFormReturn<T> {
     reset: () => void
 }
 
-function processApiErrors(errorData: any): Record<string, string> {
-    const errors: Record<string, string> = {}
-    for (const err of errorData) {
-        if (err.code) {
-            errors[err.code] = err.message
-        } else {
-            errors._general = err.message
-        }
-    }
-    return errors
-}
-
-function defaultOnInvalid(errors: Record<string, string>, fromServer = false) {
+function defaultOnInvalid(errors: ApiErrors, fromServer = false) {
     const keys = Object.keys(errors)
     if (keys.length === 1 && keys[0]) {
         const key = keys[0]
         useToast().error({ message: errors[key] })
     } else if (fromServer) {
-        for (const key in errors) {
-            useToast().error({ message: errors[key] })
+        if (keys.length > 0) {
+            for (const key in errors) {
+                useToast().error({ message: errors[key] })
+            }
+        } else {
+            useToast().error({ message: 'Произошла непредвиденная ошибка, попробуйте позже' })
         }
     } else {
         useToast().error({ message: 'Все поля обязательны для заполнения' })
@@ -65,16 +59,9 @@ export function useForm<T extends Record<string, any>>(
 ): UseFormReturn<T> {
     const { initialValues, onSubmit, validate, onInvalid: userOnInvalid } = options
     const onInvalid = userOnInvalid || defaultOnInvalid
-
-    // Реактивные значения формы
     const values = reactive<T>({ ...initialValues }) as T
-
-    // Ошибки валидации
-    const errors = ref<Record<string, string>>({})
-
-    // Состояние загрузки
+    const errors = ref<ApiErrors>({})
     const isLoading = ref(false)
-
     const isSuccess = ref(false)
 
     /**
@@ -82,7 +69,6 @@ export function useForm<T extends Record<string, any>>(
      */
     const setFieldValue = (field: keyof T, value: any) => {
         values[field] = value
-        // Очищаем ошибку для этого поля при изменении
         if (errors.value[field as string]) {
             delete errors.value[field as string]
         }
@@ -119,11 +105,8 @@ export function useForm<T extends Record<string, any>>(
             e.preventDefault()
         }
         isSuccess.value = false
-
-        // Очищаем предыдущие ошибки
         clearErrors()
 
-        // Валидация
         if (validate) {
             const validationErrors = validate(values)
             if (validationErrors) {
@@ -133,7 +116,6 @@ export function useForm<T extends Record<string, any>>(
             }
         }
 
-        // Отправка
         isLoading.value = true
         try {
             await onSubmit(values)
@@ -142,13 +124,7 @@ export function useForm<T extends Record<string, any>>(
             Object.assign(values, initialValues)
             reset()
         } catch (error: any) {
-            if (error.data?.errors) {
-                errors.value = processApiErrors(error.data.errors)
-            } else if (error.cause) {
-                errors.value = typeof error.cause === 'object' ? processApiErrors(error.cause) : { _general: String(error.cause) }
-            } else {
-                errors.value = { _general: error.message || 'Произошла ошибка' }
-            }
+            errors.value = processApiErrors(error)
             onInvalid(errors.value, true)
         } finally {
             isLoading.value = false

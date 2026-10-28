@@ -58,6 +58,9 @@ class ApiResult extends \Bitrix\Main\Result
             [
                 'title' => $APPLICATION->GetPageProperty('title') ?: '',
                 'description' => $APPLICATION->GetPageProperty('description') ?: '',
+                'keywords' => $APPLICATION->GetPageProperty('keywords') ?: '',
+                'h1' => $APPLICATION->GetTitle() ?: '',
+                'text' => $APPLICATION->GetPageProperty('text') ?: '',
             ],
             $data
         );

@@ -1,6 +1,6 @@
 export function useSectionList<TItem = any>() {
-    const store = useSectionStore()
-    const { sectionList } = storeToRefs(store)
+    const section = useSectionPage()
+    const { sectionList } = toRefs(section)
     const hasSections = computed(() => !!sectionList.value?.length)
     return {
         /** Список секций */

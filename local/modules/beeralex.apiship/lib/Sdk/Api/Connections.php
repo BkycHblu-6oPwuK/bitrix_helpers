@@ -22,7 +22,7 @@ class Connections extends AbstractExtendedApi
     {
         $query = ['offset' => $offset, 'limit' => $limit];
         if ($filter) {
-            $query['filter'] = json_encode($filter, JSON_UNESCAPED_UNICODE);
+            $query['filter'] = json_encode($filter, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         }
         return $this->requestGet('connections', $query);
     }

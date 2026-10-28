@@ -59,6 +59,67 @@ class beeralex_apiship extends CModule
         foreach ([OrderTable::class, WebhookLogTable::class, StatusLogTable::class] as $table) {
             $table::createTable();
         }
+
+        $db = \Bitrix\Main\Application::getInstance()->getConnection();
+
+        $indexes = [
+            'beeralex_apiship_order' => [
+                'ux_apiship_order_bitrix' => [
+                    'columns' => 'BITRIX_ORDER_ID',
+                    'unique' => true,
+                ],
+                'ix_apiship_order_apiship' => [
+                    'columns' => 'APISHIP_ORDER_ID',
+                    'unique' => false,
+                ],
+            ],
+            'beeralex_apiship_webhook_log' => [
+                'ux_apiship_wh_event' => [
+                    'columns' => 'EVENT_ID',
+                    'unique' => true,
+                ],
+                'ix_apiship_wh_order' => [
+                    'columns' => 'APISHIP_ORDER_ID',
+                    'unique' => false,
+                ],
+            ],
+            'beeralex_apiship_status_log' => [
+                'ix_apiship_slog_order' => [
+                    'columns' => 'APISHIP_ORDER_ID',
+                    'unique' => false,
+                ],
+            ],
+        ];
+
+        $connection = $db->getSqlHelper();
+
+        foreach ($indexes as $table => $tableIndexes) {
+            foreach ($tableIndexes as $indexName => $index) {
+                $sql = sprintf(
+                    'SELECT COUNT(*) AS CNT
+             FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = \'%s\'
+               AND INDEX_NAME = \'%s\'',
+                    $table,
+                    $indexName
+                );
+
+                $result = $db->query($sql)->fetch();
+
+                if ((int)$result['CNT'] === 0) {
+                    $unique = $index['unique'] ? 'UNIQUE ' : '';
+
+                    $db->queryExecute(sprintf(
+                        'CREATE %sINDEX %s ON %s (%s)',
+                        $unique,
+                        $connection->quote($indexName),
+                        $connection->quote($table),
+                        $connection->quote($index['columns'])
+                    ));
+                }
+            }
+        }
     }
 
     public function UnInstallDB()

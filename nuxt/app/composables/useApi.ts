@@ -5,10 +5,17 @@ import type { MaybeRefOrGetter, WatchSource } from 'vue'
 
 type AppendFn = (key: string, value: string | Blob) => void
 const AUTO_CONTENT_TYPE = 'form' as const
+const CSRF_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 function getBaseUrl() {
     const config = useRuntimeConfig()
     return config.public.apiBaseClient
+}
+
+function getCsrfHeaders(method: string): Record<string, string> {
+    if (!CSRF_METHODS.has(method.toUpperCase())) return {}
+    const { csrf, headerName } = useCsrf()
+    return { [headerName]: csrf }
 }
 
 /**
@@ -35,7 +42,6 @@ function getApiFetch() {
  *   - body: тело запроса (для POST)
  *   - method: HTTP метод (get или post)
  *   - lazy: использовать useLazyAsyncData (true) или useAsyncData (false, по умолчанию)
- *   - watch: массив источников для отслеживания изменений и повторного запроса
  * @returns Результат useAsyncData с данными и ошибками
  */
 export function useApi<T = unknown>(
@@ -50,44 +56,58 @@ export function useApi<T = unknown>(
         watch?: WatchSource[]
     } = {}
 ) {
-    const baseURL = getBaseUrl()
     const requestKey = options.key ?? `${getCleanPath(toValue(path))}-${JSON.stringify(options.query || {})}`
     const asyncDataFn = options.lazy ? useLazyAsyncData : useAsyncData
 
-    return asyncDataFn<ApiResponse<T>>(requestKey, async () => {
-        try {
-            const { body, headers } = prepareRequest(
-                options.body,
-                options.contentType
-            )
+    return asyncDataFn<ApiResponse<T>>(requestKey, () => fetchApi<T>(toValue(path), options), { watch: options.watch })
+}
 
-            const fetch = getApiFetch()
-            const cleanPath = getCleanPath(toValue(path))
-            const res = await fetch<ApiResponse<T>>(cleanPath, {
-                baseURL,
-                method: options.method || 'get',
-                query: options.query,
-                body,
-                credentials: 'include',
-                headers
-            })
+/**
+ * Один запрос к API для загрузки страницы (внутри useAsyncData и подобных).
+ * В отличие от useApiFetch, ошибка — createError с кодом ответа: 404 API даёт 404-страницу Nuxt
+ * без scrf токена
+ */
+export async function fetchApi<T = unknown>(
+    path: string,
+    options: {
+        query?: Record<string, any>
+        body?: any
+        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
+        contentType?: ContentType
+    } = {}
+) {
+    try {
+        const method = options.method || 'get'
+        const { body, headers } = prepareRequest(
+            options.body,
+            options.contentType
+        )
 
-            if (res.status === 'error') {
-                throw createError({
-                    statusCode: 500,
-                    statusMessage: res.errors?.[0]?.message || 'API error',
-                    data: res.errors
-                })
-            }
+        const fetch = getApiFetch()
+        const res = await fetch<ApiResponse<T>>(getCleanPath(path), {
+            baseURL: getBaseUrl(),
+            method: method,
+            query: options.query,
+            body,
+            credentials: 'include',
+            headers
+        })
 
-            return res
-        } catch (error: any) {
+        if (res.status === 'error') {
             throw createError({
-                statusCode: error?.statusCode || 500,
-                statusMessage: error?.message || 'Network error'
+                statusCode: 500,
+                statusMessage: res.errors?.[0]?.message || 'API error',
+                data: res.errors
             })
         }
-    }, { watch: options.watch })
+
+        return res
+    } catch (error: any) {
+        throw createError({
+            statusCode: error?.statusCode || 500,
+            statusMessage: error?.message || 'Network error'
+        })
+    }
 }
 
 /**
@@ -112,15 +132,17 @@ export async function useApiFetch<T = unknown>(
     const cleanPath = getCleanPath(path)
 
     try {
+        const method = options.method || 'get'
         const { body, headers } = prepareRequest(
             options.body,
             options.contentType
         )
+        Object.assign(headers, getCsrfHeaders(method))
 
         const fetch = getApiFetch()
         const res = await fetch<ApiResponse<T>>(cleanPath, {
             baseURL,
-            method: options.method || 'get',
+            method: method,
             query: options.query,
             body,
             credentials: 'include',
@@ -128,19 +150,19 @@ export async function useApiFetch<T = unknown>(
         })
 
         if (res.status === 'error') {
-            const err = new Error(res.errors?.[0]?.message || 'API error');
-            (err as any).data = { errors: res.errors }
-            throw err
+            throw createErrorFromApi(res)
         }
 
         return res
     } catch (error: any) {
-        if (error.data?.errors) {
-            throw error
+        if (isCsrfError(error)) {
+            if(import.meta.client) {
+                alert('CSRF Token Mismatch. Страница будет перезагружена.')
+                location.reload()
+                throw error
+            }
         }
-        const err = new Error(error?.message || 'Network error');
-        (err as any).data = { errors: error.data?.errors || {} }
-        throw err
+        throw createErrorFromApi(error)
     }
 }
 

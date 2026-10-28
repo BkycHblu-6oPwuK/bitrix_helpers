@@ -32,7 +32,8 @@ class CatalogController extends Controller
     public function indexAction()
     {
         return $this->process(function () {
-            service(FileService::class)->includeFile('v1.catalog.index');
+            $preselectedOffer = $this->request->getQuery('offer');
+            service(FileService::class)->includeFile('v1.catalog.index', ['preselectedOffer' => $preselectedOffer]);
             $result = service(ApiResult::class);
             $result->setSeo();
             return $result;

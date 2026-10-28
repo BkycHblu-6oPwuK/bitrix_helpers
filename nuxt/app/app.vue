@@ -13,6 +13,7 @@ onMounted(() => {
 });
 </script>
 <template>
+    <NuxtLoadingIndicator :height="3" :duration="2000" :throttle="50" />
     <NuxtLayout>
         <NuxtPage />
     </NuxtLayout>

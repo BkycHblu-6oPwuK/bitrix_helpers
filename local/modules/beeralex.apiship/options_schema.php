@@ -36,6 +36,17 @@ return Schema::make()
                 'logs_enable',
                 'Включить логирование'
             );
+
+            $tab->checkbox(
+                'cache_enabled',
+                'Кешировать запросы к ApiShip (расчёт тарифов, подключения, ПВЗ)'
+            );
+
+            $tab->input(
+                'cache_ttl',
+                'Время жизни кэша (секунды)',
+                default: '3600'
+            );
         }
     )->tab(
         'edit2',
@@ -61,8 +72,8 @@ return Schema::make()
             $rawOrderMap    = \Bitrix\Main\Config\Option::getRealValue('beeralex.apiship', 'order_status_map');
             $rawShipmentMap = \Bitrix\Main\Config\Option::getRealValue('beeralex.apiship', 'shipment_status_map');
 
-            $savedOrderMap    = $rawOrderMap ? json_decode($rawOrderMap, true) : [];
-            $savedShipmentMap = $rawShipmentMap ? json_decode($rawShipmentMap, true) : [];
+            $savedOrderMap    = is_array($tmp = json_decode((string)$rawOrderMap, true)) ? $tmp : [];
+            $savedShipmentMap = is_array($tmp = json_decode((string)$rawShipmentMap, true)) ? $tmp : [];
 
             // Добавляем ключи из сохранённых карт, которых нет в дефолтном наборе
             foreach (array_keys($savedOrderMap + $savedShipmentMap) as $extraKey) {
@@ -159,7 +170,23 @@ return Schema::make()
             $tab->input('sender_lng', 'Отправитель: долгота');
             $tab->input('sender_post_index', 'Отправитель: почтовый индекс');
             $tab->input('sender_area', 'Отправитель: район');
-            $tab->input('sender_city_guid', 'Отправитель: ID города в базе ФИАС');
+            $tab->input('sender_city_guid', 'Отправитель: GUID города в базе ФИАС');
             $tab->input('sender_comment', 'Отправитель: комментарий');
+        }
+    )->tab(
+        'edit4',
+        'Свойства и габариты',
+        'Коды свойств заказа и размеры по умолчанию',
+        function (SchemaTab $tab) {
+            $tab->input('default_weight', 'Вес по умолчанию (г, если у товара не задан)', default: '1000');
+            $tab->input('default_width',  'Ширина по умолчанию (см)', default: '20');
+            $tab->input('default_height', 'Высота по умолчанию (см)', default: '20');
+            $tab->input('default_length', 'Длина по умолчанию (см)', default: '20');
+            $tab->input('prop_phone',           'Код свойства заказа: телефон получателя', default: 'PHONE');
+            $tab->input('prop_fio',             'Код свойства заказа: ФИО получателя', default: 'FIO');
+            $tab->input('prop_city',            'Код свойства заказа: город', default: 'CITY');
+            $tab->input('prop_city_guid',       'Код свойства заказа: GUID города (ФИАС)', default: 'CITY_GUID');
+            $tab->input('prop_address',         'Код свойства заказа: адрес доставки', default: 'ADDRESS');
+            $tab->input('prop_pickup_point_id', 'Код свойства заказа: ID ПВЗ (pointOutId)', default: 'PICKUP_POINT_ID');
         }
     );

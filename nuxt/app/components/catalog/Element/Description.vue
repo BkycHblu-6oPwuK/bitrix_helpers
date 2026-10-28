@@ -1,13 +1,12 @@
-<!--
-  Компонент описания товара
--->
+<!-- Описание товара -->
 <script setup lang="ts">
-const catalogDetail = useCatalogDetailStore()
+const { item } = useCatalogProduct()
 </script>
 
 <template>
-    <div v-if="catalogDetail.item?.detailText" class="product-description prose dark:prose-invert max-w-none">
+    <div v-if="item.detailText" class="product-description prose dark:prose-invert max-w-none">
         <h2 class="text-xl font-semibold mb-3">Описание</h2>
-        <div v-html="catalogDetail.item.detailText"></div>
+        <!-- HTML из Bitrix: убедитесь, что он санитизируется на бэкенде (или через DOMPurify) -->
+        <div v-html="item.detailText"></div>
     </div>
 </template>

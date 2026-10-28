@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Support;
 
+use Beeralex\Apiship\Delivery\ApiShipHandler;
+use Beeralex\Apiship\Delivery\ApiShipProfile;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\Shipment;
@@ -18,8 +20,8 @@ final class ShipmentLocator
 {
     public static function findApiShipShipment(Order $order): ?Shipment
     {
-        $handlerClass = 'Beeralex\\Apiship\\Delivery\\ApiShipHandler';
-        $profileClass = 'Beeralex\\Apiship\\Delivery\\ApiShipProfile';
+        $handlerClass = ApiShipHandler::class;
+        $profileClass = ApiShipProfile::class;
 
         foreach ($order->getShipmentCollection() as $shipment) {
             if ($shipment->isSystem()) {

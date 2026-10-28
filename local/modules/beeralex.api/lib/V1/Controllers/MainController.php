@@ -7,13 +7,12 @@ namespace Beeralex\Api\V1\Controllers;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
 use Beeralex\Core\Service\FileService;
-use Beeralex\Core\Traits\Cacheable;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Error;
 
 class MainController extends Controller
 {
-    use ApiProcessResultTrait, Cacheable;
+    use ApiProcessResultTrait;
 
     public function configureActions()
     {
@@ -23,7 +22,7 @@ class MainController extends Controller
             ],
             'getMenu' => [
                 'prefilters' => [],
-            ],
+            ]
         ];
     }
 
@@ -42,8 +41,21 @@ class MainController extends Controller
     {
         return $this->process(function () use ($menuType) {
             $result = service(ApiResult::class);
+
             $iblockId = 0;
             switch ($menuType) {
+                case 'top':
+                    service(FileService::class)->includeFile('v1.site-menu', [
+                        'menuType' => $menuType,
+                        'maxLevel' => 1,
+                    ]);
+                    break;
+                case 'bottom':
+                    service(FileService::class)->includeFile('v1.site-menu', [
+                        'menuType' => $menuType,
+                        'maxLevel' => 2,
+                    ]);
+                    break;
                 case 'catalog':
                     $iblockId = (int)service(\Beeralex\Core\Service\IblockService::class)
                         ->getIblockIdByCode('catalog');
@@ -53,10 +65,11 @@ class MainController extends Controller
             }
 
             if ($iblockId) {
-                service(FileService::class)->includeFile('v1.menu', [
+                service(FileService::class)->includeFile('v1.iblock-menu', [
                     'iblockId' => $iblockId,
                 ]);
             }
+            
             return $result;
         });
     }

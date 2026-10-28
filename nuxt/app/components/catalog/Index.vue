@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import type { CatalogDTO } from '~/types/iblock/catalog.ts'
 
-const props = withDefaults(defineProps<{
-    catalog: CatalogDTO
-    apiUrl: string
-    syncUrl?: boolean
-}>(), { syncUrl: false })
-
-useSectionInit(props.catalog, { apiUrl: props.apiUrl, syncUrl: props.syncUrl })
-
 const { isLoading } = useSection()
 const { sectionList, hasSections } = useSectionList<CatalogDTO['sectionList']>()
 </script>

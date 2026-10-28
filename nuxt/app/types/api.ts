@@ -6,10 +6,16 @@
 /**
  * Структура ошибки от API
  */
-export type Error = {
-    code: Number,            // Код ошибки
-    customData: null | Object, // Дополнительные данные ошибки
+export type ErrorItem = {
+    code: number,            // Код ошибки
+    customData: null | Record<string, unknown>, // Дополнительные данные ошибки
     message: string          // Текстовое описание ошибки
+}
+
+export type AppError = Error & {
+    errors?: ErrorItem[]
+    statusCode?: number
+    statusMessage?: string
 }
 
 /**
@@ -28,7 +34,15 @@ export type ApiSuccess<T> = {
 export type ApiError = {
     status: 'error';   // Статус ошибки
     data: null;        // Данных нет
-    errors: Error[]    // Массив ошибок
+    errors: ErrorItem[]    // Массив ошибок
+}
+
+/**
+ * Структура преобразованных ошибок, возвращаемых API и различными исключениями
+ */
+export type ApiErrors = {
+    _general?: string
+    [key: string]: string | undefined
 }
 
 /**

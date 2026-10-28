@@ -24,24 +24,14 @@ final class StatusMapper
         private readonly Options $options,
     ) {}
 
-    /**
-     * Карта берётся из настроек модуля целиком (если задана).
-     * После первого сохранения формы настроек карта в опциях содержит все ключи (пустое
-     * значение = «не менять»), поэтому переопределяет дефолт полностью, а не по ключу.
-     *
-     * @return array<string,string>
-     */
     protected function getOrderMap(): array
     {
-        return $this->options->orderStatusMap !== [] ? $this->options->orderStatusMap : [];
+        return $this->options->orderStatusMap;
     }
 
-    /**
-     * @return array<string,string>
-     */
     protected function getShipmentMap(): array
     {
-        return $this->options->shipmentStatusMap !== [] ? $this->options->shipmentStatusMap : [];
+        return $this->options->shipmentStatusMap;
     }
 
     /**
@@ -51,8 +41,8 @@ final class StatusMapper
     public function map(string $apiShipStatusKey): StatusMappingDto
     {
         return new StatusMappingDto(
-            self::normalize($this->getOrderMap()[$apiShipStatusKey] ?? null),
-            self::normalize($this->getShipmentMap()[$apiShipStatusKey] ?? null),
+            static::normalize($this->getOrderMap()[$apiShipStatusKey] ?? null),
+            static::normalize($this->getShipmentMap()[$apiShipStatusKey] ?? null),
         );
     }
 

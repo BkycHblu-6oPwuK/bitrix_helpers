@@ -45,25 +45,18 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
 
     public function executeComponent()
     {
-        $filter = $this->getFilter();
-        $isRootRequest = empty($filter) && !$this->arParams['SECTION_ID'];
-
-        $cacheId = $isRootRequest
-            ? 'catalog_section_list_all'
-            : [$this->arParams['SECTION_ID'], $filter];
-        $dir = '/' . SITE_ID . '/beeralex/catalog.section.list';
-        if ($this->startResultCache(false, $cacheId, $dir)) {
+        if ($this->startResultCache()) {
             $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
-            $taggedCache->startTagCache($dir);
+            $taggedCache->startTagCache($this->getCachePath());
             try {
                 $taggedCache->registerTag('iblock_id_' . $this->arParams['IBLOCK_ID']);
                 $this->arResult['SECTIONS'] = $this->getSections();
                 $this->includeComponentTemplate();
+                $taggedCache->endTagCache();
             } catch (\Throwable $e) {
                 $this->abortResultCache();
+                $taggedCache->abortTagCache();
                 throw $e;
-            } finally {
-                $taggedCache->endTagCache();
             }
         }
 
@@ -161,14 +154,12 @@ class BeeralexCatalogSectionList extends \CBitrixComponent
     {
         $sectionMap = [];
         $query = $this->iblockSectionRepository->query()
-            ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN', 'DEPTH_LEVEL'])
-            ->setCacheTtl(86400);
+            ->setSelect(['ID', 'LEFT_MARGIN', 'RIGHT_MARGIN', 'DEPTH_LEVEL']);
 
         if ($sectionId > 0) {
             $base = $this->iblockSectionRepository->query()
                 ->setSelect(['LEFT_MARGIN', 'RIGHT_MARGIN'])
                 ->where('ID', $sectionId)
-                ->setCacheTtl(86400)
                 ->exec()
                 ->fetch();
 

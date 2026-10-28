@@ -14,6 +14,12 @@ export interface SeoData {
     /** Каноническая ссылка (<link rel="canonical">) */
     canonical?: string
 
+    /** <h1> страницы */
+    h1?: string
+
+    /** Seo html текст страницы */
+    text?: string
+
     /** Open Graph метаданные (для соцсетей) */
     openGraph?: {
         /** og:title */

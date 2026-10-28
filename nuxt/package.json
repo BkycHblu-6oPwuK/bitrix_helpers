@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.1.16",
     "izitoast": "^1.4.0",
     "nuxt": "^4.2.0",
+    "nuxt-csurf": "^1.6.6",
     "nuxt-toast": "^1.4.0",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.1.16",

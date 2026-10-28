@@ -1,5 +1,6 @@
 <?
 
+use Beeralex\Api\ApiResult;
 use Beeralex\Catalog\Enum\DIServiceKey;
 use Beeralex\Catalog\Service\CatalogService;
 
@@ -17,13 +18,7 @@ use Beeralex\Catalog\Service\CatalogService;
 /** @var string $componentPath */
 /** @var CBitrixComponent $component */
 
-if (isset($arParams['USE_COMMON_SETTINGS_BASKET_POPUP']) && $arParams['USE_COMMON_SETTINGS_BASKET_POPUP'] == 'Y') {
-    $basketAction = (isset($arParams['COMMON_ADD_TO_BASKET_ACTION']) ? array($arParams['COMMON_ADD_TO_BASKET_ACTION']) : array());
-} else {
-    $basketAction = (isset($arParams['DETAIL_ADD_TO_BASKET_ACTION']) ? $arParams['DETAIL_ADD_TO_BASKET_ACTION'] : array());
-}
-
-$isSidebar = ($arParams['SIDEBAR_DETAIL_SHOW'] == 'Y' && !empty($arParams['SIDEBAR_PATH']));
+require_once __DIR__ . '/base-section-filter.php';
 
 $componentElementParams = array(
     'IBLOCK_TYPE' => $arParams['IBLOCK_TYPE'],
@@ -136,7 +131,6 @@ $componentElementParams = array(
     'ADD_ELEMENT_CHAIN' => (isset($arParams['ADD_ELEMENT_CHAIN']) ? $arParams['ADD_ELEMENT_CHAIN'] : ''),
     'DISPLAY_PREVIEW_TEXT_MODE' => (isset($arParams['DETAIL_DISPLAY_PREVIEW_TEXT_MODE']) ? $arParams['DETAIL_DISPLAY_PREVIEW_TEXT_MODE'] : ''),
     'DETAIL_PICTURE_MODE' => (isset($arParams['DETAIL_DETAIL_PICTURE_MODE']) ? $arParams['DETAIL_DETAIL_PICTURE_MODE'] : array()),
-    'ADD_TO_BASKET_ACTION' => $basketAction,
     'ADD_TO_BASKET_ACTION_PRIMARY' => (isset($arParams['DETAIL_ADD_TO_BASKET_ACTION_PRIMARY']) ? $arParams['DETAIL_ADD_TO_BASKET_ACTION_PRIMARY'] : null),
     'SHOW_CLOSE_POPUP' => isset($arParams['COMMON_SHOW_CLOSE_POPUP']) ? $arParams['COMMON_SHOW_CLOSE_POPUP'] : '',
     'DISPLAY_COMPARE' => (isset($arParams['USE_COMPARE']) ? $arParams['USE_COMPARE'] : ''),
@@ -172,6 +166,7 @@ $componentElementParams = array(
     'GIFTS_MAIN_PRODUCT_DETAIL_PAGE_ELEMENT_COUNT' => $arParams['GIFTS_MAIN_PRODUCT_DETAIL_PAGE_ELEMENT_COUNT'],
     'GIFTS_MAIN_PRODUCT_DETAIL_BLOCK_TITLE' => $arParams['GIFTS_MAIN_PRODUCT_DETAIL_BLOCK_TITLE'],
     'GIFTS_MAIN_PRODUCT_DETAIL_HIDE_BLOCK_TITLE' => $arParams['GIFTS_MAIN_PRODUCT_DETAIL_HIDE_BLOCK_TITLE'],
+    'OFFER_ID' => $arParams['PRESELECTED_OFFER'] ?? null,
 );
 
 if (isset($arParams['USER_CONSENT'])) {
@@ -202,11 +197,11 @@ $elementId = $APPLICATION->IncludeComponent(
  */
 $productsRepository = service(DIServiceKey::PRODUCT_REPOSITORY->value);
 $catalogService = service(CatalogService::class);
-$sameProuctsIds = $productsRepository->getSameProductsIds((int)$elementId, $componentElementParams['VARIABLES']['SECTION_ID'] ?? null, 15, 86400);
+$sameProuctsIds = $productsRepository->getSameProductsIds((int)$elementId, $sectionId ?? null, 15, 86400);
 
-$APPLICATION->IncludeComponent(
+$productsSliderResult = $APPLICATION->IncludeComponent(
     'beeralex:product.slider',
-    'same_products',
+    'content',
     [
         'IDS' => $sameProuctsIds,
         'CACHE_TYPE' => $arParams['CACHE_TYPE'],
@@ -214,3 +209,6 @@ $APPLICATION->IncludeComponent(
         'TITLE' => 'Другие продукты в этом разделе'
     ],
 );
+if (!empty($productsSliderResult['DTO'])) {
+    service(ApiResult::class)->addPageData($productsSliderResult['DTO'], 'sameProducts');
+}

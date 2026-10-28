@@ -1,5 +1,8 @@
+import type { FormQuestionDTO } from '~/types/web-form'
+import type { ApiErrors } from '~/types/api'
+
 export function useQuestionForm() {
-    return useForm({
+    return useForm<FormQuestionDTO>({
         initialValues: {
             name: '',
             phone: '',
@@ -7,7 +10,7 @@ export function useQuestionForm() {
             consent: true
         },
         validate: (values) => {
-            const errors: any = {}
+            const errors: ApiErrors = {}
             if (!values.name) errors.name = 'Введите имя'
             if (!values.phone) errors.phone = 'Введите телефон'
             if (!values.text) errors.text = 'Введите сообщение'

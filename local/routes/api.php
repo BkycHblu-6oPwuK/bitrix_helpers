@@ -12,6 +12,7 @@ use Beeralex\Api\V1\Controllers\AuthController;
 use Beeralex\Api\V1\Controllers\FavoriteController;
 use Beeralex\Api\V1\Controllers\BasketController;
 use Beeralex\Api\V1\Controllers\CheckoutController;
+use Beeralex\Api\V1\Controllers\ContentController;
 use Beeralex\Api\V1\Controllers\SearchController;
 use Bitrix\Main\Routing\RoutingConfigurator;
 
@@ -29,7 +30,7 @@ return function (RoutingConfigurator $routes): void {
                 });
 
                 $routes->get('get-main-page', [MainController::class, 'getMainPage']);
-                $routes->get('get-menu', [MainController::class, 'getMenu']);
+                $routes->get('get-menu/{menuType}', [MainController::class, 'getMenu']);
 
                 $routes->get('catalog/search/{query}', [CatalogController::class, 'search']);
                 $routes->get(
@@ -149,8 +150,10 @@ return function (RoutingConfigurator $routes): void {
                     );
                 });
 
+                $routes->get('sitemap', [SitemapController::class, 'index']);
                 $routes->get('search/init', [SearchController::class, 'init']);
                 $routes->get('search/suggest/{query}', [SearchController::class, 'suggest']);
+                $routes->get('content/{code}', [ContentController::class, 'index']);
             });
         });
     });

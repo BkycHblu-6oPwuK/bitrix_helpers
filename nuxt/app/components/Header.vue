@@ -61,7 +61,7 @@ const openAuthModal = () => {
 
                 <div class="flex items-center gap-6">
                     <div>
-                        <Menu menu-type="top_menu"></Menu>
+                        <MenuTopMenu />
                     </div>
                     <span class="font-medium text-gray-800 dark:text-gray-200">
                         8-800-77-07-999

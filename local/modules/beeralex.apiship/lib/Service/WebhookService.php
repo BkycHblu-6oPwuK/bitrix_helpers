@@ -12,24 +12,14 @@ use Beeralex\Apiship\Repository\StatusLogRepository;
 use Beeralex\Apiship\Repository\WebhookLogRepository;
 use Beeralex\Apiship\StatusMapper;
 use Bitrix\Main\Application;
-
-/**
- * Подписки на вебхуки и обработка входящих событий ApiShip.
- *
- * Обрабатываются 3 типа событий (все несут orderInfo; plannedDelivery — внутри orderInfo).
- * Данные КАЖДОГО события сохраняются в beeralex_apiship_order общим шагом updateFromWebhook():
- *  - ORDER_STATUS                 — снимок orderInfo + статуса; плюс строка в истории статусов
- *                                   и применение статуса к заказу/отгрузке Bitrix;
- *  - PLANNED_DELIVERY_DATE_UPDATE — снимок плановой даты доставки + флаг PLANNED_DELIVERY_CHANGED;
- *  - ORDER_NUMBER_UPDATE          — снимок номера заказа (providerNumber/clientNumber).
- *
- * handle() реализует идемпотентность (ADR-007): дедупликация по eventId через
- * beeralex_apiship_webhook_log (Repository\WebhookLogRepository).
- */
 final class WebhookService implements WebhookServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory
+        private readonly ClientFactory $clientFactory,
+        private readonly WebhookLogRepository $webhookLogRepository,
+        private readonly OrderRepository $orderRepository,
+        private readonly StatusLogRepository $statusLogRepository,
+        private readonly StatusMapper $statusMapper,
     ) {}
 
     public function subscribe(string $url, string $type): array
@@ -53,9 +43,10 @@ final class WebhookService implements WebhookServiceContract
     public function handle(WebhookEventDto $event, string $rawBody): bool
     {
         $connection = Application::getInstance()->getConnection();
+        $connection->startTransaction();
 
         try {
-            $isNew = \service(WebhookLogRepository::class)->registerEvent($event, $rawBody);
+            $isNew = $this->webhookLogRepository->registerEvent($event, $rawBody);
             if (!$isNew) {
                 $connection->commitTransaction();
                 return false;
@@ -63,13 +54,14 @@ final class WebhookService implements WebhookServiceContract
 
             $apiShipOrderId = $event->orderId;
             if ($apiShipOrderId <= 0) {
+                $this->webhookLogRepository->markProcessed($event, $rawBody);
                 $connection->commitTransaction();
                 return true;
             }
 
-            $bitrixOrderId = \service(OrderRepository::class)->getBitrixOrderId($apiShipOrderId);
+            $bitrixOrderId = $this->orderRepository->getBitrixOrderId($apiShipOrderId);
 
-            \service(OrderRepository::class)->updateFromWebhook(
+            $this->orderRepository->updateFromWebhook(
                 $apiShipOrderId,
                 $this->buildOrderFields($event)
             );
@@ -78,10 +70,12 @@ final class WebhookService implements WebhookServiceContract
                 $this->handleOrderStatus($event, $bitrixOrderId);
             }
 
+            $this->webhookLogRepository->markProcessed($event, $rawBody);
             $connection->commitTransaction();
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $connection->rollbackTransaction();
+            $this->webhookLogRepository->markFailed($event, $rawBody, $e->getMessage());
             throw $e;
         }
     }
@@ -117,11 +111,11 @@ final class WebhookService implements WebhookServiceContract
      */
     private function handleOrderStatus(WebhookEventDto $event, ?int $bitrixOrderId): void
     {
-        \service(StatusLogRepository::class)->addFromEvent($event, $bitrixOrderId);
+        $this->statusLogRepository->addFromEvent($event, $bitrixOrderId);
 
         $statusKey = $event->statusKey;
         if ($bitrixOrderId !== null && $statusKey !== null) {
-            \service(StatusMapper::class)->applyToBitrixOrder($bitrixOrderId, $statusKey);
+            $this->statusMapper->applyToBitrixOrder($bitrixOrderId, $statusKey);
         }
     }
 }

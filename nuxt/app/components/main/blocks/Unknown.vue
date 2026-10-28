@@ -4,7 +4,6 @@
   Помогает отлаживать проблемы с новыми типами блоков
 -->
 <script setup lang="ts">
-import Dump from '~/components/dev/Dump.vue';
 
 // Пропсы: любые данные блока
 const props = defineProps<{
@@ -13,5 +12,5 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Dump :data="data" :label="'Неизвестный блок контента'"></Dump>
+    <DevDump :data="props.data" :label="'Неизвестный блок контента'"></DevDump>
 </template>

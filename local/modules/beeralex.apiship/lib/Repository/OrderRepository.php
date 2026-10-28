@@ -63,6 +63,22 @@ final class OrderRepository extends Repository
         return $row ? (int)$row['APISHIP_ORDER_ID'] : null;
     }
 
+    public function markCancelled(int $apiShipOrderId): void
+    {
+        $row = $this->one(['=APISHIP_ORDER_ID' => $apiShipOrderId], ['ID']);
+        if ($row !== null) {
+            $this->update((int)$row['ID'], ['STATUS' => 'cancelled', 'UPDATED_AT' => new \Bitrix\Main\Type\DateTime()]);
+        }
+    }
+
+    public function remove(int $apiShipOrderId): void
+    {
+        $row = $this->one(['=APISHIP_ORDER_ID' => $apiShipOrderId], ['ID']);
+        if ($row !== null) {
+            OrderTable::delete((int)$row['ID']);
+        }
+    }
+
     /**
      * Обратный поиск: по ID заказа ApiShip найти заказ Bitrix (нужен для обработки вебхуков).
      */
@@ -94,7 +110,7 @@ final class OrderRepository extends Repository
      */
     public function updateFromWebhook(int $apiShipOrderId, array $fields): void
     {
-        $row = $this->one(['=APISHIP_ORDER_ID' => $apiShipOrderId], ['ID', 'PLANNED_DELIVERY_DATE']);
+        $row = $this->one(['=APISHIP_ORDER_ID' => $apiShipOrderId], ['ID', 'PLANNED_DELIVERY_DATE', 'STATUS_DATE']);
         if ($row === null) {
             return;
         }
@@ -104,7 +120,6 @@ final class OrderRepository extends Repository
         $stringColumns = [
             'PROVIDER_NUMBER', 'CLIENT_NUMBER', 'BARCODE', 'ADDITIONAL_PROVIDER_NUMBER',
             'RETURN_PROVIDER_NUMBER', 'CHECK_URL', 'TRACKING_URL', 'PROVIDER_KEY',
-            'STATUS_KEY', 'STATUS_NAME', 'PLANNED_DELIVERY_TIME_START', 'PLANNED_DELIVERY_TIME_END',
         ];
         foreach ($stringColumns as $column) {
             if (isset($fields[$column]) && $fields[$column] !== '') {
@@ -112,10 +127,32 @@ final class OrderRepository extends Repository
             }
         }
 
+        // Обновляем статус только если событие не старше сохранённого
         if (!empty($fields['STATUS_DATE'])) {
-            $statusDate = DateHelper::toDateTime((string)$fields['STATUS_DATE']);
-            if ($statusDate !== null) {
-                $update['STATUS_DATE'] = $statusDate;
+            $newStatusDate = DateHelper::toDateTime((string)$fields['STATUS_DATE']);
+            if ($newStatusDate !== null) {
+                $existingDate = $row['STATUS_DATE'];
+                $isNewer = !($existingDate instanceof \Bitrix\Main\Type\DateTime)
+                    || $newStatusDate->getTimestamp() >= $existingDate->getTimestamp();
+
+                if ($isNewer) {
+                    $update['STATUS_DATE'] = $newStatusDate;
+                    foreach (['STATUS_KEY', 'STATUS_NAME'] as $col) {
+                        if (isset($fields[$col]) && $fields[$col] !== '') {
+                            $update[$col] = $fields[$col];
+                        }
+                    }
+                }
+            }
+        } elseif (isset($fields['STATUS_KEY']) && $fields['STATUS_KEY'] !== '') {
+            // Нет даты — обновляем статус безусловно
+            $update['STATUS_KEY']  = $fields['STATUS_KEY'];
+            $update['STATUS_NAME'] = $fields['STATUS_NAME'] ?? '';
+        }
+
+        foreach (['PLANNED_DELIVERY_TIME_START', 'PLANNED_DELIVERY_TIME_END'] as $col) {
+            if (isset($fields[$col]) && $fields[$col] !== '') {
+                $update[$col] = $fields[$col];
             }
         }
 

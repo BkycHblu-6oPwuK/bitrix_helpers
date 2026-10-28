@@ -10,9 +10,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
  */
 
 $component = $this->getComponent();
-$arParams = $component->applyTemplateModifications();
-
-$arResult['ITEMS'] = $component->getCatalogService()->getProductsWithOffers($arResult['ELEMENTS']);
+$arResult['ITEMS'] = $component->getCatalogService()->getProductsWithOffers($arResult['ELEMENTS'], false, false, true, true);
 $arResult['DTO'] = CatalogSectionDTO::make($arResult);
 
 $component->setResultCacheKeys(['DTO']);

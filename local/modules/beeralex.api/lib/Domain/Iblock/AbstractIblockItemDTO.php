@@ -17,22 +17,18 @@ abstract class AbstractIblockItemDTO extends Resource
      */
     public static function getFromDecomposeProperties(array $item): array
     {
+        $skip = ['PRESELECTED_OFFER', 'OFFERS', 'PRICE', 'CATALOG', 'PRODUCT', 'IBLOCK_MODEL_SECTION'];
         $properties = [];
-        
+
         foreach ($item as $key => $value) {
-            if (in_array($key, ['PRESELECTED_OFFER', 'OFFERS', 'PRICE', 'CATALOG', 'PRODUCT', 'IBLOCK_MODEL_SECTION'])) continue; // Пропускаем, если это предвыбранное предложение
-            if (is_array($value)) {
-                if (isset($value['IBLOCK_PROPERTY_ID'])) {
-                    $properties[$key] = PropertyItemDTO::makeFromDecomposeData($value, $key);
-                } else {
-                    foreach ($value as $subValue) {
-                        if (is_array($subValue) && isset($subValue['IBLOCK_PROPERTY_ID'])) {
-                            $properties[$key][] = PropertyItemDTO::makeFromDecomposeData($subValue, $key);
-                        }
-                    }
-                }
+            if (!is_array($value) || in_array($key, $skip, true)) {
+                continue;
+            }
+            if ($dto = PropertyItemDTO::makeFromDecomposeData($value, (string)$key)) {
+                $properties[$key] = $dto;
             }
         }
+
         return $properties;
     }
 

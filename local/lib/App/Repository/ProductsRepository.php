@@ -22,26 +22,11 @@ class ProductsRepository extends CatalogProductsRepository
         parent::__construct($iblockCode, $catalogService, $catalogViewedProductRepository, $urlService);
     }
 
-    public function getProducts(array $productIds, bool $onlyActive = true): array
+    protected function afterFindProducts(array &$products, array $productIds): void
     {
-        if (empty($productIds)) {
-            return [];
-        }
-
-        $filter = ['ID' => $productIds];
-        if ($onlyActive) {
-            $filter['ACTIVE'] = 'Y';
-        }
-
-        $items = $this->findAll(
-            $filter,
-            ['*', 'PRICE', 'PRICE.CATALOG_GROUP', 'STORE_PRODUCT', 'CATALOG', 'BRAND_REF', 'MORE_PHOTO'],
-        );
-
-        $products = [];
         $pictureIds = [];
 
-        foreach ($items as $item) {
+        foreach ($products as $item) {
             if ($item['PREVIEW_PICTURE']) {
                 $pictureIds[] = (int)$item['PREVIEW_PICTURE'];
             }
@@ -53,7 +38,6 @@ class ProductsRepository extends CatalogProductsRepository
                     $pictureIds[] = (int)$photo['VALUE'];
                 }
             }
-            $products[(int)$item['ID']] = $item;
         }
 
         $paths = $this->fileService->getPathByIds($pictureIds);
@@ -68,20 +52,12 @@ class ProductsRepository extends CatalogProductsRepository
                 foreach ($product['MORE_PHOTO'] as &$photo) {
                     $photoId = (int)$photo['VALUE'];
                     if (isset($paths[$photoId])) {
-                        $photo['PICTURE_SRC'] = $paths[$photoId];
+                        $photo['VALUE'] = $paths[$photoId];
                     }
                 }
             }
         }
-
-        $result = [];
-        foreach ($productIds as $id) {
-            if (isset($products[$id])) {
-                $result[$id] = $products[$id];
-            }
-        }
-
-        return $result;
+        unset($product);
     }
 
     public function getProductsIdsBySections(array $sectionIds, bool $onlyActive = true): array
@@ -93,6 +69,7 @@ class ProductsRepository extends CatalogProductsRepository
         $filter = ['=IBLOCK_SECTION_ID' => $sectionIds];
         if ($onlyActive) {
             $filter['=ACTIVE'] = 'Y';
+            $filter['CATALOG.AVAILABLE'] = 'Y';
         }
 
         return $this->findAll(

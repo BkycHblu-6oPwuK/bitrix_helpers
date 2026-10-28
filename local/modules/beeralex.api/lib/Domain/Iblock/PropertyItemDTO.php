@@ -12,97 +12,134 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property int $id
  * @property string $code
  * @property string $name
- * @property string|array|int|FileDTO[]|LocationDTO|null $value
- * @property string|null $cleanValue
  * @property string|null $type
  * @property string|null $userType
- * @property string|null $xmlId
- * @property string|null $link
- * @property string|null $pictureSrc
- * @property int $fileSize
- * @property ElementDTO[]|null $item
- * DTO для свойств инфоблока
+ * @property PropertyValueDTO[] $valuesDto
+ * DTO свойства инфоблока: метаданные один раз, значения списком
  */
 class PropertyItemDTO extends Resource
 {
+    /** Режим DISPLAY_PROPERTIES */
     public static function make(array $property): static
     {
         if (empty($property['VALUE']) && empty($property['DISPLAY_VALUE'])) {
             return new static([]);
         }
 
-        $value = null;
-        $item = null;
-        $type = $property['PROPERTY_TYPE'] ?? null;
         $userType = $property['USER_TYPE'] ?? null;
-        if (isset($property['FILE_VALUE'])) {
-            if (is_array($property['FILE_VALUE']) && isset($property['FILE_VALUE']['SRC'])) {
-                $value[] = FileDTO::make($property['FILE_VALUE']);
-            } elseif (is_array($property['FILE_VALUE'])) {
-                $files = [];
-                foreach ($property['FILE_VALUE'] as $file) {
-                    if (isset($file['SRC'])) {
-                        $files[] = FileDTO::make($file);
-                    }
-                }
-                $value = $files;
-            }
-        } elseif (is_array($property['VALUE']) && isset($property['VALUE']['TEXT'])) {
-            $value = trim((string)$property['VALUE']['TEXT']);
-        } elseif ($property['VALUE_ENUM']) {
-            $value = is_array($property['VALUE_ENUM']) ? $property['VALUE_ENUM'] : (string)$property['VALUE_ENUM'];
-        } elseif ($userType && str_contains($userType, 'map_')) {
-            if ($property['VALUE']) {
-                $coordinates = \explode(',', $property['VALUE']);
-                if (!empty($coordinates)) {
-                    $coordinates = [
-                        'LATITUDE' => (float)($coordinates[0] ?? 0),
-                        'LONGITUDE' => (float)($coordinates[1] ?? 0),
-                    ];
-                    $value = LocationDTO::make($coordinates);
-                }
-            }
-        } else {
-            $value = !empty($property['LINK_ELEMENT_VALUE']) ? $property['LINK_ELEMENT_VALUE'][array_key_first($property['LINK_ELEMENT_VALUE'])]['ID'] : (string)$property['DISPLAY_VALUE'];
-        }
-        if (!empty($property['LINK_ELEMENT_VALUE'])) {
-            $item = array_values(array_map([ElementDTO::class, 'make'], $property['LINK_ELEMENT_VALUE']));
-        }
+
         return new static([
             'id' => (int)($property['ID'] ?? 0),
             'code' => (string)$property['CODE'],
             'name' => (string)$property['NAME'],
-            'value' => $value,
-            'cleanValue' => $property['~VALUE'] ?? null,
-            'type' => $type,
+            'type' => $property['PROPERTY_TYPE'] ?? null,
             'userType' => $userType,
-            'xmlId' => $property['VALUE_XML_ID'] ?? $property['XML_ID'] ?? null,
-            'link' => $property['LINK'] ?? null,
-            'pictureSrc' => $property['PICTURE_SRC'] ?? null,
-            'item' => $item,
+            'valuesDto' => static::makeDisplayValues($property, $userType),
         ]);
     }
 
     /**
-     * При декомпозиции свойство возвращается в виде массива, если это каталог - то данные хайлоада должны быть под ключом HL_DATA
+     * Режим декомпозиции ORM: принимает и одиночное значение, и список значений.
+     * Вернёт null, если это не свойство.
      */
-    public static function makeFromDecomposeData(array $property, string $code)
+    public static function makeFromDecomposeData(array $property, string $code): ?static
     {
-        $hlData = $property['HL_DATA'] ?? [];
-        $itemData = $property['LINK_ELEMENT_VALUE'] ? array_values(array_map([ElementDTO::class, 'fromDecomposeData'], $property['LINK_ELEMENT_VALUE'])) : $property['ITEM'] ?? [];
+        $rows = isset($property['IBLOCK_PROPERTY_ID'])
+            ? [$property]
+            : array_values(array_filter(
+                $property,
+                static fn($row) => is_array($row) && isset($row['IBLOCK_PROPERTY_ID'])
+            ));
+
+        if (!$rows) {
+            return null;
+        }
+
+        $meta = $rows[0]; // метаданные свойства одинаковы во всех строках
 
         return new static([
-            'id' => (int)($property['ID'] ?? 0),
+            'id' => (int)($meta['IBLOCK_PROPERTY_ID'] ?? 0),
             'code' => $code,
-            'name' => $property['NAME'] ?? '',
-            'value' => $hlData['UF_NAME'] ?? $itemData['VALUE'] ?? $property['VALUE'] ?? null,
-            'cleanValue' => $hlData['UF_NAME'] ?? $itemData['VALUE'] ?? $property['VALUE'] ?? null,
-            'type' => $property['PROPERTY_TYPE'] ?? null,
-            'userType' => $property['USER_TYPE'] ?? null,
-            'xmlId' => $hlData['UF_XML_ID'] ?? $itemData['XML_ID'] ?? null,
-            'link' => $hlData['UF_LINK'] ?? $property['LINK'] ?? null,
-            'pictureSrc' => $hlData['PICTURE_SRC'] ?? $property['PICTURE_SRC'] ?? null,
-            'item' => $hlData ? $hlData : ($itemData ? $itemData : null),
+            'name' => $meta['NAME'] ?? '',
+            'type' => $meta['PROPERTY_TYPE'] ?? null,
+            'userType' => $meta['USER_TYPE'] ?? null,
+            'valuesDto' => array_map([PropertyValueDTO::class, 'makeFromDecomposeData'], $rows),
         ]);
+    }
+
+    /**
+     * @return PropertyValueDTO[]
+     */
+    protected static function makeDisplayValues(array $p, ?string $userType): array
+    {
+        $multiple = ($p['MULTIPLE'] ?? 'N') === 'Y';
+        // DESCRIPTION и ~VALUE у множественных свойств приходят массивами по индексу
+        $pick = static fn($v, int $i) => $multiple && is_array($v) ? ($v[$i] ?? null) : $v;
+        $clean = $p['~VALUE'] ?? null;
+        $desc = $p['DESCRIPTION'] ?? '';
+
+        if (isset($p['FILE_VALUE']) && is_array($p['FILE_VALUE'])) {
+            $files = isset($p['FILE_VALUE']['SRC']) ? [$p['FILE_VALUE']] : array_values($p['FILE_VALUE']);
+            $result = [];
+            foreach ($files as $i => $file) {
+                if (isset($file['SRC'])) {
+                    $result[] = PropertyValueDTO::make(FileDTO::make($file), $pick($clean, $i), (string)$pick($desc, $i));
+                }
+            }
+            return $result;
+        }
+
+        if (!empty($p['VALUE_ENUM'])) {
+            $list = is_array($p['VALUE_ENUM']) ? array_values($p['VALUE_ENUM']) : [$p['VALUE_ENUM']];
+            $result = [];
+
+            foreach ($list as $i => $text) {
+                $result[] = PropertyValueDTO::make(
+                    (string)$text,
+                    $pick($clean, $i),
+                    (string)$pick($desc, $i),
+                    [
+                        'ID'     => (int)$pick($p['VALUE_ENUM_ID'] ?? null, $i),
+                        'XML_ID' => (string)($pick($p['VALUE_XML_ID'] ?? null, $i) ?? ''),
+                        'SORT'   => (int)($pick($p['VALUE_SORT'] ?? null, $i) ?? 0),
+                        'VALUE'  => $text,
+                    ]
+                );
+            }
+
+            return $result;
+        }
+
+        if (is_array($p['VALUE']) && isset($p['VALUE']['TEXT'])) {
+            return [PropertyValueDTO::make(trim((string)$p['VALUE']['TEXT']), $clean, (string)$desc)];
+        }
+
+        if ($userType && str_contains($userType, 'map_') && !empty($p['VALUE'])) {
+            [$lat, $lng] = array_pad(explode(',', (string)$p['VALUE']), 2, 0);
+            $location = LocationDTO::make(['LATITUDE' => (float)$lat, 'LONGITUDE' => (float)$lng]);
+            return [PropertyValueDTO::make($location, $clean, (string)$desc)];
+        }
+
+        // привязка к элементам: значение - ID элемента, item - данные элемента
+        if (!empty($p['LINK_ELEMENT_VALUE'])) {
+            $result = [];
+            $i = 0;
+            foreach ($p['LINK_ELEMENT_VALUE'] as $element) {
+                $result[] = PropertyValueDTO::make($element['ID'] ?? null, $pick($clean, $i), (string)$pick($desc, $i), $element);
+                $i++;
+            }
+            return $result;
+        }
+
+        // обычные значения (+ HL_DATA, если это справочник и значение одно)
+        $raw = $p['DISPLAY_VALUE'] ?? null;
+        $list = is_array($raw) ? array_values($raw) : [$raw];
+        $item = $multiple ? null : ($p['HL_DATA'] ?? null);
+
+        return array_map(
+            fn($v, $i) => PropertyValueDTO::make($v, $pick($clean, $i), (string)$pick($desc, $i), $item),
+            $list,
+            array_keys($list)
+        );
     }
 }

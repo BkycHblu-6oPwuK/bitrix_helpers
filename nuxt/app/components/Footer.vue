@@ -8,7 +8,7 @@
         <div class="container mx-auto px-4 py-10">
             <!-- Нижнее меню с группами ссылок -->
             <div class="flex flex-wrap justify-start gap-8 sm:gap-12 md:gap-16">
-                <Menu menu-type="bottom_menu" />
+                <MenuFooterMenu />
             </div>
 
             <!-- Копирайт -->

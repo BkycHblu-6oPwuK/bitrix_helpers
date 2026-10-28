@@ -26,8 +26,18 @@ class BeeralexMain extends \CBitrixComponent
     public function executeComponent()
     {
         if ($this->startResultCache()) {
-            $this->arResult = $this->getContent();
-            $this->endResultCache();
+            $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
+            $taggedCache->startTagCache($this->getCachePath());
+            try {
+                $taggedCache->registerTag('iblock_id_' . $this->mainRepository->entityId);
+                $this->arResult = $this->getContent();
+                $this->endResultCache();
+                $taggedCache->endTagCache();
+            } catch (\Throwable $e) {
+                $this->abortResultCache();
+                $taggedCache->abortTagCache();
+                throw $e;
+            }
         }
         $this->includeComponentTemplate();
     }

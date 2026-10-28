@@ -44,7 +44,6 @@ export function useSectionFilters(
     const buildUrl = (filters: FilterValues, sortId: string | null, page: number): URL => {
         const url = new URL(baseUrl.value!)
         const params = new URLSearchParams(url.search)
-        console.log('Building URL with filters:', url, baseUrl.value)
 
         Object.entries(filters).forEach(([id, v]) => params.set(id, v))
 

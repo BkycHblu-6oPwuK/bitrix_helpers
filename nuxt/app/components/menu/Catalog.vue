@@ -1,56 +1,18 @@
 <!--
-  Меню каталога с ленивой загрузкой
+  Меню каталога с поповером
   Открывается при наведении на кнопку "Каталог"
-  Данные загружаются только при первом открытии
-  Клик по кнопке ведет на страницу каталога
+  Клик по кнопке ведёт на страницу каталога
 -->
 <script setup lang="ts">
-import { watch, ref } from 'vue'
-import type { MenuData } from '~/types/menu'
+const { menu } = useMenu()
 
-// Состояние открытия поповера
-const isOpen = ref(false)
-
-const data = ref<MenuData | null>(null)
-const pending = ref(false)
-const error = ref<any>(null)
-
-/**
- * Загрузка данных меню, если еще не загружено
- */
-async function fetchMenuIfNeeded() {
-    if (data.value || pending.value) return
-    pending.value = true
-    error.value = null
-    try {
-        const res = await useApiFetch<MenuData>('get-menu', {
-            query: { menuType: 'catalog' },
-        })
-        data.value = res.data ?? null
-    } catch (e) {
-        error.value = e
-    } finally {
-        pending.value = false
-    }
-}
-
-/**
- * Переход на страницу каталога по клику на кнопку
- */
 function toCatalog() {
-    navigateTo('/catalog')
+    navigateTo('/catalog/')
 }
-
-// Загружаем данные при открытии поповера
-watch(isOpen, async (value) => {
-    if (value && import.meta.client) {
-        await fetchMenuIfNeeded()
-    }
-})
 </script>
 
 <template>
-    <UPopover v-model:open="isOpen" :popper="{ placement: 'bottom-start', offset: 6 }" mode="hover">
+    <UPopover :popper="{ placement: 'bottom-start', offset: 6 }" mode="hover">
         <template #default>
             <UButton color="warning" variant="solid" icon="i-heroicons-bars-3" trailing
                 class="cursor-pointer !rounded-lg text-white font-semibold" @click="toCatalog">
@@ -62,14 +24,8 @@ watch(isOpen, async (value) => {
             <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
                rounded-lg shadow-lg p-4 min-w-[420px]
                text-gray-800 dark:text-gray-200 transition-colors">
-                <div v-if="pending" class="flex items-center justify-center p-4">
-                    Загрузка...
-                </div>
-                <div v-else-if="error" class="flex items-center justify-center p-4 text-red-500">
-                    Ошибка загрузки
-                </div>
-                <div v-else-if="data?.menu" class="grid grid-cols-2 gap-6">
-                    <div v-for="item in data.menu" :key="item.id" class="space-y-2">
+                <div v-if="menu.catalog?.length" class="grid grid-cols-2 gap-6">
+                    <div v-for="item in menu.catalog" :key="item.id" class="space-y-2">
                         <NuxtLink :to="item.link || '#'" :prefetch="false" class="block font-medium text-gray-800 dark:text-gray-100
                      hover:text-primary-600 dark:hover:text-primary-400
                      transition-colors">

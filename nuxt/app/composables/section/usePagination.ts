@@ -6,8 +6,8 @@
  * @returns Объект с данными пагинации и вспомогательными методами
  */
 export function usePagination() {
-    const store = useSectionStore()
-    const { pagination, currentPage, pageCount, hasMore, hasPrevious } = storeToRefs(store)
+    const section = useSectionPage()
+    const { pagination, currentPage, pageCount, hasMore, hasPrevious } = toRefs(section)
 
     return {
         /** Полный объект пагинации с сервера */
@@ -21,8 +21,10 @@ export function usePagination() {
         /** Есть ли предыдущая страница */
         hasPrevious,
         /** Установить текущую страницу */
-        goToPage: store.goToPage,
+        goToPage: section.goToPage,
         /** Показать следующую страницу */
-        showMore: store.showMore,
+        showMore: section.showMore,
+        /** Загрузить указанную страницу */
+        loadPage: section.loadPage,
     }
 }

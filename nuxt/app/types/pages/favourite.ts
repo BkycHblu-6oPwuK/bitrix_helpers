@@ -1,6 +1,7 @@
 import type { CatalogItemDTO } from "../iblock/catalog"
 import type { SectionData } from "../iblock/page"
 import type { PageData } from "../page"
+import type { FilterDTO } from "../iblock/page"
 
 export interface FavouriteResponse {
     count: number,

@@ -95,14 +95,6 @@ export default defineEventHandler((event) => {
 
     let collapsed = rawPathname.replace(/\/+/g, '/');
     collapsed = applyLegacyRoot(collapsed);
-
-    if (
-        collapsed.startsWith('/assets') ||
-        collapsed.startsWith('/local_assets')
-    ) {
-        return;
-    }
-
     const canonicalPath = normalizePath(collapsed);
     const search = raw.search || '';
     const hash = raw.hash || '';

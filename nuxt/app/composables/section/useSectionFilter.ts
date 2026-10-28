@@ -7,10 +7,10 @@ import type { SectionData } from "~/types/iblock/page"
  * @returns Объект с данными фильтров и методами для работы с ними
  */
 export function useSectionFilter<TFilterData = SectionData['filter']>() {
-    const store = useSectionStore()
-    const { filterData, selectedFilters, currentSortId, hasActiveFilters, selectedFilterCount, isDirty } = storeToRefs(store)
-    const hasFilters = computed(() => !!filterData.value?.items.length)
-    const hasSorting = computed(() => !!filterData.value?.sorting?.availableSorting?.length)
+    const section = useSectionPage()
+    const { filterData, selectedFilters, currentSortId, hasActiveFilters, selectedFilterCount, isDirty } = toRefs(section)
+    const hasFilters = computed(() => !!filterData?.value?.items.length)
+    const hasSorting = computed(() => !!filterData?.value?.sorting?.availableSorting?.length)
 
     return {
         /** Данные всех доступных фильтров */
@@ -31,12 +31,14 @@ export function useSectionFilter<TFilterData = SectionData['filter']>() {
         isDirty,
 
         /** Включить/выключить фильтр */
-        toggleFilter: store.toggleFilter,
+        toggleFilter: section.toggleFilter,
         /** Применить выбранные фильтры */
-        applyFilters: store.applyFilters,
+        applyFilters: section.applyFilters,
         /** Сбросить все фильтры */
-        resetFilters: store.resetFilters,
+        resetFilters: section.resetFilters,
         /** Применить сортировку */
-        applySorting: store.applySorting,
+        applySorting: section.applySorting,
+        /** Загрузить указанную страницу */
+        loadPage: section.loadPage,
     }
 }

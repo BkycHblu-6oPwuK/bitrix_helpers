@@ -6,12 +6,8 @@
 <script setup lang="ts">
 import type { SectionsPageApiResponse } from '~/types/pages/catalog'
 
-// Загрузка списка разделов каталога
 const { data } = await useApi<SectionsPageApiResponse>('catalog')
-// Установка SEO мета-тегов страницы
-if (data.value?.data?.seo) {
-    useSeoPage(data.value.data.seo)
-}
+useSeoPage(data.value?.data?.seo)
 </script>
 
 <template>

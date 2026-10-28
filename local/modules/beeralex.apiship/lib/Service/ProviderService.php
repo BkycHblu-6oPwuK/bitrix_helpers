@@ -7,30 +7,21 @@ use Apiship\Exception\ResponseException;
 use Beeralex\Apiship\Client\ClientFactory;
 use Beeralex\Apiship\Contracts\ProviderServiceContract;
 use Beeralex\Apiship\Exception\ApiShipException;
+use Beeralex\Apiship\Support\QueryFilterBuilder;
 
-/**
- * Справочники служб доставки (ТК) и тарифов ApiShip.
- *
- * Используется обработчиком доставки для наполнения профилей (гибридная схема,
- * см. docs/DECISIONS.md ADR-004): профиль хранит providerKey/tariffId, а список
- * доступных ТК/тарифов подтягивается динамически отсюда.
- */
 final class ProviderService implements ProviderServiceContract
 {
     public function __construct(
         private readonly ClientFactory $clientFactory
     ) {}
 
-    /**
-     * @return array<int,array<string,mixed>>
-     */
     public function getProviders(array $filter = []): array
     {
         try {
             $response = $this->clientFactory->getClient()->lists()->getProviders(
-                100,
+                999,
                 0,
-                $filter ? json_encode($filter, JSON_UNESCAPED_UNICODE) : ''
+                QueryFilterBuilder::build($filter)
             );
         } catch (ResponseException $e) {
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
@@ -48,17 +39,13 @@ final class ProviderService implements ProviderServiceContract
         return $result;
     }
 
-    /**
-     * @return array<int,array<string,mixed>>
-     */
-    public function getTariffs(array $filter = []): array
+    public function getTariffs(array $filter = [], array $fields = []): array
     {
         try {
-            $response = $this->clientFactory->getClient()->listsExtended()->getTariffs(100, 0, $filter);
+            $response = $this->clientFactory->getClient()->listsExtended()->getTariffs(999, 0, $filter, $fields);
         } catch (ResponseException $e) {
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
         }
-
         return (array)($response->get('rows') ?? []);
     }
 }

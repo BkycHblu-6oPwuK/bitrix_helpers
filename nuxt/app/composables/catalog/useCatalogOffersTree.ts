@@ -1,98 +1,139 @@
-import type { CatalogItemDTO, CatalogOfferDTO } from "~/types/iblock/catalog"
+import type { CatalogItemDTO, OffersTreePropsValuesItemDTO } from '~/types/iblock/catalog'
+
+type OfferValues = Record<string, string>
+
+export interface OfferOption extends OffersTreePropsValuesItemDTO {
+    /** Это значение выбрано сейчас */
+    selected: boolean
+    /** Есть предложение в наличии с этим значением при текущем выборе остальных свойств */
+    available: boolean
+    /** Подпись для вывода (с единицей измерения и т.п.). `value` остаётся ключом для выбора */
+    label: string
+}
+
+export interface OfferOptionGroup {
+    code: string
+    name: string
+    options: OfferOption[]
+}
+
+interface Options {
+    /** ID предложения, которое нужно выбрать при инициализации (например, из ?offer=) */
+    initialOfferId?: MaybeRefOrGetter<number | null | undefined>
+    /** Как показывать значение свойства в интерфейсе. По умолчанию — как есть */
+    formatValue?: (propCode: string, value: string) => string
+}
+
+const matches = (values: OfferValues, selected: OfferValues) =>
+    Object.entries(selected).every(([code, value]) => values[code] === value)
 
 /**
- * Композабл для работы с картой торговых предложений товара
- * Предоставляет методы для выбора значений свойств и получения доступных вариантов
+ * Выбор торгового предложения по свойствам (литраж, цвет и т.д.).
+ *
+ * Источник правды — только `selectedValues`. `selectedOffer` и список вариантов
+ * для UI вычисляются из него, поэтому рассинхрона между ними быть не может.
+ * Инициализация происходит синхронно в setup (работает с SSR, без hydration mismatch)
+ * и повторяется при смене товара.
  */
-export function useCatalogOffersTree(item: Ref<CatalogItemDTO | null>) {
-    const selectedOffer = ref<CatalogOfferDTO | null>(null)
-    const selectedValues = ref<Record<string, string>>({})
+export function useCatalogOffersTree(
+    item: MaybeRefOrGetter<CatalogItemDTO | null | undefined>,
+    options: Options = {},
+) {
+    const selectedValues = ref<OfferValues>({})
 
-    /**
-     * Инициализация выбранных значений свойств на основе предвыбранного предложения или первого доступного варианта
-     */
-    const initializeSelectedValues = () => {
-        if (!item.value) return
+    const props = computed(() => toValue(item)?.offersTree?.props ?? [])
 
-        if (selectedOffer.value && item.value.offersTree) {
-            const offerEntry = Object.entries(item.value.offersTree.map).find(
-                ([offerId]) => Number(offerId) === selectedOffer.value?.id
-            )
+    // Bitrix/PHP отдаёт пустую карту как [] вместо {}
+    const entries = computed(() => {
+        const map = toValue(item)?.offersTree?.map
+        if (!map || Array.isArray(map)) return []
+        return Object.entries(map).map(([id, values]) => ({ id: Number(id), values: values as OfferValues }))
+    })
 
-            if (offerEntry) {
-                selectedValues.value = { ...offerEntry[1] }
+    const offersById = computed(() => new Map((toValue(item)?.offers ?? []).map(o => [o.id, o])))
+
+    const isAvailable = (offerId: number) => {
+        const offer = offersById.value.get(offerId)
+        return !!offer && (offer.catalog?.available ?? true)
+    }
+
+    const selectedOffer = computed(() => {
+        // Простой товар без свойств в дереве
+        if (!props.value.length) return toValue(item)?.preselectedOffer ?? null
+
+        const entry = entries.value.find(e => matches(e.values, selectedValues.value))
+        return entry ? offersById.value.get(entry.id) ?? null : null
+    })
+
+    /** Варианты для каждой «оси» (литраж, цвет…) уже с флагами selected/available */
+    const optionGroups = computed<OfferOptionGroup[]>(() =>
+        props.value.map((prop) => {
+            const others = Object.entries(selectedValues.value).filter(([code]) => code !== prop.code)
+
+            return {
+                code: prop.code,
+                name: prop.name,
+                options: prop.values.map(value => ({
+                    ...value,
+                    label: options.formatValue?.(prop.code, value.value) ?? value.value,
+                    selected: selectedValues.value[prop.code] === value.value,
+                    available: entries.value.some(e =>
+                        e.values[prop.code] === value.value
+                        && others.every(([code, v]) => e.values[code] === v)
+                        && isAvailable(e.id),
+                    ),
+                })),
             }
-        } else if (item.value.offersTree?.props.length > 0) {
-            item.value.offersTree.props.forEach(prop => {
-                if (prop.values.length > 0 && prop.values[0]) {
-                    selectedValues.value[prop.code] = prop.values[0].value
-                }
-            })
-            findAndSelectOffer()
-        }
+        }),
+    )
+
+    const pickInitialValues = (): OfferValues => {
+        const wantedId = toValue(options.initialOfferId) ?? toValue(item)?.preselectedOffer?.id
+
+        const entry = entries.value.find(e => e.id === wantedId)
+            ?? entries.value.find(e => isAvailable(e.id))
+            ?? entries.value[0]
+
+        if (entry) return { ...entry.values }
+
+        // Карты нет — берём первое значение каждого свойства
+        return Object.fromEntries(
+            props.value.flatMap(p => (p.values[0] ? [[p.code, p.values[0].value]] : [])),
+        )
     }
 
-    /**
-     * Поиск и установка предложения на основе текущих выбранных значений свойств
-     */
-    const findAndSelectOffer = () => {
-        if (!item.value?.offersTree) return
-
-        const offerEntry = Object.entries(item.value.offersTree.map).find(([_, values]) => {
-            return Object.keys(selectedValues.value).every(
-                key => values[key] === selectedValues.value[key]
-            )
-        })
-
-        if (offerEntry) {
-            const offerId = Number(offerEntry[0])
-            const offer = item.value.offers.find(o => o.id === offerId)
-            selectedOffer.value = offer || null
-        } else {
-            selectedOffer.value = null
-        }
-    }
+    // immediate: выбор готов уже при первом рендере (SSR) и пересчитывается при смене товара
+    watch(() => toValue(item)?.id, () => {
+        selectedValues.value = pickInitialValues()
+    }, { immediate: true })
 
     /**
-     * Выбор значения свойства торгового предложения
+     * Выбор значения свойства.
+     * Если с остальными выбранными значениями такой комбинации нет,
+     * подбирается ближайшее предложение (больше совпадений, предпочтительно в наличии).
      */
     const selectOfferValue = (propCode: string, value: string) => {
-        selectedValues.value[propCode] = value
-        findAndSelectOffer()
+        if (selectedValues.value[propCode] === value) return
+
+        const next = { ...selectedValues.value, [propCode]: value }
+        if (entries.value.some(e => matches(e.values, next))) {
+            selectedValues.value = next
+            return
+        }
+
+        let best: { values: OfferValues; score: number } | null = null
+        for (const entry of entries.value) {
+            if (entry.values[propCode] !== value) continue
+
+            const matched = Object.entries(selectedValues.value)
+                .filter(([code, v]) => code !== propCode && entry.values[code] === v).length
+            const score = matched * 2 + (isAvailable(entry.id) ? 1 : 0)
+
+            if (!best || score > best.score) best = { values: entry.values, score }
+        }
+
+        if (best) selectedValues.value = { ...best.values }
     }
 
-    /**
-     * Получение доступных значений для свойства на основе текущих выбранных значений других свойств
-     */
-    const getAvailableValuesForProp = (propCode: string) => {
-        if (!item.value?.offersTree) return []
-
-        const prop = item.value.offersTree.props.find(p => p.code === propCode)
-        if (!prop) return []
-
-        const availableValues = new Set<string>()
-
-        Object.entries(item.value.offersTree.map).forEach(([offerId, offerValues]) => {
-            const otherPropsMatch = Object.keys(selectedValues.value)
-                .filter(key => key !== propCode)
-                .every(key => offerValues[key] === selectedValues.value[key])
-
-            if (otherPropsMatch) {
-                const offer = item.value!.offers.find(o => o.id === Number(offerId))
-                if (offer?.catalog.available) {
-                    availableValues.add(offerValues[propCode])
-                }
-            }
-        })
-
-        return prop.values.filter(valueItem => availableValues.has(valueItem.value))
-    }
-
-    return {
-        selectedOffer,
-        selectedValues,
-        initializeSelectedValues,
-        selectOfferValue,
-        getAvailableValuesForProp
-    }
+    return { selectedValues, selectedOffer, optionGroups, selectOfferValue }
 }

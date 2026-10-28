@@ -35,14 +35,41 @@ final class WebhookLogRepository extends Repository
             return false;
         }
 
-        $result = $this->add([
-            'EVENT_ID'         => $eventId,
-            'EVENT_TYPE'       => $event->type,
-            'APISHIP_ORDER_ID' => $event->orderId ?: null,
-            'RAW_BODY'         => $rawBody,
-        ]);
+        try {
+            $result = $this->add([
+                'EVENT_ID'         => $eventId,
+                'EVENT_TYPE'       => $event->type,
+                'APISHIP_ORDER_ID' => $event->orderId ?: null,
+                'RAW_BODY'         => $rawBody,
+                'PROCESSED'        => 0,
+            ]);
+        } catch (SystemException $e) {
+            // Race condition: параллельный запрос уже вставил эту запись
+            if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), 'duplicate')) {
+                return false;
+            }
+            throw $e;
+        }
 
         return $result > 0;
+    }
+
+    public function markProcessed(WebhookEventDto $event, string $rawBody): void
+    {
+        $eventId = $this->resolveEventId($event, $rawBody);
+        $row = $this->one(['=EVENT_ID' => $eventId], ['ID']);
+        if ($row !== null) {
+            $this->update((int)$row['ID'], ['PROCESSED' => 1]);
+        }
+    }
+
+    public function markFailed(WebhookEventDto $event, string $rawBody, string $error): void
+    {
+        $eventId = $this->resolveEventId($event, $rawBody);
+        $row = $this->one(['=EVENT_ID' => $eventId], ['ID']);
+        if ($row !== null) {
+            $this->update((int)$row['ID'], ['PROCESSED' => 2, 'ERROR_MESSAGE' => mb_substr($error, 0, 4000)]);
+        }
     }
 
     private function exists(string $eventId): bool

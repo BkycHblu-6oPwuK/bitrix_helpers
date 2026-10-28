@@ -1,0 +1,209 @@
+/* Общие стили для блоков */
+.sp-block-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sp-block-table table tr {
+    background: #f7f7f7;
+    color: #8a8a8a;
+}
+
+.sp-block-table table tr:nth-child(odd) {
+    background: #e7e6e6;
+}
+
+.sp-block-table table tr:hover {
+    background: #d4d4d4;
+    color: #000;
+}
+
+.sp-block-table table td {
+    text-align: left;
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+.sp-block-table p {
+    margin: 0;
+}
+
+.sp-image img {
+    width: 100%;
+}
+
+.sp-video iframe,
+.sp-video-gallery iframe {
+    border-width: 0;
+}
+
+.sp-iblock-sections {
+    padding: 10px;
+    border: 1px solid #c3c3c3;
+    margin: 10px 0;
+}
+
+.sp-iblock-elements {
+    padding: 10px;
+    border: 1px solid #c3c3c3;
+    margin: 10px 0;
+}
+.sp-medialib-elements {
+    padding: 10px;
+    border: 1px solid #c3c3c3;
+    margin: 10px 0;
+}
+
+.sp-properties {
+    width: 400px;
+    border-collapse: collapse;
+}
+
+.sp-properties_title {
+    border: 1px solid #ccc;
+    padding: 0 5px;
+    font-weight: bold;
+}
+
+.sp-properties_text {
+    border: 1px solid #ccc;
+    padding: 0 5px;
+}
+
+.sp-gallery-items {
+    overflow: hidden;
+}
+
+.sp-gallery-item {
+    float: left;
+    height: 220px;
+    padding: 5px;
+    /*width: 20%;*/
+}
+
+.sp-gallery-item-img-wrapper {
+    float: left;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    display: block;
+    color: inherit;
+}
+
+.sp-gallery-item img {
+    display: block;
+    max-width: 100%;
+    left: 50%;
+    max-height: 100%;
+    max-width: none;
+    position: relative;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%) translateZ(0);
+    -moz-transform: translate(-50%, -50%) translateZ(0);
+    -o-transform: translate(-50%, -50%) translateZ(0);
+    -ms-transform: translate(-50%, -50%) translateZ(0);
+    transform: translate(-50%, -50%) translateZ(0);
+}
+
+.sp-gallery-item-text {
+    background-color: rgba(255, 255, 255, .7);
+    cursor: pointer;
+    height: 100%;
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    -webkit-transition: all .2s linear;
+    -moz-transition: all .2s linear;
+    -o-transition: all .2s linear;
+    transition: all .2s linear;
+    width: 100%;
+}
+
+.sp-gallery-item-text:hover {
+    opacity: 1;
+}
+
+.sp-gallery-item-text::after {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.sp-gallery-item-text-content {
+    display: inline-block;
+    vertical-align: middle;
+    width: 90%;
+}
+
+.sp-button_link,
+.sp-button_link:link,
+.sp-button_link:visited {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px 0;
+    border-radius: 20px;
+    text-decoration: none;
+    background: #ccc;
+    color: #333;
+}
+
+.sp-button_link:hover {
+    text-decoration: none;
+    background: #333;
+    color: #ccc;
+}
+
+/*accordion*/
+.sp-accordion {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.sp-accordion-title {
+    border-top: 1px solid #ccc;
+    color: #444;
+    cursor: pointer;
+    padding: 10px;
+    text-align: left;
+}
+
+.sp-accordion-title:first-child {
+    border-top: none;
+}
+
+.sp-accordion-container {
+    padding: 0 10px 10px;
+    display: none;
+    overflow: hidden;
+}
+
+.sp-accordion-title:after {
+    content: '\02795';
+    font-size: 12px;
+    color: #777;
+    float: right;
+    margin: 2px 5px;
+}
+
+.sp-accordion-title__active:after {
+    content: "\2796";
+}
+
+.sp-complex-table {
+    display: table;
+    table-layout: fixed;
+    border-spacing: 10px;
+}
+
+.sp-complex-row {
+    display: table-row;
+}
+
+.sp-complex-col {
+    display: table-cell;
+    vertical-align: top;
+}

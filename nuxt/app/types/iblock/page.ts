@@ -20,7 +20,7 @@ export interface SectionsDTO<T = SectionDTO[]> {
  * @template F - Тип данных фильтра
  * @template SL - Тип списка разделов (массив или null)
  */
-export interface SectionData<SL = any[] | null, F = FilterDTO, S = any> extends SectionsDTO<SL> {
+export interface SectionData<SL = any[] | null | undefined, F = FilterDTO | null | undefined, S = any> extends SectionsDTO<SL> {
     filter: F // Данные фильтра (поля, сортировка, выбранные значения)
     section: SectionItemsDTO<S> // Элементы с пагинацией
 }

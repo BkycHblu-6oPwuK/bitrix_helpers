@@ -9,6 +9,11 @@ import type { MainPageContent } from '~/types/iblock/main';
 import type { PageData } from '~/types/page';
 
 const page = await useApi<PageData<MainPageContent>>('get-main-page')
+useSeoPage(undefined, {
+   title: 'Главная страница',
+   description: 'Главная страница',
+});
+usePagePath([], [])
 </script>
 
 <template>

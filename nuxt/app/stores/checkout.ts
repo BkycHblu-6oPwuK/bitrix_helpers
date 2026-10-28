@@ -3,7 +3,7 @@ import type {
     CheckoutDTO,
     CheckoutApiResponse,
     OrderConfirmApiResponse,
-} from '~/types/checkout'
+} from '~/types/pages/checkout'
 
 /**
  * Store оформления заказа.
@@ -44,7 +44,7 @@ export const useCheckoutStore = defineStore('checkout', () => {
             }
         } catch (e) {
             console.error('Checkout refresh error:', e)
-            useToast().add({ title: 'Ошибка обновления данных заказа', color: 'error' })
+            useToast().error({ message: 'Ошибка обновления данных заказа' })
         } finally {
             loading.value = false
         }
@@ -169,7 +169,7 @@ export const useCheckoutStore = defineStore('checkout', () => {
             }
         } catch (e) {
             console.error('Checkout refresh error:', e)
-            useToast().add({ title: 'Ошибка обновления данных заказа', color: 'error' })
+            useToast().error({ message: 'Ошибка обновления данных заказа' })
         } finally {
             loading.value = false
         }
@@ -195,11 +195,11 @@ export const useCheckoutStore = defineStore('checkout', () => {
             if (data?.page?.redirectUrl) {
                 window.location.href = data.page.redirectUrl
             } else if (data?.page?.error) {
-                useToast().add({ title: data.page.error, color: 'error' })
+                useToast().error({ message: data.page.error })
             }
         } catch (e: any) {
             console.error('Order confirm error:', e)
-            useToast().add({ title: e.message || 'Ошибка при оформлении заказа', color: 'error' })
+            useToast().error({ message: e.message || 'Ошибка при оформлении заказа' })
         } finally {
             loading.value = false
         }

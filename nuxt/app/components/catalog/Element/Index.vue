@@ -1,22 +1,7 @@
 <!--
-  Компонент детальной страницы товара
-  Отображает галерею, название, цену, описание и переключатель предложений
+  Детальная страница товара: галерея, название, цена, предложения, действия, описание.
+  Состояние — в provideCatalogProduct (без стора): ни setItem, ни onUnmounted(reset).
 -->
-<script setup lang="ts">
-import type { CatalogItemDTO } from '~/types/iblock/catalog';
-
-const props = defineProps<{
-    item: CatalogItemDTO
-}>()
-
-const catalogDetail = useCatalogDetailStore()
-
-catalogDetail.setItem(props.item)
-
-onUnmounted(() => {
-    catalogDetail.reset()
-})
-</script>
 
 <template>
     <div class="product-detail">
@@ -25,7 +10,7 @@ onUnmounted(() => {
 
             <div class="product-info space-y-6">
                 <CatalogElementInfo />
-                <CatalogElementOffers v-if="item.offers.length > 0" />
+                <CatalogElementOffers />
                 <CatalogElementActions />
                 <CatalogElementDescription />
             </div>

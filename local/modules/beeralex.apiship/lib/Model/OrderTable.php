@@ -49,8 +49,9 @@ class OrderTable extends ORM\Data\DataManager
 
             // --- Снимок запроса создания (POST /orders), пишется в OrderService::create ---
 
-            new ORM\Fields\IntegerField('PROVIDER_CONNECT_ID', [
+            new ORM\Fields\StringField('PROVIDER_CONNECT_ID', [
                 'required' => false,
+                'size'     => 64,
             ]),
 
             new ORM\Fields\IntegerField('PICKUP_TYPE', [
@@ -180,6 +181,12 @@ class OrderTable extends ORM\Data\DataManager
 
             new ORM\Fields\DatetimeField('UPDATED_AT', [
                 'default_value' => fn() => new Type\DateTime(),
+            ]),
+
+            // active (по умолчанию), cancelled, deleted
+            new ORM\Fields\StringField('STATUS', [
+                'default_value' => 'active',
+                'size'          => 16,
             ]),
         ];
     }

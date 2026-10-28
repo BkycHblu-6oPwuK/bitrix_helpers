@@ -8,18 +8,18 @@ use Bitrix\Iblock\SectionPropertyTable;
 /**
  * @var BeeralexCatalogSmartFilter $component
  */
-$urlService = service(UrlService::class);
 $component = $this->getComponent();
+$urlService = service(UrlService::class);
 
 if ($arParams['USE_FILTER']) {
     $items = [];
     foreach ($arResult['ITEMS'] as $key => &$item) {
         if (!$item['PROPERTY_TYPE']) continue;
         if (empty($item['VALUES'])) continue;
-        if ($item['DISPLAY_TYPE'] == SectionPropertyTable::NUMBERS_WITH_SLIDER) {
+        if ($item['DISPLAY_TYPE'] == SectionPropertyTable::NUMBERS_WITH_SLIDER || (isset($item['VALUES']['MIN']) && isset($item['VALUES']['MAX']))) {
             $minPriceItem = &$item['VALUES']['MIN'];
             $maxPriceItem = &$item['VALUES']['MAX'];
-            if (($minPriceItem['HTML_VALUE'] && $minPriceItem['VALUE'] !== $minPriceItem['HTML_VALUE']) || ($maxPriceItem['HTML_VALUE'] && $maxPriceItem['VALUE'] !== $maxPriceItem['HTML_VALUE'])) {
+            if (((float)$minPriceItem['HTML_VALUE'] && (float)$minPriceItem['VALUE'] !== (float)$minPriceItem['HTML_VALUE']) || ((float)$maxPriceItem['HTML_VALUE'] && (float)$maxPriceItem['VALUE'] !== (float)$maxPriceItem['HTML_VALUE'])) {
                 $minPriceItem['CHECKED'] = true;
                 $maxPriceItem['CHECKED'] = true;
             }
@@ -44,7 +44,7 @@ if ($arParams['USE_FILTER']) {
     ]);
 } else {
     $arResult['DTO'] = FilterDTO::make([
-        //'sectionUrl' => $urlService->cleanUrl($arParams['SECTION_URL'] ?? ''),
+        'sectionUrl' => $urlService->cleanUrl($arParams['SECTION_URL'] ?? ''),
         'sorting' => $component->getSortingService()?->getSorting(),
     ]);
 }

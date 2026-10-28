@@ -29,22 +29,22 @@ enum StatusesApiShip: string
     public static function getMap(): array
     {
         return [
-            self::UPLOADING->value => 'Загрузка информации в систему перевозчика',
-            self::UPLOADING_ERROR->value => 'Ошибка передачи информации в систему перевозчика',
-            self::UNKNOWN->value => 'Неизвестный статус',
-            self::UPLOADED->value => 'Информация успешно загружена в систему перевозчика',
-            self::DELIVERY_CANCELED->value => 'Доставка отменена',
-            self::DELIVERING->value => 'Передан на доставку в пункте назначения',
-            self::DELIVERED->value => 'Доставлен получателю',
-            self::RETURNED_FROM_DELIVERY->value => 'Возвращен с доставки',
-            self::ON_POINT_IN->value => 'Принят на склад в пункте отправления',
-            self::NOT_APPLICABLE->value => 'N/A',
-            self::PARTIAL_RETURN->value => 'Частичный возврат',
-            self::READY_FOR_RECIPIENT->value => 'Готов к выдаче в пункте назначения',
-            self::RETURNED->value => 'Возвращен отправителю',
-            self::RETURNING->value => 'Возвращается отправителю',
-            self::ON_WAY->value => 'В пути',
-            self::LOST->value => 'Утерян',
+            static::UPLOADING->value => 'Загрузка информации в систему перевозчика',
+            static::UPLOADING_ERROR->value => 'Ошибка передачи информации в систему перевозчика',
+            static::UNKNOWN->value => 'Неизвестный статус',
+            static::UPLOADED->value => 'Информация успешно загружена в систему перевозчика',
+            static::DELIVERY_CANCELED->value => 'Доставка отменена',
+            static::DELIVERING->value => 'Передан на доставку в пункте назначения',
+            static::DELIVERED->value => 'Доставлен получателю',
+            static::RETURNED_FROM_DELIVERY->value => 'Возвращен с доставки',
+            static::ON_POINT_IN->value => 'Принят на склад в пункте отправления',
+            static::NOT_APPLICABLE->value => 'N/A',
+            static::PARTIAL_RETURN->value => 'Частичный возврат',
+            static::READY_FOR_RECIPIENT->value => 'Готов к выдаче в пункте назначения',
+            static::RETURNED->value => 'Возвращен отправителю',
+            static::RETURNING->value => 'Возвращается отправителю',
+            static::ON_WAY->value => 'В пути',
+            static::LOST->value => 'Утерян',
         ];
     }
 }

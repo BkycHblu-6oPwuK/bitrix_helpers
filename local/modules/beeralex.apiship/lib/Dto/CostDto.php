@@ -26,10 +26,10 @@ final class CostDto extends Resource
         return new static([
             'assessedCost'               => (float)($data['assessedCost'] ?? 0),
             'codCost'                    => (float)($data['codCost'] ?? 0),
-            'deliveryCost'               => self::nullableFloat($data['deliveryCost'] ?? null),
-            'deliveryCostVat'            => self::nullableInt($data['deliveryCostVat'] ?? null),
-            'isDeliveryPayedByRecipient' => self::nullableInt($data['isDeliveryPayedByRecipient'] ?? null),
-            'paymentMethod'              => self::nullableInt($data['paymentMethod'] ?? null),
+            'deliveryCost'               => static::nullableFloat($data['deliveryCost'] ?? null),
+            'deliveryCostVat'            => static::nullableInt($data['deliveryCostVat'] ?? null),
+            'isDeliveryPayedByRecipient' => static::nullableInt($data['isDeliveryPayedByRecipient'] ?? null),
+            'paymentMethod'              => static::nullableInt($data['paymentMethod'] ?? null),
             'deliveryCostThresholds'     => array_values((array)($data['deliveryCostThresholds'] ?? [])),
         ]);
     }
