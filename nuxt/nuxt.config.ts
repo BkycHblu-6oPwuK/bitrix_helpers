@@ -69,7 +69,7 @@ export default defineNuxtConfig({
         }
     },
 
-    css: ['./app/assets/css/main.css'],
+    css: ['~/assets/css/main.css'],
 
     devServer: {
         host: '0.0.0.0',
@@ -82,8 +82,14 @@ export default defineNuxtConfig({
         ],
     },
 
-    modules: ['@pinia/nuxt', '@nuxt/ui', 'nuxt-toast', '@nuxtjs/sitemap', '@nuxt/image', //'vue-yandex-maps/nuxt'
-        '@balalarast/vue-bottom-sheet/nuxt', 'nuxt-csurf'],
+    vue: {
+        compilerOptions: {
+            isCustomElement: (tag) => tag === 'altcha-widget',
+        },
+    },
+
+    modules: ['@pinia/nuxt', '@nuxt/ui', '@nuxtjs/sitemap', '@nuxt/image', //'vue-yandex-maps/nuxt'
+        '@balalarast/vue-bottom-sheet/nuxt', 'nuxt-csurf', 'nuxt-toast'],
 
     features: {
         inlineStyles: true
@@ -141,11 +147,6 @@ export default defineNuxtConfig({
         '/api/v1/articles': { swr: isDev ? false : 300 },
         '/api/v1/articles/**': { swr: isDev ? false : 300 },
         '/api/v1/reviews': { swr: isDev ? false : 300 },
-        '/**': {
-            headers: {
-                'cache-control': 'public, max-age=60, stale-while-revalidate=300',
-            },
-        },
     },
 
 })

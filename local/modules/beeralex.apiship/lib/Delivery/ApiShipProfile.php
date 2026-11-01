@@ -12,8 +12,9 @@ use Bitrix\Sale\Shipment;
 use Beeralex\Apiship\Contracts\CalculatorServiceContract;
 use Beeralex\Apiship\Contracts\ConnectionServiceContract;
 use Beeralex\Apiship\Contracts\ProviderServiceContract;
-use Beeralex\Apiship\Dto\CalculationRequestDto;
+use Beeralex\Apiship\Dto\CalculationContext;
 use Beeralex\Apiship\Dto\TariffDto;
+use Beeralex\Apiship\Service\CalculationValidator;
 
 Loc::loadMessages(__FILE__);
 
@@ -140,13 +141,14 @@ class ApiShipProfile extends Base
         $result = new CalculationResult();
 
         try {
-            $tariffs = $this->getCalculatorService()->calculate(
-                $this->buildCalculationRequest($shipment)
-            );
+            $context = $this->buildCalculationContext($shipment);
         } catch (\InvalidArgumentException $e) {
-            // не хватает данных для запроса (например, не выбран город)
             $result->addError(new Error($e->getMessage(), 'APISHIP_BAD_REQUEST'));
             return $result;
+        }
+
+        try {
+            $tariffs = $this->getCalculatorService()->calculate($context);
         } catch (\Throwable $e) {
             $result->addError(new Error($e->getMessage(), 'APISHIP_CALCULATE'));
             return $result;
@@ -171,7 +173,7 @@ class ApiShipProfile extends Base
 
     /**
      * Выбирает тариф: сначала по TARIFF_ID (если задан), иначе самый дешёвый.
-     * Фильтрация по providerKey/deliveryType уже сделана на стороне API (см. buildCalculationRequest).
+     * Фильтрация по providerKey/deliveryType уже сделана на стороне API (см. buildCalculationContext).
      *
      * @param TariffDto[] $tariffs
      */
@@ -182,9 +184,12 @@ class ApiShipProfile extends Base
         }
 
         $config = $this->getMainConfig();
-        $tariffId = isset($config['TARIFF_ID']) && $config['TARIFF_ID'] !== ''
-            ? (int)$config['TARIFF_ID']
-            : null;
+        $rawTariffId = $config['TARIFF_ID'] ?? '';
+        // MULTIPLE => Y возвращает массив; берём первый непустой элемент
+        if (is_array($rawTariffId)) {
+            $rawTariffId = current(array_filter($rawTariffId, static fn($v) => $v !== '' && $v !== null)) ?: '';
+        }
+        $tariffId = (string)$rawTariffId !== '' ? (int)$rawTariffId : null;
 
         if ($tariffId !== null) {
             foreach ($tariffs as $tariff) {
@@ -223,11 +228,11 @@ class ApiShipProfile extends Base
     }
 
     /**
-     * Собирает CalculationRequestDto из Shipment и настроек профиля.
+     * Собирает CalculationContext из Shipment и настроек профиля.
      *
      * @throws \InvalidArgumentException если для запроса не хватает обязательных данных
      */
-    protected function buildCalculationRequest(Shipment $shipment): CalculationRequestDto
+    protected function buildCalculationContext(Shipment $shipment): CalculationContext
     {
         /** @var \Beeralex\Apiship\Options $options */
         $options = \service(\Beeralex\Apiship\Options::class);
@@ -249,7 +254,14 @@ class ApiShipProfile extends Base
         }
 
         [$connectId, $providerKey] = static::parseConnectionKey($config);
-        $tariffId = isset($config['TARIFF_ID']) && $config['TARIFF_ID'] !== '' ? (int)$config['TARIFF_ID'] : 0;
+
+        // MULTIPLE => Y возвращает массив; берём первый непустой элемент
+        $rawTariffId = $config['TARIFF_ID'] ?? '';
+        if (is_array($rawTariffId)) {
+            $rawTariffId = current(array_filter($rawTariffId, static fn($v) => $v !== '' && $v !== null)) ?: '';
+        }
+        $tariffId = (string)$rawTariffId !== '' ? (int)$rawTariffId : 0;
+
         $deliveryType = (int)($config['DELIVERY_TYPE'] ?? 0);
         $pickupType = (int)($config['PICKUP_TYPE'] ?? 0);
         // склад СД имеет смысл только при самозавозе
@@ -263,19 +275,15 @@ class ApiShipProfile extends Base
             'length' => $options->defaultLength,
         ]);
 
-        // если у ТК несколько подключений — считаем именно по выбранному: "{providerKey}.providerConnectId"
+        // если у ТК несколько подключений — считаем именно по выбранному
         $extraParams = [];
         if ($providerKey !== '' && ctype_digit($connectId) && (int)$connectId > 0) {
             $extraParams[$providerKey . '.providerConnectId'] = (int)$connectId;
         }
 
-        $dto = CalculationRequestDto::make([
+        $context = CalculationContext::make([
             'from'   => $options->sender,
             'to'     => $to,
-            'weight' => $parcel['weight'],
-            'width'  => $parcel['width'],
-            'height' => $parcel['height'],
-            'length' => $parcel['length'],
             'places' => [[
                 'weight' => $parcel['weight'],
                 'width'  => $parcel['width'],
@@ -291,12 +299,12 @@ class ApiShipProfile extends Base
             'extraParams'   => $extraParams,
         ]);
 
-        $errors = $dto->validate();
+        $errors = (new CalculationValidator())->validate($context);
         if ($errors !== []) {
             throw new \InvalidArgumentException(implode('; ', $errors));
         }
 
-        return $dto;
+        return $context;
     }
 
     protected function getCalculatorService(): CalculatorServiceContract

@@ -3,7 +3,7 @@ import { getRequestHeaders, getRequestHeader } from 'h3'
 export default defineEventHandler(async (event) => {
     if (process.env.NODE_ENV !== 'development') return
     const path = event.path
-    if (!/^\/(upload|local|bitrix)(\/|$)/.test(path)) return
+    if (!/^\/(upload)(\/|$)/.test(path)) return
 
     const domain = new URL(process.env.NUXT_API_BASE_SERVER || 'http://localhost').origin
     const target = domain + path

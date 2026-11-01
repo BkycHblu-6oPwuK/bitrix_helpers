@@ -20,7 +20,8 @@ export function useQuestionForm() {
         onSubmit: async (values) => {
             await useApiFetch('web-form/question', {
                 method: 'post',
-                body: values
+                body: values,
+                altcha: true
             })
         }
     })

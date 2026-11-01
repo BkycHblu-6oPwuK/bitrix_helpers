@@ -315,7 +315,10 @@ $arResult["VARIABLES"]["SECTION_CODE"] ??= '';
 $arResult['VARIABLES']['ELEMENT_ID'] ??= 0;
 $arResult['VARIABLES']['ELEMENT_CODE'] ??= '';
 
-$sectionKey = ($arResult['VARIABLES']['SECTION_CODE_PATH'] ?? '') !== '' ? 'section' : 'sections';
+$sectionKey = match(true) {
+    !empty($arResult['VARIABLES']['SECTION_ID'] ?? 0) => 'section',
+    default => 'sections',
+};
 $sectionPath = CComponentEngine::makePathFromTemplate(
     $arResult['URL_TEMPLATES'][$sectionKey],
     $arResult['VARIABLES']

@@ -14,7 +14,9 @@ use Beeralex\Api\V1\Controllers\BasketController;
 use Beeralex\Api\V1\Controllers\CheckoutController;
 use Beeralex\Api\V1\Controllers\ContentController;
 use Beeralex\Api\V1\Controllers\SearchController;
+use Beeralex\Api\V1\Controllers\SitemapController;
 use Bitrix\Main\Routing\RoutingConfigurator;
+use Itb\Altcha\Controller\AltchaController;
 
 return function (RoutingConfigurator $routes): void {
     $routes->prefix('bitrix')->group(function (RoutingConfigurator $routes) {
@@ -150,6 +152,7 @@ return function (RoutingConfigurator $routes): void {
                     );
                 });
 
+                $routes->get('altcha/get-challenge', [AltchaController::class, 'getChallenge']);
                 $routes->get('sitemap', [SitemapController::class, 'index']);
                 $routes->get('search/init', [SearchController::class, 'init']);
                 $routes->get('search/suggest/{query}', [SearchController::class, 'suggest']);

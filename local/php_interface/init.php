@@ -9,6 +9,7 @@ Loader::includeModule('beeralex.catalog');
 Loader::includeModule('beeralex.content');
 Loader::includeModule('beeralex.favorite');
 Loader::includeModule('beeralex.apiship');
+Loader::includeModule('itb.altcha');
 Loader::includeModule('beeralex.api');
 require_once __DIR__ . "/include/functions.php";
 require_once __DIR__ . "/include/events.php";

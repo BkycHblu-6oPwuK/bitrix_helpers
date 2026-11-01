@@ -11,7 +11,7 @@ return Schema::make()
         'API сайта',
         function (SchemaTab $tab) {
             $tab->checkbox(
-                'SPA_API_ENABLED',
+                'SPA_API_ENABLED (под разные домены)',
                 'Режим SPA API',
             );
         }

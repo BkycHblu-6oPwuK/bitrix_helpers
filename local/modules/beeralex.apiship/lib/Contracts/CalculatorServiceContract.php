@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Contracts;
 
-use Beeralex\Apiship\Dto\CalculationRequestDto;
+use Beeralex\Apiship\Dto\CalculationContext;
 
 interface CalculatorServiceContract
 {
@@ -12,5 +12,5 @@ interface CalculatorServiceContract
      *
      * @return \Beeralex\Apiship\Dto\TariffDto[]
      */
-    public function calculate(CalculationRequestDto $request): array;
+    public function calculate(CalculationContext $context): array;
 }

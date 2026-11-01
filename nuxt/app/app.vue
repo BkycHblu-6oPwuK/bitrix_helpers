@@ -17,4 +17,7 @@ onMounted(() => {
     <NuxtLayout>
         <NuxtPage />
     </NuxtLayout>
+    <ClientOnly>
+        <UiAltchaInvisible />
+    </ClientOnly>
 </template>

@@ -34,7 +34,7 @@ class beeralex_api extends CModule
     public function InstallEvents()
     {
         $eventManager = EventManager::getInstance();
-        $eventManager->registerEventHandler('main', 'OnPageStart', $this->MODULE_ID, EventHandlers::class, 'onPageStart');
+        $eventManager->registerEventHandler('main', 'OnPageStart', $this->MODULE_ID, EventHandlers::class, 'onPageStart', 1);
     }
 
     public function UnInstallEvents()

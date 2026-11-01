@@ -1,6 +1,7 @@
 <?php
 
 use Beeralex\Apiship\Builder\ApiShipOrderRequestBuilder;
+use Beeralex\Apiship\Builder\CalculatorRequestBuilder;
 use Beeralex\Apiship\Client\ClientFactory;
 use Beeralex\Apiship\Contracts\CalculatorServiceContract;
 use Beeralex\Apiship\Contracts\ConnectionServiceContract;
@@ -42,7 +43,8 @@ return [
             CalculatorServiceContract::class => [
                 'constructor' => static fn() => new CalculatorService(
                     service(ClientFactory::class),
-                    service(Options::class)
+                    service(Options::class),
+                    service(CalculatorRequestBuilder::class)
                 ),
             ],
             ConnectionServiceContract::class => [
@@ -129,6 +131,9 @@ return [
                 'constructor' => static fn() => new ApiShipOrderRequestBuilder(
                     service(Options::class)
                 ),
+            ],
+            CalculatorRequestBuilder::class => [
+                'className' => CalculatorRequestBuilder::class,
             ],
 
             // Репозитории (Фаза 4) — доступ к beeralex_apiship_order/status_log/webhook_log.

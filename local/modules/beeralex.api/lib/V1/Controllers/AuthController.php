@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Beeralex\Api\V1\Controllers;
 
-use Beeralex\Api\ActionFilter\AuthFilter;
+use Itb\Altcha\ActionFilter\AltchaFilter;
+use Beeralex\User\Auth\ActionFilter\AuthFilter;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\User\UserDTO;
@@ -33,10 +34,9 @@ class AuthController extends ApiController
     {
         return [
             'login' => [
-                'prefilters' => [],
-            ],
-            'loginFuser' => [
-                'prefilters' => [],
+                'prefilters' => [
+                    new AltchaFilter()
+                ],
             ],
             'refresh' => [
                 'prefilters' => [],

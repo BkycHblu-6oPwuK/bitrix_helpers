@@ -43,6 +43,7 @@ function defaultOnInvalid(errors: ApiErrors, fromServer = false) {
  * Обеспечивает валидацию, обработку ошибок, состояние загрузки
  * 
  * @example
+ * // форма должна иметь ref="form" для корректной работы useTemplateRef
  * const { values, errors, isLoading, handleSubmit } = useForm({
  *   initialValues: { email: '', password: '' },
  *   onSubmit: async (values) => {
@@ -63,6 +64,17 @@ export function useForm<T extends Record<string, any>>(
     const errors = ref<ApiErrors>({})
     const isLoading = ref(false)
     const isSuccess = ref(false)
+    const formRef = useTemplateRef<HTMLFormElement>('form')
+
+    if (formRef) {
+        watch(formRef, (form) => {
+            if (form) {
+                form.addEventListener('focus', () => {
+                    useAltcha().prepare()
+                }, true)
+            }
+        })
+    }
 
     /**
      * Установка значения поля

@@ -10,6 +10,10 @@ use Bitrix\Iblock\SectionPropertyTable;
  */
 $component = $this->getComponent();
 $urlService = service(UrlService::class);
+$sectionUrl = $urlService->cleanUrl($arParams['SECTION_URL'] ?? '');
+if($sectionUrl === '' || $sectionUrl === '/') {
+    $sectionUrl = null;
+}
 
 if ($arParams['USE_FILTER']) {
     $items = [];
@@ -30,7 +34,7 @@ if ($arParams['USE_FILTER']) {
     $arResult['DTO'] = FilterDTO::make([
         'filterUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL']),
         'clearUrl' => $urlService->cleanUrl($arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL']),
-        'sectionUrl' => $urlService->cleanUrl($arParams['SECTION_URL'] ?? ''),
+        'sectionUrl' => $sectionUrl,
         'items' => $items,
         'sorting' => $component->getSortingService()?->getSorting(),
         'types' => [
@@ -44,7 +48,7 @@ if ($arParams['USE_FILTER']) {
     ]);
 } else {
     $arResult['DTO'] = FilterDTO::make([
-        'sectionUrl' => $urlService->cleanUrl($arParams['SECTION_URL'] ?? ''),
+        'sectionUrl' => $sectionUrl,
         'sorting' => $component->getSortingService()?->getSorting(),
     ]);
 }

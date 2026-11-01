@@ -2,6 +2,7 @@
 
 namespace Beeralex\Api\V1\Controllers;
 
+use Itb\Altcha\ActionFilter\AltchaFilter;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
 use Beeralex\Core\Http\Controllers\ApiController;
@@ -23,7 +24,9 @@ class ReviewController extends ApiController
                 'prefilters' => [],
             ],
             'store' => [
-                'prefilters' => [],
+                'prefilters' => [
+                    new AltchaFilter(),
+                ],
             ],
         ];
     }

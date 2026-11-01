@@ -42,3 +42,11 @@
 	path = local/modules/beeralex.catalog
 	url = https://github.com/BkycHblu-6oPwuK/beeralex.catalog.git
     branch = main
+[submodule "local/modules/shestpa.lastmodified"]
+	path = local/modules/shestpa.lastmodified
+	url = git@github.com:BkycHblu-6oPwuK/shestpa.lastmodified.git
+    branch = master
+[submodule "local/modules/itb.altcha"]
+	path = local/modules/itb.altcha
+	url = git@github.com:purgeneshe/itb.altcha.git
+    branch = main

@@ -7,6 +7,7 @@ namespace Beeralex\Api\V1\Controllers;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
 use Beeralex\Api\Domain\Form\FormHandlers;
+use Itb\Altcha\ActionFilter\AltchaFilter;
 use Beeralex\Core\Http\Controllers\ApiController;
 use Beeralex\Core\Service\FileService;
 
@@ -28,7 +29,9 @@ class FormController extends ApiController
                 'prefilters' => [],
             ],
             'store' => [
-                'prefilters' => [],
+                'prefilters' => [
+                    new AltchaFilter(),
+                ],
             ],
         ];
     }

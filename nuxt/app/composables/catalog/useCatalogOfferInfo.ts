@@ -2,10 +2,18 @@ import type { CatalogItemDTO, CatalogOfferDTO, CatalogPriceDTO } from '~/types/i
 import type { PropertiesMap, PropertyItemDTO } from '~/types/iblock'
 
 type ValueDTO = PropertyItemDTO['valuesDto'][number]
+type OverridableFields = Partial<CatalogItemDTO & CatalogOfferDTO>
 
 /** Базовая цена, иначе первая */
 export const pickPrice = (prices?: CatalogPriceDTO[] | null): CatalogPriceDTO | null =>
     prices?.find(p => p.catalogGroup?.base) ?? prices?.[0] ?? null
+
+const isFilledField = (v: unknown) => {
+    if (v === null || v === undefined) return false
+    if (typeof v === 'string') return v.trim() !== ''
+    if (typeof v === 'object') return Object.keys(v).length > 0
+    return true
+}
 
 /** Проверяет, заполнено ли значение свойства */
 const isFilled = (val: ValueDTO) => {
@@ -16,6 +24,7 @@ const isFilled = (val: ValueDTO) => {
 }
 
 const hasValue = (prop?: PropertyItemDTO | null) => !!prop?.valuesDto?.some(isFilled)
+const OVERRIDABLE_FIELDS = ['detailPictureSrc', 'previewPictureSrc'] as const
 
 /**
  * Цена, наличие и ID для корзины — ВСЕГДА от выбранного предложения.
@@ -36,6 +45,21 @@ export function useCatalogOfferInfo(
         return pickPrice(v.prices)
             ?? pickPrice(v.preselectedOffer?.prices)
             ?? pickPrice(v.offers?.[0]?.prices)
+    })
+
+    /**
+     * Итоговые поля берём из предложения, если заполнено, иначе из товара.
+     */
+    const fields = computed<Pick<OverridableFields, typeof OVERRIDABLE_FIELDS[number]>>(() => {
+        const base = toValue(item)
+        const offer = toValue(selectedOffer) as (CatalogOfferDTO & OverridableFields) | null | undefined
+
+        return Object.fromEntries(
+            OVERRIDABLE_FIELDS.map((key) => {
+                const own = offer?.[key]
+                return [key, isFilledField(own) ? own : base?.[key]]
+            }),
+        ) as OverridableFields
     })
 
     /**
@@ -77,5 +101,5 @@ export function useCatalogOfferInfo(
         return v.offers?.length ? null : v.id
     })
 
-    return { price, isAvailable, purchasableId, properties }
+    return { price, isAvailable, purchasableId, properties, fields }
 }

@@ -53,6 +53,7 @@ export const useUserStore = defineStore('user', {
             const response = await useApiFetch<LoginApiResponse>('user/login', {
                 method: 'post',
                 body: { type, ...values },
+                altcha: true
             })
 
             if (response.data?.user) {

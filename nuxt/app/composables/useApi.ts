@@ -1,4 +1,5 @@
 import { createError } from 'h3'
+import type { H3Event } from 'h3'
 import type { ApiResponse, ContentType } from '~/types/api'
 import type { $Fetch } from 'ofetch'
 import type { MaybeRefOrGetter, WatchSource } from 'vue'
@@ -7,11 +8,6 @@ type AppendFn = (key: string, value: string | Blob) => void
 const AUTO_CONTENT_TYPE = 'form' as const
 const CSRF_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
-function getBaseUrl() {
-    const config = useRuntimeConfig()
-    return config.public.apiBaseClient
-}
-
 function getCsrfHeaders(method: string): Record<string, string> {
     if (!CSRF_METHODS.has(method.toUpperCase())) return {}
     const { csrf, headerName } = useCsrf()
@@ -19,150 +15,31 @@ function getCsrfHeaders(method: string): Record<string, string> {
 }
 
 /**
- * Возвращает путь без ведущих и конечных слешей
+ * Страница получает самую свежую Last-Modified из всех API-запросов, сделанных при SSR
  */
-function getCleanPath(path: string) {
-    return path.replace(/^\/+/, '').replace(/\/+$/, '')
-}
-
-function getApiFetch() {
-    return (import.meta.server ? useRequestFetch() : useNuxtApp().$fetch) as $Fetch
-}
-
-/**
- * Универсальный композабл для API запросов с кешированием
- * Использует useAsyncData для SSR и автоматического кеширования
- * Поддерживает разные baseURL для серверной и клиентской стороны
- * 
- * @template T - Тип ожидаемых данных в ответе
- * @param path - Путь к API endpoint (без базового URL)
- * @param options - Настройки запроса
- *   - key: уникальный ключ для кеширования (генерируется автоматически если не указан)
- *   - query: объект с query параметрами
- *   - body: тело запроса (для POST)
- *   - method: HTTP метод (get или post)
- *   - lazy: использовать useLazyAsyncData (true) или useAsyncData (false, по умолчанию)
- * @returns Результат useAsyncData с данными и ошибками
- */
-export function useApi<T = unknown>(
-    path: MaybeRefOrGetter<string>,
-    options: {
-        key?: string
-        query?: Record<string, any>
-        body?: any
-        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
-        lazy?: boolean
-        contentType?: ContentType
-        watch?: WatchSource[]
-    } = {}
+function mergeApiCacheHeaders(
+    event: H3Event | undefined,
+    headers: Headers,
 ) {
-    const requestKey = options.key ?? `${getCleanPath(toValue(path))}-${JSON.stringify(options.query || {})}`
-    const asyncDataFn = options.lazy ? useLazyAsyncData : useAsyncData
+    if (!event) return
 
-    return asyncDataFn<ApiResponse<T>>(requestKey, () => fetchApi<T>(toValue(path), options), { watch: options.watch })
-}
+    const etag = headers.get('etag')
 
-/**
- * Один запрос к API для загрузки страницы (внутри useAsyncData и подобных).
- * В отличие от useApiFetch, ошибка — createError с кодом ответа: 404 API даёт 404-страницу Nuxt
- * без scrf токена
- */
-export async function fetchApi<T = unknown>(
-    path: string,
-    options: {
-        query?: Record<string, any>
-        body?: any
-        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
-        contentType?: ContentType
-    } = {}
-) {
-    try {
-        const method = options.method || 'get'
-        const { body, headers } = prepareRequest(
-            options.body,
-            options.contentType
-        )
-
-        const fetch = getApiFetch()
-        const res = await fetch<ApiResponse<T>>(getCleanPath(path), {
-            baseURL: getBaseUrl(),
-            method: method,
-            query: options.query,
-            body,
-            credentials: 'include',
-            headers
-        })
-
-        if (res.status === 'error') {
-            throw createError({
-                statusCode: 500,
-                statusMessage: res.errors?.[0]?.message || 'API error',
-                data: res.errors
-            })
-        }
-
-        return res
-    } catch (error: any) {
-        throw createError({
-            statusCode: error?.statusCode || 500,
-            statusMessage: error?.message || 'Network error'
-        })
+    if (etag) {
+        const etags: string[] = event.context.__apiEtags ??= []
+        etags.push(etag)
     }
-}
 
-/**
- * Композабл для прямых API запросов без кеширования
- * Используется для запросов после монтирования компонента или в обработчиках событий
- * 
- * @template T - Тип ожидаемых данных в ответе
- * @param path - Путь к API endpoint (без базового URL)
- * @param options - Настройки запроса
- * @returns Promise с результатом запроса
- */
-export async function useApiFetch<T = unknown>(
-    path: string,
-    options: {
-        query?: Record<string, any>
-        body?: any
-        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
-        contentType?: ContentType
-    } = {}
-) {
-    const baseURL = getBaseUrl()
-    const cleanPath = getCleanPath(path)
+    const raw = headers.get('last-modified')
+    if (!raw) return
 
-    try {
-        const method = options.method || 'get'
-        const { body, headers } = prepareRequest(
-            options.body,
-            options.contentType
-        )
-        Object.assign(headers, getCsrfHeaders(method))
+    const next = Date.parse(raw)
+    if (Number.isNaN(next)) return
 
-        const fetch = getApiFetch()
-        const res = await fetch<ApiResponse<T>>(cleanPath, {
-            baseURL,
-            method: method,
-            query: options.query,
-            body,
-            credentials: 'include',
-            headers
-        })
+    const current: number = event.context.__lastModified ?? 0
 
-        if (res.status === 'error') {
-            throw createErrorFromApi(res)
-        }
-
-        return res
-    } catch (error: any) {
-        if (isCsrfError(error)) {
-            if(import.meta.client) {
-                alert('CSRF Token Mismatch. Страница будет перезагружена.')
-                location.reload()
-                throw error
-            }
-        }
-        throw createErrorFromApi(error)
+    if (next > current) {
+        event.context.__lastModified = next
     }
 }
 
@@ -208,7 +85,7 @@ function serializeFields(data: Record<string, unknown>, append: AppendFn): void 
     }
 }
 
-export function prepareRequest(
+function prepareRequest(
     body: any,
     contentType: ContentType = 'auto'
 ): {
@@ -265,5 +142,161 @@ export function prepareRequest(
 
         default:
             throw new TypeError(`prepareRequest: неизвестный contentType "${contentType}"`)
+    }
+}
+
+function getApiFetch() {
+    return (import.meta.server ? useRequestFetch() : useNuxtApp().$fetch) as $Fetch
+}
+
+/**
+ * Универсальный композабл для API запросов с кешированием
+ * Использует useAsyncData для SSR и автоматического кеширования
+ * Поддерживает разные baseURL для серверной и клиентской стороны
+ * 
+ * @template T - Тип ожидаемых данных в ответе
+ * @param path - Путь к API endpoint (без базового URL)
+ * @param options - Настройки запроса
+ *   - key: уникальный ключ для кеширования (генерируется автоматически если не указан)
+ *   - query: объект с query параметрами
+ *   - body: тело запроса (для POST)
+ *   - method: HTTP метод (get или post)
+ *   - lazy: использовать useLazyAsyncData (true) или useAsyncData (false, по умолчанию)
+ * @returns Результат useAsyncData с данными и ошибками
+ */
+export function useApi<T = unknown>(
+    path: MaybeRefOrGetter<string>,
+    options: {
+        key?: string
+        query?: Record<string, any>
+        body?: any
+        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
+        lazy?: boolean
+        contentType?: ContentType
+        watch?: WatchSource[]
+    } = {}
+) {
+    const requestKey = options.key ?? `${getCleanPath(toValue(path))}-${JSON.stringify(options.query || {})}`
+    const asyncDataFn = options.lazy ? useLazyAsyncData : useAsyncData
+
+    return asyncDataFn<ApiResponse<T>>(requestKey, () => fetchApi<T>(toValue(path), options), { watch: options.watch })
+}
+
+/**
+ * Один запрос к API для загрузки страницы (внутри useAsyncData и подобных).
+ * В отличие от useApiFetch, ошибка — createError с кодом ответа: 404 API даёт 404-страницу Nuxt
+ * без scrf токена
+ */
+export async function fetchApi<T = unknown>(
+    path: string,
+    options: {
+        query?: Record<string, any>
+        body?: any
+        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
+        contentType?: ContentType
+    } = {}
+) {
+    const event = import.meta.server ? useRequestEvent() : undefined
+    try {
+        const method = options.method || 'get'
+        const { body, headers } = prepareRequest(
+            options.body,
+            options.contentType
+        )
+
+        const fetch = getApiFetch()
+        const res = await fetch<ApiResponse<T>>(getCleanPath(path), {
+            baseURL: getBaseUrl(),
+            method,
+            query: options.query,
+            body,
+            credentials: 'include',
+            headers,
+            onResponse({ response }) {
+                mergeApiCacheHeaders(event, response.headers)
+            },
+        })
+
+        if (res.status === 'error') {
+            throw createError({
+                statusCode: 500,
+                statusMessage: res.errors?.[0]?.message || 'API error',
+                data: res.errors
+            })
+        }
+
+        return res
+    } catch (error: any) {
+        throw createError({
+            statusCode: error?.statusCode || 500,
+            statusMessage: error?.message || 'Network error'
+        })
+    }
+}
+
+/**
+ * Композабл для прямых API запросов без кеширования
+ * Используется для запросов после монтирования компонента или в обработчиках событий
+ * 
+ * @template T - Тип ожидаемых данных в ответе
+ * @param path - Путь к API endpoint (без базового URL)
+ * @param options - Настройки запроса
+ * @returns Promise с результатом запроса
+ */
+export async function useApiFetch<T = unknown>(
+    path: string,
+    options: {
+        query?: Record<string, any>
+        body?: any
+        method?: 'get' | 'post' | 'put' | 'patch' | 'delete'
+        contentType?: ContentType
+        altcha?: boolean
+    } = {}
+) {
+    const baseURL = getBaseUrl()
+    const cleanPath = getCleanPath(path)
+    const event = import.meta.server ? useRequestEvent() : undefined
+    try {
+        const method = options.method || 'get'
+        const { body, headers } = prepareRequest(
+            options.body,
+            options.contentType
+        )
+        Object.assign(headers, getCsrfHeaders(method))
+
+        if (options.altcha && import.meta.client) {
+            const altchaHeader = await getAltchaHeader()
+            if (Object.keys(altchaHeader).length === 0) {
+                throw new Error('Не удалось пройти проверку Altcha, попробуйте ещё раз')
+            }
+            Object.assign(headers, altchaHeader)
+        }
+
+        const fetch = getApiFetch()
+        const res = await fetch<ApiResponse<T>>(cleanPath, {
+            baseURL,
+            method: method,
+            query: options.query,
+            body,
+            credentials: 'include',
+            headers: headers,
+            onResponse({ response }) {
+                mergeApiCacheHeaders(event, response.headers)
+            },
+        })
+        if (res.status === 'error') {
+            throw createErrorFromApi(res)
+        }
+
+        return res
+    } catch (error: any) {
+        if (isCsrfError(error)) {
+            if (import.meta.client) {
+                alert('CSRF Token Mismatch. Страница будет перезагружена.')
+                location.reload()
+                throw error
+            }
+        }
+        throw createErrorFromApi(error)
     }
 }

@@ -1,19 +1,9 @@
 import { createError } from 'h3'
 import { fetchProxy } from '../../utils/api'
-import { getUpstreamUrl, getApiPath } from './utils/api'
 
 export default defineEventHandler(async (event) => {
-    const path = getApiPath(event)
-
-    if (!path) {
-        throw createError({
-            statusCode: 400,
-            statusMessage: 'API path is required',
-        })
-    }
-
     try {
-        return await fetchProxy(event, getUpstreamUrl(path))
+        return await fetchProxy(event)
     } catch (err: any) {
         if (err.statusCode) throw err
 

@@ -9,6 +9,7 @@ services:
             - ${SITE_PATH}:/var/www
             - ${CONF_PATH}/nginx/conf.d:/etc/nginx/conf.d
             - ${CONF_PATH}/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ${CONF_PATH}/nginx/certs/api.localhost:/usr/local/share/ca-certificates/api.localhost
         ports:
             - 80:80
             - 443:443
@@ -25,11 +26,14 @@ services:
                 USERGROUP: ${USERGROUP}
         volumes:
             - ${SITE_PATH}:/var/www
+            - ${CONF_PATH}/app/nginx/api.localhost.conf:/etc/nginx/conf.d/api.localhost.conf
+            - ${CONF_PATH}/nginx/certs/api.localhost:/usr/local/share/ca-certificates/api.localhost
         ports:
             - 9000:9000
             - 6001:6001
         environment:
             PHP_IDE_CONFIG: serverName=xdebugServer
+            XDEBUG_DISABLED: "1"
             XDEBUG_TRIGGER: testTrig
         depends_on:
             - mysql
@@ -76,7 +80,7 @@ services:
             - app
         networks:
             - docky
-        command: sh -c "su -s /bin/sh docky -c 'pm2 start /var/www/nuxt/ecosystem.config.cjs --name node-server' && tail -f /dev/null"
+        command: tail -f /dev/null
         working_dir: ${NODE_PATH}
         container_name: node
 volumes:
