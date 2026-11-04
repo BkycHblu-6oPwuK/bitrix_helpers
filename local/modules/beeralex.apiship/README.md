@@ -7,14 +7,4 @@
 3. Прием вебхуков от api apiShip (обновление статусов)
     3.1 Раз принимаем вебхуки, так и поддерживаем трекинг, историю статусов
 4. Сервис возвращающий пункты выдачи по городу (GET /lists/points)
-
-Возможна фильтрация по полям: id, providerKey, code, codeOriginal, name, postIndex, lat, lng, countryCode, region, regionType, city, cityGuid, cityType, area, street, streetType, house, block, office, address, url, email, phone, availableOperation, type, cod, paymentCash, paymentCard, fittingRoom. Например: city=Москва;providerKey=cdek;availableOperation=[2,3]. Документация работы фильтра: https://docs.apiship.ru/docs/api/query-filter/
-
-Сервис должен уметь различные фильтры применять, то есть доставки от городов до сёл, всегда один providerKey т.к. в оформлении битрикса выбирается конкретная ТК.
-
-5. SDK apiShip - стандартный и полностью расширенный
-
-TODO:
-- дефолтные настройки габаритов
-- Понять какие свойства заказов нужны для интеграции с api apiShip (вероятно будут коды свойств дефолтные и наверное нужны настройки для переопределения) и какие коды свойств нужно создать (например для тарифа доставки - да, cityGuid - нет)
-- extraParams в создании заказа - событие модуля?
+5. Небольшая кастомизация страницы заказа в админке, вывод информации о заказе в apiship из Beeralex\Apiship\Model\OrderTable, статусов из StatusLogTable и логах вебхуков, в общем общая информация о заказе и его история

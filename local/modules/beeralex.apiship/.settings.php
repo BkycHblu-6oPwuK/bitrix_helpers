@@ -1,6 +1,6 @@
 <?php
 
-use Beeralex\Apiship\Support\ApiShipOrderRequestBuilder;
+use Beeralex\Apiship\Support\OrderRequestBuilder;
 use Beeralex\Apiship\Support\CalculatorRequestBuilder;
 use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\CalculatorServiceContract;
@@ -21,11 +21,19 @@ use Beeralex\Apiship\Service\ConnectionService;
 use Beeralex\Apiship\Service\CourierService;
 use Beeralex\Apiship\Service\OrderService;
 use Beeralex\Apiship\Service\PointService;
+use Beeralex\Apiship\Service\ProfileCalculator;
 use Beeralex\Apiship\Service\ProviderService;
 use Beeralex\Apiship\Service\StatusService;
 use Beeralex\Apiship\Service\TrackingService;
 use Beeralex\Apiship\Service\WebhookService;
 use Beeralex\Apiship\StatusMapper;
+use Beeralex\Apiship\Support\CalculatedTariffStore;
+use Beeralex\Apiship\Support\CalculationContextFactory;
+use Beeralex\Apiship\Support\OrderAddressReader;
+use Beeralex\Apiship\Support\RecipientReader;
+use Beeralex\Apiship\Support\OrderItemsMapper;
+use Beeralex\Apiship\Support\ProfileFormOptions;
+use Beeralex\Apiship\Support\TariffSelector;
 
 return [
     'services' => [
@@ -38,8 +46,6 @@ return [
                     service(Options::class)
                 ),
             ],
-
-            // Service-слой ("богатое API" модуля) — регистрируем как реализацию по контракту.
             CalculatorServiceContract::class => [
                 'constructor' => static fn() => new CalculatorService(
                     service(ClientFactory::class),
@@ -69,7 +75,10 @@ return [
                     service(ClientFactory::class),
                     service(Options::class),
                     service(OrderRepository::class),
-                    service(ApiShipOrderRequestBuilder::class),
+                    service(OrderRequestBuilder::class),
+                    service(OrderItemsMapper::class),
+                    service(RecipientReader::class),
+                    service(CalculatedTariffStore::class)
                 ),
             ],
             CourierServiceContract::class => [
@@ -96,9 +105,6 @@ return [
                     service(ClientFactory::class)
                 ),
             ],
-
-            // Конкретные реализации регистрируем и по собственному имени класса —
-            // удобно, когда контракт избыточен (например, внутри самого модуля).
             CalculatorService::class => [
                 'constructor' => static fn() => service(CalculatorServiceContract::class),
             ],
@@ -126,17 +132,13 @@ return [
             TrackingService::class => [
                 'constructor' => static fn() => service(TrackingServiceContract::class),
             ],
-
-            ApiShipOrderRequestBuilder::class => [
-                'constructor' => static fn() => new ApiShipOrderRequestBuilder(
-                    service(Options::class)
-                ),
+            OrderRequestBuilder::class => [
+                'className' => OrderRequestBuilder::class,
             ],
             CalculatorRequestBuilder::class => [
                 'className' => CalculatorRequestBuilder::class,
             ],
 
-            // Репозитории (Фаза 4) — доступ к beeralex_apiship_order/status_log/webhook_log.
             OrderRepository::class => [
                 'className' => OrderRepository::class,
             ],
@@ -151,6 +153,49 @@ return [
                     service(Options::class)
                 ),
             ],
+            TariffSelector::class => [
+                'className' => TariffSelector::class
+            ],
+            OrderAddressReader::class => [
+                'constructor' => static fn() => new OrderAddressReader(
+                    service(Options::class)
+                ),
+            ],
+            RecipientReader::class => [
+                'constructor' => static fn() => new RecipientReader(
+                    service(Options::class),
+                    service(OrderAddressReader::class)
+                ),
+            ],
+            OrderItemsMapper::class => [
+                'constructor' => static fn() => new OrderItemsMapper(
+                    service(Options::class)
+                ),
+            ],
+            CalculatedTariffStore::class => [
+                'constructor' => static fn() => new CalculatedTariffStore(
+                    service(Options::class)
+                ),
+            ],
+            CalculationContextFactory::class => [
+                'constructor' => static fn() => new CalculationContextFactory(
+                    service(Options::class),
+                    service(OrderAddressReader::class)
+                ),
+            ],
+            ProfileCalculator::class => [
+                'constructor' => static fn() => new ProfileCalculator(
+                    service(CalculatorServiceContract::class),
+                    service(CalculationContextFactory::class),
+                    service(TariffSelector::class)
+                ),
+            ],
+            ProfileFormOptions::class => [
+                'constructor' => static fn() => new ProfileFormOptions(
+                    service(ConnectionServiceContract::class),
+                    service(ProviderServiceContract::class)
+                ),
+            ]
         ],
         'readonly' => true,
     ],
