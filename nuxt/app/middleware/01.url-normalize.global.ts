@@ -3,8 +3,6 @@
  * В отличие от серверного middleware, не делает редирект, а просто исправляет URL в роутере.
  */
 
-import { defineNuxtRouteMiddleware, navigateTo } from '#imports';
-
 export default defineNuxtRouteMiddleware((to) => {
     if (import.meta.server) return;
 

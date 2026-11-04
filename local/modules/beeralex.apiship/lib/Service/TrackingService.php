@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Beeralex\Apiship\Service;
 
 use Apiship\Exception\ResponseException;
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\TrackingServiceContract;
 use Beeralex\Apiship\Exception\ApiShipException;
 

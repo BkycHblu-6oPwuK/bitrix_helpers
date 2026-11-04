@@ -14,7 +14,9 @@ export default defineNuxtConfig({
     compatibilityDate: '2026-01-01',
 
     runtimeConfig: {
+        isDev: isDev,
         apiBaseServer: process.env.NUXT_API_BASE_SERVER,
+        secretToken: process.env.NUXT_SECRET_TOKEN,
         buildAt: buildAtIso,
         debug: process.env.NUXT_DEBUG === 'true',
         public: {
@@ -80,6 +82,9 @@ export default defineNuxtConfig({
         plugins: [
             tailwindcss(),
         ],
+        server: {
+            allowedHosts: ['node'],
+        },
     },
 
     vue: {
@@ -122,12 +127,14 @@ export default defineNuxtConfig({
             sameSite: 'strict',
         },
         methodsToProtect: ['POST', 'PUT', 'PATCH', 'DELETE'], // GET не трогаем
-        encryptSecret: process.env.NUXT_CSURF_ENCRYPT_SECRET
+        encryptSecret: process.env.NUXT_CSURF_ENCRYPT_SECRET,
+        addCsrfTokenToEventCtx: true,
     },
 
     imports: {
         dirs: [
-            '~/composables/**'
+            '~/composables/**',
+            '~/utils/**'
         ],
         imports: [
             {
@@ -137,16 +144,31 @@ export default defineNuxtConfig({
             },
         ]
     },
+    
+    // локально в любом случае не работает
+    nitro: {
+        storage: {
+            cache: {
+                driver: 'redis',
+                url: process.env.NUXT_REDIS_URL || 'redis://localhost:6379'
+            }
+        }
+    },
 
+    // + server/api/v1/[...path].ts произвольные правила через defineApiCachedHandler
     routeRules: {
         '/api/v1/get-main-page': { swr: isDev ? false : 300 },
         '/api/v1/get-menu': { swr: isDev ? false : 600 },
-        '/api/v1/catalog': { swr: isDev ? false : 300 },
-        '/api/v1/catalog/**': { swr: isDev ? false : 300 },
         '/api/v1/product/**': { swr: isDev ? false : 300 },
         '/api/v1/articles': { swr: isDev ? false : 300 },
         '/api/v1/articles/**': { swr: isDev ? false : 300 },
         '/api/v1/reviews': { swr: isDev ? false : 300 },
+
+        '/api/__cache__/invalidate': {
+            csurf: false,
+        },
+
+        '/**': { headers: { 'cache-control': 'no-store' } }
     },
 
 })

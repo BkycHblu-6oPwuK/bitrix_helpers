@@ -1,129 +1,71 @@
 /**
- * Middleware для каноникализации URL:
- * - удаляет дублирующие слэши
- * - приводит к нижнему регистру
- * - добавляет/убирает завершающий слэш (по правилам)
- * - редиректит с www на без www
- * - редиректит с http на https (если в конфиге указано https)
+ * Каноникализация URL для GET/HEAD, всегда один 301:
+ * - www → без www, http → https (для канонического хоста);
+ * - схлопывает слэши, приводит путь к нижнему регистру;
+ * - у страниц добавляет завершающий слэш (api и файлы с расширением не трогаем);
+ * - /index.php, /home.html и т.п. → /
  */
+import type { H3Event } from 'h3'
 
-import type { H3Event } from 'h3';
-import { getRequestHeader, getRequestURL, sendRedirect } from 'h3';
+const SKIP_PREFIXES = ['/_nuxt/', '/__nuxt']
+const LEGACY_ROOT = /^\/(?:index|home)\.(?:php|html?)\/?$/i
+const HAS_EXTENSION = /\.[^/]+$/
 
-function normalizePath(path: string): string {
-    let normalized = (path || '/').toLowerCase().replace(/\/+/g, '/');
+/** Первое значение из заголовка прокси ("a, b" → "a") */
+function forwarded(event: H3Event, name: string): string | undefined {
+    return getRequestHeader(event, name)?.split(',')[0]?.trim() || undefined
+}
 
-    if (!normalized.startsWith('/')) {
-        normalized = `/${normalized}`;
+function parseUrl(value: string | undefined): URL | undefined {
+    try {
+        return value ? new URL(value) : undefined
+    } catch {
+        return undefined
     }
-
-    const isApiRoute = normalized.startsWith('/api/');
-    /**
-     * страницы - слеш на конце
-     * api - без слеша на конце
-     */
-    if (!isApiRoute && !normalized.endsWith('/') && normalized.length > 1 && !/\.[^/]+$/.test(normalized)) {
-        normalized += '/';
-    }
-
-    return normalized;
 }
 
-function applyLegacyRoot(path: string): string {
-    if (/^\/(?:index|home)\.(?:php|html?)\/?$/i.test(path)) return '/';
-    return path;
-}
+function canonicalize(pathname: string): string {
+    // \ тоже схлопываем: браузер воспринимает "/\evil.com" как "//evil.com"
+    let path = pathname.replace(/[\\/]+/g, '/')
+    if (LEGACY_ROOT.test(path)) return '/'
 
-function getHostFromEvent(event: H3Event): string {
-    return (
-        getRequestHeader(event, 'x-forwarded-host')?.split(',')[0]?.trim() ||
-        getRequestHeader(event, 'host') ||
-        getRequestURL(event).host ||
-        ''
-    );
-}
+    // нижний регистр, но %XX остаются в верхнем: иначе /%D0 и /%d0 дают лишний редирект
+    path = path.replace(/%[0-9a-f]{2}|[^%]+/gi, (part) =>
+        part[0] === '%' ? part.toUpperCase() : part.toLowerCase(),
+    )
+    if (!path.startsWith('/')) path = `/${path}`
 
-function getProtoFromEvent(event: H3Event): string {
-    return (
-        getRequestHeader(event, 'x-forwarded-proto')?.split(',')[0]?.trim() ||
-        getRequestURL(event).protocol.replace(':', '') ||
-        'https'
-    );
-}
-
-function parseRawReqUrl(reqUrl: string | undefined): {
-    pathname: string;
-    search: string;
-    hash: string;
-} {
-    if (!reqUrl) return { pathname: '/', search: '', hash: '' };
-    let rest = reqUrl;
-    let hash = '';
-    const hi = rest.indexOf('#');
-    if (hi >= 0) {
-        hash = rest.slice(hi);
-        rest = rest.slice(0, hi);
-    }
-    const qi = rest.indexOf('?');
-    if (qi >= 0) {
-        const pathname = rest.slice(0, qi) || '/';
-        const search = rest.slice(qi);
-        return { pathname, search, hash };
-    }
-    return { pathname: rest || '/', search: '', hash };
-}
-
-function publicOrigin(event: H3Event): string {
-    const host = getHostFromEvent(event);
-    const proto = getProtoFromEvent(event);
-    return `${proto}://${host}`;
+    const isPage = !path.startsWith('/api/') && !HAS_EXTENSION.test(path)
+    return isPage && !path.endsWith('/') ? `${path}/` : path
 }
 
 export default defineEventHandler((event) => {
-    const method = event.node.req.method;
-    if (method !== 'GET' && method !== 'HEAD') return;
+    if (event.method !== 'GET' && event.method !== 'HEAD') return
 
-    const raw = parseRawReqUrl(event.node.req.url);
-    const rawPathname = raw.pathname;
+    // сырой путь: без декодирования и нормализации, как пришёл от клиента
+    const i = event.path.indexOf('?')
+    const pathname = i === -1 ? event.path : event.path.slice(0, i)
+    const search = i === -1 ? '' : event.path.slice(i)
 
-    if (
-        rawPathname.startsWith('/_nuxt/') ||
-        rawPathname.startsWith('/__nuxt')
-    ) {
-        return;
+    if (SKIP_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return
+
+    const path = canonicalize(pathname)
+    const target = `${path}${search}`
+
+    const host = (forwarded(event, 'x-forwarded-host') || getRequestHost(event)).toLowerCase()
+    const proto = forwarded(event, 'x-forwarded-proto') || getRequestProtocol(event)
+
+    const config = useRuntimeConfig(event)
+    const canonical = parseUrl(config.effectiveHost || config.public?.baseUrl)
+
+    const upgradeToHttps =
+        proto === 'http' && canonical?.protocol === 'https:' && host === canonical.host
+
+    if (host.startsWith('www.') || upgradeToHttps) {
+        return sendRedirect(event, `https://${host.replace(/^www\./, '')}${target}`, 301)
     }
 
-    let collapsed = rawPathname.replace(/\/+/g, '/');
-    collapsed = applyLegacyRoot(collapsed);
-    const canonicalPath = normalizePath(collapsed);
-    const search = raw.search || '';
-    const hash = raw.hash || '';
-    const origin = publicOrigin(event);
-    const host = getHostFromEvent(event);
-    const proto = getProtoFromEvent(event);
-
-    const cfg = useRuntimeConfig();
-    const canonicalFromCfg = cfg.effectiveHost || cfg.public?.baseUrl || '';
-    let canonicalHost = '';
-    let canonicalProto = '';
-    try {
-        const u = canonicalFromCfg ? new URL(canonicalFromCfg) : null;
-        canonicalHost = u?.host || '';
-        canonicalProto = (u?.protocol || '').replace(':', '');
-    } catch { }
-
-    const absolute = `${origin}${canonicalPath}${search}${hash}`;
-
-    if (host.startsWith('www.')) {
-        const newHost = host.replace(/^www\./, '');
-        return sendRedirect(event, `https://${newHost}${canonicalPath}${search}${hash}`, 301);
+    if (path !== pathname) {
+        return sendRedirect(event, target, 301)
     }
-
-    if (proto === 'http' && canonicalHost && host === canonicalHost && canonicalProto === 'https') {
-        return sendRedirect(event, `https://${host}${canonicalPath}${search}${hash}`, 301);
-    }
-
-    if (canonicalPath !== rawPathname) {
-        return sendRedirect(event, absolute, 301);
-    }
-});
+})

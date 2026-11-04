@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Dto;
 
-use Beeralex\Apiship\Dto\Concerns\NormalizesValues;
+use Beeralex\Apiship\Support\Concerns\NormalizesValues;
 use Beeralex\Core\Http\Resources\Resource;
 
 /**

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Beeralex\Apiship\Delivery;
+namespace Beeralex\Apiship\Support;
 
-use Bitrix\Main\Loader;
-use Bitrix\Sale\BasketItemBase;
+use Beeralex\Apiship\Support\Concerns\ConvertsUnits;
+use Beeralex\Apiship\Dto\ShipmentLine;
 use Bitrix\Sale\Shipment;
 
 /**
@@ -22,41 +22,30 @@ use Bitrix\Sale\Shipment;
  */
 final class ShipmentParcelBuilder
 {
-    private const MM_IN_CM = 10;
+    use ConvertsUnits;
 
-    /**
-     * @param array{weight:int|float,width:int|float,height:int|float,length:int|float} $defaults
-     *        вес по умолчанию в граммах, габариты по умолчанию в сантиметрах
-     * @return array{
-     *     weight:int, width:int, height:int, length:int,
-     *     assessedCost:float, realDimensions:bool, itemsWithoutDimensions:int
-     * } вес в граммах, габариты в сантиметрах, стоимость в рублях
-     */
-    public static function build(Shipment $shipment, array $defaults): array
+    /** @param ShipmentLine[]|null $lines если уже прочитаны — повторно не читаем */
+    public static function build(Shipment $shipment, array $defaults, ?array $lines = null): array
     {
-        $rows = static::collectRows($shipment);
-        static::fillFromCatalog($rows);
+        $lines ??= ShipmentLinesReader::read($shipment);
 
         $boxLength = $boxWidth = $boxHeight = 0.0;
-        $weight = 0.0;
-        $cost = 0.0;
-        $withDims = 0;
-        $withoutDims = 0;
+        $weight = $cost = 0.0;
+        $withDims = $withoutDims = 0;
 
-        foreach ($rows as $row) {
-            $qty = $row['qty'];
-            $weight += $row['weight'] * $qty;
-            $cost += $row['price'] * $qty;
+        foreach ($lines as $line) {
+            $weight += $line->weight * $line->quantity;
+            $cost += $line->price * $line->quantity;
 
-            if ($row['dims'] === null) {
+            if ($line->dimensionsMm === null) {
                 $withoutDims++;
                 continue;
             }
 
-            [$a, $b, $c] = $row['dims']; // мм, по убыванию
+            [$a, $b, $c] = $line->dimensionsMm;
             $boxLength = max($boxLength, $a);
             $boxWidth = max($boxWidth, $b);
-            $boxHeight += $c * ceil($qty);
+            $boxHeight += $c * ceil($line->quantity);
             $withDims++;
         }
 
@@ -75,125 +64,5 @@ final class ShipmentParcelBuilder
             'realDimensions'         => $realDimensions,
             'itemsWithoutDimensions' => $withoutDims,
         ];
-    }
-
-    /**
-     * @return array<int,array{item:BasketItemBase,qty:float,price:float,weight:float,dims:?array{0:float,1:float,2:float}}>
-     */
-    private static function collectRows(Shipment $shipment): array
-    {
-        $rows = [];
-
-        foreach ($shipment->getShipmentItemCollection() as $shipmentItem) {
-            $basketItem = $shipmentItem->getBasketItem();
-            if (!$basketItem instanceof BasketItemBase) {
-                continue;
-            }
-
-            $qty = (float)$shipmentItem->getQuantity();
-            if ($qty <= 0) {
-                continue;
-            }
-
-            $rows[] = [
-                'item'   => $basketItem,
-                'qty'    => $qty,
-                'price'  => (float)$basketItem->getPrice(),
-                'weight' => (float)$basketItem->getWeight(),
-                'dims'   => static::readBasketDimensions($basketItem),
-            ];
-        }
-
-        return $rows;
-    }
-
-    /**
-     * Дозаполняет габариты/вес из каталога одним запросом для товаров, где в корзине их нет.
-     *
-     * @param array<int,array<string,mixed>> $rows
-     */
-    private static function fillFromCatalog(array &$rows): void
-    {
-        $missing = [];
-        foreach ($rows as $index => $row) {
-            if ($row['dims'] === null || $row['weight'] <= 0) {
-                $productId = (int)$row['item']->getProductId();
-                if ($productId > 0) {
-                    $missing[$index] = $productId;
-                }
-            }
-        }
-
-        if ($missing === [] || !Loader::includeModule('catalog')) {
-            return;
-        }
-
-        $catalog = [];
-        $res = \Bitrix\Catalog\ProductTable::getList([
-            'select' => ['ID', 'WEIGHT', 'WIDTH', 'HEIGHT', 'LENGTH'],
-            'filter' => ['@ID' => array_values(array_unique($missing))],
-        ]);
-        while ($product = $res->fetch()) {
-            $catalog[(int)$product['ID']] = [
-                'weight' => (float)$product['WEIGHT'],
-                'dims'   => static::normalizeDimensions($product),
-            ];
-        }
-
-        foreach ($missing as $index => $productId) {
-            if (!isset($catalog[$productId])) {
-                continue;
-            }
-            if ($rows[$index]['dims'] === null) {
-                $rows[$index]['dims'] = $catalog[$productId]['dims'];
-            }
-            if ($rows[$index]['weight'] <= 0) {
-                $rows[$index]['weight'] = $catalog[$productId]['weight'];
-            }
-        }
-    }
-
-    /**
-     * @return array{0:float,1:float,2:float}|null
-     */
-    private static function readBasketDimensions(BasketItemBase $item): ?array
-    {
-        $raw = $item->getField('DIMENSIONS');
-
-        if (is_string($raw) && $raw !== '') {
-            $raw = @unserialize($raw, ['allowed_classes' => false]);
-        }
-
-        return is_array($raw) ? static::normalizeDimensions($raw) : null;
-    }
-
-    /**
-     * Принимает массив с ключами WIDTH/HEIGHT/LENGTH (мм). Возвращает стороны по убыванию
-     * или null, если хотя бы одна сторона не задана.
-     *
-     * @return array{0:float,1:float,2:float}|null
-     */
-    private static function normalizeDimensions(array $raw): ?array
-    {
-        $sides = [
-            (float)($raw['LENGTH'] ?? 0),
-            (float)($raw['WIDTH'] ?? 0),
-            (float)($raw['HEIGHT'] ?? 0),
-        ];
-
-        foreach ($sides as $side) {
-            if ($side <= 0) {
-                return null;
-            }
-        }
-
-        rsort($sides);
-
-        return [$sides[0], $sides[1], $sides[2]];
-    }
-
-    private static function mmToCm(float $mm): int
-    {
-        return max(1, (int)ceil($mm / static::MM_IN_CM));
     }
 }

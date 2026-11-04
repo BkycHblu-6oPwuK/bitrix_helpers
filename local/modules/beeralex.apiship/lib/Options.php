@@ -19,9 +19,6 @@ final class Options extends AbstractOptions
     /** Включить логирование запросов/ответов. */
     public readonly bool $logsEnable;
 
-    /** ID подключения к службе доставки в ApiShip по умолчанию (providerConnectId). */
-    public readonly int $defaultProviderConnectId;
-
     /**
      * Статус заказа Bitrix, при переходе в который заказ отправляется в ApiShip.
      * Пусто — автоотправка отключена (заказ создаётся вручную через API модуля).
@@ -82,13 +79,18 @@ final class Options extends AbstractOptions
     /** Код свойства заказа: ID ПВЗ (pointOutId). */
     public readonly string $propPickupPointId;
 
+    /** Код свойства заказа: код страны. */
+    public readonly string $propCountryCode;
+
+    /** Код свойства заказа: рассчитанный тариф. */
+    public readonly string $propCalculatedTariff;
+
     protected function mapOptions(array $options): void
     {
         $this->login = (string)($options['login'] ?? '');
         $this->password = (string)($options['password'] ?? '');
         $this->isTest = ($options['is_test'] ?? '') === 'Y';
         $this->logsEnable = ($options['logs_enable'] ?? '') === 'Y';
-        $this->defaultProviderConnectId = (int)($options['default_provider_connect_id'] ?? 0);
         $this->sendOnStatusId = (string)($options['send_on_status_id'] ?? '');
         $this->sender = array_filter([
             'phone'         => (string)($options['sender_phone'] ?? ''),
@@ -126,6 +128,8 @@ final class Options extends AbstractOptions
         $this->propCityGuid = (string)($options['prop_city_guid'] ?? '') ?: 'CITY_GUID';
         $this->propAddress = (string)($options['prop_address'] ?? '') ?: 'ADDRESS';
         $this->propPickupPointId = (string)($options['prop_pickup_point_id'] ?? '') ?: 'PICKUP_POINT_ID';
+        $this->propCountryCode = (string)($options['prop_country_code'] ?? '') ?: 'COUNTRY_CODE';
+        $this->propCalculatedTariff = (string)($options['prop_calculated_tariff'] ?? '') ?: 'API_SHIP_CALCULATED_TARIFF';
     }
 
     /**

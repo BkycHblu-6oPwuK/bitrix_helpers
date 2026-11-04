@@ -4,13 +4,10 @@ declare(strict_types=1);
 namespace Beeralex\Apiship\Delivery\Tracking;
 
 use Bitrix\Main\Error;
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Delivery\Tracking\Base;
 use Bitrix\Sale\Delivery\Tracking\StatusResult;
 use Bitrix\Sale\Delivery\Tracking\Statuses;
 use Beeralex\Apiship\Contracts\StatusServiceContract;
-
-Loc::loadMessages(__FILE__);
 
 class ApiShipTracking extends Base
 {
@@ -36,12 +33,12 @@ class ApiShipTracking extends Base
 
     public function getClassTitle(): string
     {
-        return Loc::getMessage('BEERALEX_APISHIP_TRACKING_TITLE') ?: 'ApiShip';
+        return 'ApiShip';
     }
 
     public function getClassDescription(): string
     {
-        return Loc::getMessage('BEERALEX_APISHIP_TRACKING_DESCRIPTION') ?: 'Трекинг через ApiShip';
+        return 'Трекинг через ApiShip';
     }
 
     public function getParamsStructure(): array

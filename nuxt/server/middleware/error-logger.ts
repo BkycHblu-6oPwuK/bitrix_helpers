@@ -1,28 +1,41 @@
-const memMB = () => {
-    const m = process.memoryUsage();
-    return `heap=${Math.round(m.heapUsed / 1024 / 1024)}/${Math.round(m.heapTotal / 1024 / 1024)}MB`;
-};
+const memMB = (): string => {
+    // process.memoryUsage есть только в Node.js/Bun (не в Edge/Serverless)
+    if (typeof process === 'undefined' || !process.memoryUsage) return 'heap=N/A'
 
-export default defineEventHandler((event) => {
-    const { debug } = useRuntimeConfig();
-    if (!debug) return;
+    const { heapUsed, heapTotal } = process.memoryUsage()
+    return `heap=${Math.round(heapUsed / 1024 / 1024)}/${Math.round(heapTotal / 1024 / 1024)}MB`
+}
 
-    const method = event.node.req.method ?? '-';
-    const url = event.node.req.url ?? '-';
-    const ts = new Date().toISOString();
+export default defineNitroPlugin((nitroApp) => {
+    if (!useRuntimeConfig().debug) return
 
-    if (url.startsWith('/_nuxt/')) return;
+    nitroApp.hooks.hook('request', (event) => {
+        if (event.path.startsWith('/_nuxt/')) return
 
-    const startMs = Date.now();
-    const memBefore = memMB();
-
-    event.node.res.on('finish', () => {
-        const status = event.node.res.statusCode;
-        const memAfter = memMB();
-        const ms = Date.now() - startMs;
-        console.log(`[${ts}] REQ ${method} ${url} → ${status} ${ms}ms | before=${memBefore} after=${memAfter}`);
-        if (status >= 500) {
-            console.error(`[${ts}] ERROR ${status} ${method} ${url} ${ms}ms | mem=${memAfter}`);
+        event.context._log = {
+            startedAt: performance.now(),
+            ts: new Date().toISOString(),
+            memBefore: memMB(),
         }
-    });
-});
+    })
+
+    nitroApp.hooks.hook('afterResponse', (event) => {
+        const log = event.context._log as
+            | { startedAt: number; ts: string; memBefore: string }
+            | undefined
+        if (!log) return
+
+        const status = getResponseStatus(event)
+        const ms = Math.round(performance.now() - log.startedAt)
+        const memAfter = memMB()
+        const { method, path } = event
+
+        console.log(
+            `[${log.ts}] REQ ${method} ${path} → ${status} ${ms}ms | before=${log.memBefore} after=${memAfter}`,
+        )
+
+        if (status >= 500) {
+            console.error(`[${log.ts}] ERROR ${status} ${method} ${path} ${ms}ms | mem=${memAfter}`)
+        }
+    })
+})

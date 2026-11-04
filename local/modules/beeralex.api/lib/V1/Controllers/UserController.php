@@ -44,4 +44,12 @@ class UserController extends ApiController
             return $result;
         });
     }
+
+    /**
+     * Пустой ответ для выдачи сессии на фронт, удалить если JWT используется
+     */
+    public function sessionAction()
+    {
+        return [];
+    }
 }

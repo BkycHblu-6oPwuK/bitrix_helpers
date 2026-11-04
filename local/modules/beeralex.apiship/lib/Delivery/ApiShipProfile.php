@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Beeralex\Apiship\Delivery;
 
 use Bitrix\Main\Error;
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Delivery\CalculationResult;
 use Bitrix\Sale\Delivery\Services\Base;
 use Bitrix\Sale\Shipment;
@@ -14,9 +13,12 @@ use Beeralex\Apiship\Contracts\ConnectionServiceContract;
 use Beeralex\Apiship\Contracts\ProviderServiceContract;
 use Beeralex\Apiship\Dto\CalculationContext;
 use Beeralex\Apiship\Dto\TariffDto;
-use Beeralex\Apiship\Service\CalculationValidator;
-
-Loc::loadMessages(__FILE__);
+use Beeralex\Apiship\Options;
+use Beeralex\Apiship\Support\CalculatedTariffStore;
+use Beeralex\Apiship\Support\CalculationValidator;
+use Beeralex\Apiship\Support\OrderAddressReader;
+use Beeralex\Apiship\Support\ProfileConfig;
+use Beeralex\Apiship\Support\ShipmentParcelBuilder;
 
 /**
  * Профиль доставки ApiShip — конкретная служба доставки из ЛК ApiShip.
@@ -75,33 +77,31 @@ class ApiShipProfile extends Base
 
     public static function getClassTitle(): string
     {
-        return Loc::getMessage('BEERALEX_APISHIP_PROFILE_TITLE') ?: 'ApiShip: профиль ТК';
+        return 'ApiShip: профиль ТК';
     }
 
     public static function getClassDescription(): string
     {
-        return Loc::getMessage('BEERALEX_APISHIP_PROFILE_DESCRIPTION')
-            ?: 'Профиль конкретной службы доставки из ЛК ApiShip. Выберите подключение из списка.';
+        return 'Профиль конкретной службы доставки из ЛК ApiShip. Выберите подключение из списка.';
     }
 
     /** Возвращает false, если подключение не выбрано — скрывает способ в оформлении. */
     public function isCompatible(Shipment $shipment): bool
     {
-        [, $providerKey] = static::parseConnectionKey($this->getMainConfig());
-        return $providerKey !== '';
+        return $this->profileConfig()->providerKey !== '';
     }
 
     public function getConfigStructure(): array
     {
         // тарифы строим по сохранённому подключению: у нового профиля его ещё нет
-        $mainConfig = $this->getMainConfig();
-        [, $savedProviderKey] = static::parseConnectionKey($mainConfig);
-        $savedPickupType = (int)$mainConfig['PICKUP_TYPE'] ?: null;
-        $savedDeliveryType = (int)$mainConfig['DELIVERY_TYPE'] ?: null;
+        $config = $this->profileConfig();
+        $savedProviderKey = $config->providerKey;
+        $savedPickupType = $config->pickupType ?: null;
+        $savedDeliveryType = $config->deliveryType ?: null;
 
         return [
             'MAIN' => [
-                'NAME'  => Loc::getMessage('BEERALEX_APISHIP_PROFILE_CONFIG_MAIN') ?: 'Настройки профиля',
+                'NAME'  => 'Настройки профиля',
                 'ITEMS' => [
                     'CONNECTION_KEY' => [
                         'TYPE'     => 'ENUM',
@@ -112,7 +112,7 @@ class ApiShipProfile extends Base
                     'DELIVERY_TYPE' => [
                         'TYPE'    => 'ENUM',
                         'NAME'    => 'Тип доставки (как клиент получит заказ)',
-                        'OPTIONS' => ['' => '— все типы —'] + self::DELIVERY_TYPES,
+                        'OPTIONS' => ['' => '— все типы —'] + static::DELIVERY_TYPES,
                     ],
                     'TARIFF_ID' => [
                         'TYPE'    => 'ENUM',
@@ -125,15 +125,20 @@ class ApiShipProfile extends Base
                     'PICKUP_TYPE' => [
                         'TYPE'    => 'ENUM',
                         'NAME'    => 'Тип забора (как заказ будет передан в СД)',
-                        'OPTIONS' => ['' => '— все типы —'] + self::PICKUP_TYPES,
+                        'OPTIONS' => ['' => '— все типы —'] + static::PICKUP_TYPES,
                     ],
                     'POINT_IN_ID' => [
                         'TYPE' => 'STRING',
-                        'NAME' => 'ID пункта приёма СД (pointInId) — при самозавозе',
+                        'NAME' => 'ID пункта приёма СД (pointInId) — при типе забора самовывоз',
                     ],
                 ],
             ],
         ];
+    }
+
+    protected function profileConfig(): ProfileConfig
+    {
+        return ProfileConfig::fromArray($this->getMainConfig());
     }
 
     protected function calculateConcrete(Shipment $shipment): CalculationResult
@@ -157,7 +162,7 @@ class ApiShipProfile extends Base
         $tariff = $this->pickTariff($tariffs);
         if ($tariff === null) {
             $result->addError(new Error(
-                Loc::getMessage('BEERALEX_APISHIP_NO_TARIFF') ?: 'Не удалось рассчитать стоимость доставки',
+                'Не удалось рассчитать стоимость доставки',
                 'APISHIP_NO_TARIFF'
             ));
             return $result;
@@ -167,37 +172,26 @@ class ApiShipProfile extends Base
         $result->setPeriodFrom($tariff->daysMin);
         $result->setPeriodTo($tariff->daysMax);
         $result->setPeriodType(CalculationResult::PERIOD_TYPE_DAY);
-
+        $order = $shipment->getOrder();
+        if ($order !== null) {
+            \service(CalculatedTariffStore::class)->save($order, (int)$this->getId(), $tariff);
+        }
         return $result;
     }
 
     /**
      * Выбирает тариф: сначала по TARIFF_ID (если задан), иначе самый дешёвый.
-     * Фильтрация по providerKey/deliveryType уже сделана на стороне API (см. buildCalculationContext).
      *
      * @param TariffDto[] $tariffs
      */
     protected function pickTariff(array $tariffs): ?TariffDto
     {
-        if ($tariffs === []) {
-            return null;
-        }
-
-        $config = $this->getMainConfig();
-        $rawTariffId = $config['TARIFF_ID'] ?? '';
-        // MULTIPLE => Y возвращает массив; берём первый непустой элемент
-        if (is_array($rawTariffId)) {
-            $rawTariffId = current(array_filter($rawTariffId, static fn($v) => $v !== '' && $v !== null)) ?: '';
-        }
-        $tariffId = (string)$rawTariffId !== '' ? (int)$rawTariffId : null;
-
-        if ($tariffId !== null) {
-            foreach ($tariffs as $tariff) {
-                if ($tariff->tariffId === $tariffId) {
-                    return $tariff;
-                }
-            }
-            return null;
+        $tariffIds = $this->profileConfig()->tariffIds;
+        if ($tariffIds !== []) {
+            $tariffs = array_filter(
+                $tariffs,
+                static fn(TariffDto $t) => in_array($t->tariffId, $tariffIds, true)
+            );
         }
 
         $cheapest = null;
@@ -219,12 +213,8 @@ class ApiShipProfile extends Base
      */
     public static function parseConnectionKey(array $config): array
     {
-        $key = (string)($config['CONNECTION_KEY'] ?? '');
-        if ($key !== '' && str_contains($key, '|')) {
-            [$connectId, $providerKey] = explode('|', $key, 2);
-            return [$connectId, $providerKey];
-        }
-        return ['', (string)($config['PROVIDER_KEY'] ?? '')];
+        $c = ProfileConfig::fromArray($config);
+        return [$c->connectId, $c->providerKey];
     }
 
     /**
@@ -234,33 +224,16 @@ class ApiShipProfile extends Base
      */
     protected function buildCalculationContext(Shipment $shipment): CalculationContext
     {
-        /** @var \Beeralex\Apiship\Options $options */
-        $options = \service(\Beeralex\Apiship\Options::class);
+        /** @var Options $options */
+        $options = \service(Options::class);
         $config = $this->getMainConfig();
         $order = $shipment->getOrder();
-        $to = [];
-
-        if ($order !== null) {
-            $properties = $order->getPropertyCollection();
-            $cityVal = $properties->getItemByOrderPropertyCode($options->propCity)?->getValue();
-            $cityGuidVal = $properties->getItemByOrderPropertyCode($options->propCityGuid)?->getValue();
-            $addrVal = $properties->getItemByOrderPropertyCode($options->propAddress)?->getValue();
-            $to = array_filter([
-                'city'          => $cityVal,
-                'cityGuid'      => $cityGuidVal,
-                'addressString' => $addrVal,
-                'countryCode'   => 'RU',
-            ], static fn($v) => $v !== null && $v !== '');
-        }
+        $to = $order === null ? [] : array_filter(
+            \service(OrderAddressReader::class)->read($order),
+            static fn($v) => $v !== null && $v !== ''
+        );
 
         [$connectId, $providerKey] = static::parseConnectionKey($config);
-
-        // MULTIPLE => Y возвращает массив; берём первый непустой элемент
-        $rawTariffId = $config['TARIFF_ID'] ?? '';
-        if (is_array($rawTariffId)) {
-            $rawTariffId = current(array_filter($rawTariffId, static fn($v) => $v !== '' && $v !== null)) ?: '';
-        }
-        $tariffId = (string)$rawTariffId !== '' ? (int)$rawTariffId : 0;
 
         $deliveryType = (int)($config['DELIVERY_TYPE'] ?? 0);
         $pickupType = (int)($config['PICKUP_TYPE'] ?? 0);
@@ -281,8 +254,14 @@ class ApiShipProfile extends Base
             $extraParams[$providerKey . '.providerConnectId'] = (int)$connectId;
         }
 
+        $sender = $options->sender;
         $context = CalculationContext::make([
-            'from'   => $options->sender,
+            'from'   => [
+                'city'          => $sender['city'] ?? null,
+                'cityGuid'      => $sender['cityGuid'] ?? null,
+                'addressString' => $sender['addressString'] ?? null,
+                'countryCode'   => $sender['countryCode'] ?? 'RU',
+            ],
             'to'     => $to,
             'places' => [[
                 'weight' => $parcel['weight'],
@@ -292,14 +271,14 @@ class ApiShipProfile extends Base
             ]],
             'assessedCost'  => $parcel['assessedCost'],
             'providerKeys'  => $providerKey !== '' ? [$providerKey] : [],
-            'tariffIds'     => $tariffId > 0 ? [$tariffId] : [],
+            'tariffIds' => $this->profileConfig()->tariffIds,
             'deliveryTypes' => $deliveryType > 0 ? [$deliveryType] : [],
             'pickupTypes'   => $pickupType > 0 ? [$pickupType] : [],
             'pointInId'     => $pointInId,
             'extraParams'   => $extraParams,
         ]);
 
-        $errors = (new CalculationValidator())->validate($context);
+        $errors = CalculationValidator::validate($context);
         if ($errors !== []) {
             throw new \InvalidArgumentException(implode('; ', $errors));
         }
@@ -329,8 +308,8 @@ class ApiShipProfile extends Base
      */
     private function getConnections(): array
     {
-        if (self::$connectionsCache !== null) {
-            return self::$connectionsCache;
+        if (static::$connectionsCache !== null) {
+            return static::$connectionsCache;
         }
 
         $connections = [];
@@ -347,7 +326,7 @@ class ApiShipProfile extends Base
             ];
         }
 
-        return self::$connectionsCache = $connections;
+        return static::$connectionsCache = $connections;
     }
 
     /**
@@ -396,8 +375,9 @@ class ApiShipProfile extends Base
      */
     private function loadTariffOptions(string $providerKey, ?int $pickupType = null, ?int $deliveryType = null): array
     {
-        if (isset(self::$tariffOptionsCache[$providerKey])) {
-            return self::$tariffOptionsCache[$providerKey];
+        $cacheKey = $providerKey . '|' . (int)$pickupType . '|' . (int)$deliveryType;
+        if (isset(static::$tariffOptionsCache[$cacheKey])) {
+            return static::$tariffOptionsCache[$cacheKey];
         }
 
         $rows = \service(ProviderServiceContract::class)->getTariffs(['providerKey' => $providerKey]);
@@ -409,23 +389,35 @@ class ApiShipProfile extends Base
             if ($id <= 0 || $name === '') {
                 continue;
             }
-            if ($pickupType !== null && (int)($row['pickupType'] ?? 0) !== $pickupType) {
+
+            $rowDelivery = static::intValues($row, 'deliveryTypes', 'deliveryType');
+            $rowPickup = static::intValues($row, 'pickupTypes', 'pickupType');
+
+            // если API не вернул поле — не прячем тариф
+            if ($pickupType !== null && $rowPickup !== [] && !in_array($pickupType, $rowPickup, true)) {
                 continue;
             }
-            if ($deliveryType !== null && (int)($row['deliveryType'] ?? 0) !== $deliveryType) {
+            if ($deliveryType !== null && $rowDelivery !== [] && !in_array($deliveryType, $rowDelivery, true)) {
                 continue;
             }
 
-            $label = $name;
-            $typeName = self::DELIVERY_TYPES[(string)($row['deliveryType'] ?? '')] ?? '';
-            if ($typeName !== '') {
-                $label .= ' · ' . $typeName;
-            }
+            $typeNames = array_filter(array_map(
+                static fn(int $t) => static::DELIVERY_TYPES[(string)$t] ?? '',
+                $rowDelivery
+            ));
+            $label = $name . ($typeNames ? ' · ' . implode(' / ', $typeNames) : '');
             $options[$id] = $label . ' (#' . $id . ')';
         }
         asort($options, SORT_NATURAL | SORT_FLAG_CASE);
 
-        return self::$tariffOptionsCache[$providerKey] = $options;
+        return static::$tariffOptionsCache[$cacheKey] = $options;
+    }
+
+    /** @return int[] значения из массивного или скалярного поля строки API */
+    private static function intValues(array $row, string $plural, string $single): array
+    {
+        $raw = $row[$plural] ?? $row[$single] ?? [];
+        return array_values(array_filter(array_map('intval', (array)$raw)));
     }
 
     /**
@@ -437,9 +429,11 @@ class ApiShipProfile extends Base
      */
     private function keepCurrentValue(array $options, string $field, string $labelFormat): array
     {
-        $current = (string)($this->getMainConfig()[$field] ?? '');
-        if ($current !== '' && !isset($options[$current])) {
-            $options[$current] = sprintf($labelFormat, $current);
+        foreach ((array)($this->getMainConfig()[$field] ?? []) as $current) {
+            $current = (string)$current;
+            if ($current !== '' && !isset($options[$current])) {
+                $options[$current] = sprintf($labelFormat, $current);
+            }
         }
         return $options;
     }

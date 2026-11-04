@@ -5,11 +5,14 @@ const EXCLUDED_HEADERS = new Set([
     'content-length',
     'accept-encoding',
     'if-none-match',
-    'if-modified-since'
+    'if-modified-since',
+    'if-match',
+    'if-unmodified-since',
+    'if-range'
 ])
 
 const EXCLUDED_COOKIES = new Set([
-    'PHPSESSID',
+    'PHPSESSID', // удаляем PHPSESSID при использовании JWT
     'BITRIX_SM_SOUND_LOGIN_PLAYED',
     'CSRF'
 ])

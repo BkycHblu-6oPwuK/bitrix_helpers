@@ -1,8 +1,8 @@
 <?php
 
-use Beeralex\Apiship\Builder\ApiShipOrderRequestBuilder;
-use Beeralex\Apiship\Builder\CalculatorRequestBuilder;
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ApiShipOrderRequestBuilder;
+use Beeralex\Apiship\Support\CalculatorRequestBuilder;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\CalculatorServiceContract;
 use Beeralex\Apiship\Contracts\ConnectionServiceContract;
 use Beeralex\Apiship\Contracts\CourierServiceContract;

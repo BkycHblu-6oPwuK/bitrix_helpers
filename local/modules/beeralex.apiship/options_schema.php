@@ -27,11 +27,6 @@ return Schema::make()
                 'Тестовый контур ApiShip (api.dev.apiship.ru)'
             );
 
-            $tab->input(
-                'default_provider_connect_id',
-                'ID подключения к СД по умолчанию (providerConnectId)',
-            );
-
             $tab->checkbox(
                 'logs_enable',
                 'Включить логирование'
@@ -188,5 +183,7 @@ return Schema::make()
             $tab->input('prop_city_guid',       'Код свойства заказа: GUID города (ФИАС)', default: 'CITY_GUID');
             $tab->input('prop_address',         'Код свойства заказа: адрес доставки', default: 'ADDRESS');
             $tab->input('prop_pickup_point_id', 'Код свойства заказа: ID ПВЗ (pointOutId)', default: 'PICKUP_POINT_ID');
+            $tab->input('prop_country_code', 'Код свойства заказа: код страны (ISO, по умолчанию значение RU)', default: 'COUNTRY_CODE');
+            $tab->input('prop_calculated_tariff', 'Код свойства заказа: рассчитанный тариф', default: 'API_SHIP_CALCULATED_TARIFF');
         }
     );

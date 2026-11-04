@@ -1,8 +1,7 @@
 import { createError } from 'h3'
 import type { H3Event } from 'h3'
 
-
-function getApiPath(event: H3Event, apiVersion: string): string | null {
+export function getApiPath(event: H3Event, apiVersion: string = 'v1'): string | null {
     const fromParams = getRouterParam(event, 'path')
     if (fromParams) {
         return fromParams

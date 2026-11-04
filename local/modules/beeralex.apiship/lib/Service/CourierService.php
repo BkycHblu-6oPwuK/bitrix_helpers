@@ -5,10 +5,10 @@ namespace Beeralex\Apiship\Service;
 
 use Apiship\Entity\Request\CourierCallRequest;
 use Apiship\Exception\ResponseException;
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\CourierServiceContract;
 use Beeralex\Apiship\Exception\ApiShipException;
-use Beeralex\Apiship\Service\Support\RequestHydrator;
+use Beeralex\Apiship\Support\Concerns\RequestHydrator;
 
 /**
  * Вызов курьера через ApiShip.

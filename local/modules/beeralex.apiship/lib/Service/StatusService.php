@@ -5,7 +5,7 @@ namespace Beeralex\Apiship\Service;
 
 use Apiship\Entity\Response\StatusResponse;
 use Apiship\Exception\ResponseException;
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\StatusServiceContract;
 use Beeralex\Apiship\Dto\StatusDto;
 use Beeralex\Apiship\Exception\ApiShipException;

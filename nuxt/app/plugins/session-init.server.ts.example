@@ -1,0 +1,23 @@
+import { getCookie, appendResponseHeader } from 'h3'
+
+/**
+ * Инициализация сессии на сервере, если отсутствует PHPSESSID, удалить если используется JWT
+ */
+export default defineNuxtPlugin(async () => {
+    const event = useRequestEvent()
+
+    if (!event) return
+
+    const hasSession = Boolean(getCookie(event, 'PHPSESSID'))
+    if (hasSession) return
+    const response = await $fetch.raw(getApiUrl('user/session'), {
+        method: 'GET',
+        ignoreResponseError: true
+    })
+
+    const setCookies = response.headers.getSetCookie()
+
+    for (const cookie of setCookies) {
+        appendResponseHeader(event, 'set-cookie', cookie)
+    }
+})

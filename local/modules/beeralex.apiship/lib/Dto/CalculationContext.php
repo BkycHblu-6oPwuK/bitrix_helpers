@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Dto;
 
+use Beeralex\Apiship\Support\Concerns\NormalizesValues;
 use Beeralex\Core\Http\Resources\Resource;
 
 /**
@@ -37,7 +38,7 @@ use Beeralex\Core\Http\Resources\Resource;
  */
 final class CalculationContext extends Resource
 {
-    use Concerns\NormalizesValues;
+    use NormalizesValues;
 
     public static function make(array $data): static
     {

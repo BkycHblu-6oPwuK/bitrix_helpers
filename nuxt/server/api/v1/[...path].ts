@@ -1,7 +1,8 @@
 import { createError } from 'h3'
 import { fetchProxy } from '../../utils/api'
+import { isUnder, hasSegment, defineApiCachedHandler } from '../../utils/api-cache'
 
-export default defineEventHandler(async (event) => {
+const upstreamHandler = defineEventHandler(async (event) => {
     try {
         return await fetchProxy(event)
     } catch (err: any) {
@@ -19,3 +20,18 @@ export default defineEventHandler(async (event) => {
         })
     }
 })
+
+export default defineApiCachedHandler(upstreamHandler, [
+    // Исключения идут первыми
+    {
+        name: 'catalog-filter',
+        cache: false,
+        match: (path) => isUnder(path, 'catalog') && hasSegment(path, 'filter'),
+    },
+    {
+        name: 'catalog',
+        maxAge: 300,
+        queryKeys: ['ajax', 'PAGEN_1', 'sort'],
+        match: (path) => isUnder(path, 'catalog'),
+    },
+])

@@ -5,7 +5,7 @@ namespace Beeralex\Apiship\Service;
 
 use Apiship\Entity\Response\Part\Lists\Point;
 use Apiship\Exception\ResponseException;
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\PointServiceContract;
 use Beeralex\Apiship\Dto\PointDto;
 use Beeralex\Apiship\Exception\ApiShipException;

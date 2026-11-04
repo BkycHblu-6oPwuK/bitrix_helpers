@@ -29,6 +29,7 @@ return function (RoutingConfigurator $routes): void {
                     $routes->post('register', [AuthController::class, 'register']);
                     $routes->post('logout', [AuthController::class, 'logout']);
                     $routes->get('methods', [AuthController::class, 'methods']);
+                    $routes->get('session', [UserController::class, 'session']);
                 });
 
                 $routes->get('get-main-page', [MainController::class, 'getMainPage']);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Service;
 
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\WebhookServiceContract;
 use Beeralex\Apiship\Dto\WebhookEventDto;
 use Beeralex\Apiship\Repository\OrderRepository;

@@ -1,49 +1,50 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Beeralex\Apiship\Service;
 
-use Apiship\Entity\Request\CreateOrderRequest;
-use Apiship\Entity\Request\Part\Orders\ExtraParam;
-use Apiship\Entity\Request\Part\Orders\Order as OrderPart;
-use Apiship\Entity\Request\Part\Orders\Place;
-use Apiship\Entity\Request\Part\Orders\Recipient;
-use Apiship\Entity\Request\Part\Orders\ReturnAddress;
-use Apiship\Entity\Request\Part\Orders\Sender;
 use Apiship\Exception\ResponseException;
-use Beeralex\Apiship\Sdk\Entity\Request\Part\Cost;
-use Beeralex\Apiship\Sdk\Entity\Request\Part\Item;
-use Beeralex\Apiship\Builder\ApiShipOrderRequestBuilder;
 use Beeralex\Apiship\Repository\OrderRepository;
-use Beeralex\Apiship\Client\ClientFactory;
+use Beeralex\Apiship\Support\ClientFactory;
 use Beeralex\Apiship\Contracts\OrderServiceContract;
 use Beeralex\Apiship\Dto\CreateOrderDto;
 use Beeralex\Apiship\Dto\OrderResultDto;
 use Beeralex\Apiship\Exception\ApiShipException;
+use Beeralex\Apiship\Exception\ApiShipValidationException;
 use Beeralex\Apiship\Options;
-use Beeralex\Apiship\Service\Support\RequestHydrator;
+use Beeralex\Apiship\Support\CalculatedTariffStore;
+use Beeralex\Apiship\Support\CodResolver;
+use Beeralex\Apiship\Support\Concerns\ConvertsUnits;
+use Beeralex\Apiship\Support\Concerns\ReadsOrderProperties;
+use Beeralex\Apiship\Support\OrderItemsMapper;
+use Beeralex\Apiship\Support\OrderRequestBuilder;
+use Beeralex\Apiship\Support\ProfileConfig;
+use Beeralex\Apiship\Support\RecipientReader;
+use Beeralex\Apiship\Support\ShipmentLinesReader;
 use Beeralex\Apiship\Support\ShipmentLocator;
-use Bitrix\Main\SystemException;
+use Beeralex\Apiship\Support\ShipmentParcelBuilder;
 use Bitrix\Sale\Order;
+use Bitrix\Sale\Shipment;
 
 final class OrderService implements OrderServiceContract
 {
-    use RequestHydrator;
+    use ConvertsUnits;
+    use ReadsOrderProperties;
 
     public function __construct(
         private readonly ClientFactory $clientFactory,
         private readonly Options $options,
         private readonly OrderRepository $orderRepository,
-        private readonly ApiShipOrderRequestBuilder $builder,
+        private readonly OrderRequestBuilder $requestBuilder,
+        private readonly OrderItemsMapper $itemsMapper,
+        private readonly RecipientReader $recipientReader,
+        private readonly CalculatedTariffStore $tariffStore,
     ) {}
 
-    /**
-     * @throws ApiShipException в случае ошибки при создании заказа в ApiShip.
-     * @throws SystemException в случае ошибки при сохранении заказа в системе.
-     */
     public function create(CreateOrderDto $dto): OrderResultDto
     {
-        $request = $this->buildRequest($dto);
+        $request = $this->requestBuilder->build($dto);
 
         try {
             $response = $this->clientFactory->getClient()->orders()->create($request);
@@ -51,16 +52,7 @@ final class OrderService implements OrderServiceContract
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
         }
 
-        $result = OrderResultDto::make([
-            'orderId' => $response->getOrderId(),
-            'created' => $response->getCreated(),
-        ]);
-
-        if ($dto->bitrixOrderId > 0) {
-            $this->orderRepository->saveCreated($dto, $result, (string)$request->asJson());
-        }
-
-        return $result;
+        return OrderResultDto::make(['orderId' => $response->orderId]);
     }
 
     public function cancel(int $apiShipOrderId): bool
@@ -96,81 +88,119 @@ final class OrderService implements OrderServiceContract
         return (array)json_decode((string)$response->getOriginJson(), true);
     }
 
-    /**
-     * Создать заказ ApiShip для заказа Bitrix. Идемпотентен: повторный вызов возвращает
-     * уже созданный результат без нового запроса к API.
-     */
     public function createForBitrixOrder(int $bitrixOrderId): OrderResultDto
     {
-        $existingApiShipId = $this->orderRepository->getApiShipOrderId($bitrixOrderId);
-        if ($existingApiShipId !== null && $existingApiShipId > 0) {
-            return OrderResultDto::make(['orderId' => $existingApiShipId]);
+        $existingId = $this->orderRepository->getApiShipOrderId($bitrixOrderId);
+        if ($existingId !== null && $existingId > 0) {
+            return OrderResultDto::make(['orderId' => $existingId]);
         }
 
-        $dto = $this->builder->buildFromBitrixOrder($bitrixOrderId);
-        $result = $this->create($dto);
+        $order = Order::load($bitrixOrderId)
+            ?? throw new ApiShipValidationException("Заказ #{$bitrixOrderId} не найден");
+        $shipment = ShipmentLocator::findApiShipShipment($order)
+            ?? throw new ApiShipValidationException("В заказе #{$bitrixOrderId} нет доставки ApiShip");
 
-        // Записываем TRACKING_NUMBER на отгрузку — нужно для ApiShipTracking::getStatus
+        $result = $this->create($this->collectDto($order, $shipment));
+
         if ($result->orderId > 0) {
-            $this->setTrackingNumber($bitrixOrderId, $result->orderId);
+            $this->writeTrackingNumber($order, $shipment, $result->orderId);
         }
 
         return $result;
     }
 
-    private function setTrackingNumber(int $bitrixOrderId, int $apiShipOrderId): void
+    private function collectDto(Order $order, Shipment $shipment): CreateOrderDto
+    {
+        $orderId = (int)$order->getId();
+        $config = ProfileConfig::fromShipment($shipment);
+        if ($config->providerKey === '') {
+            throw new ApiShipValidationException("В доставке заказа #{$orderId} не выбрано подключение ApiShip");
+        }
+
+        // тариф: сохранённый при расчёте, иначе единственный из профиля
+        $selected = $this->tariffStore->find($order, (int)$shipment->getDeliveryId());
+        $tariffId = $selected['tariffId'] ?? (count($config->tariffIds) === 1 ? $config->tariffIds[0] : 0);
+        if ($tariffId <= 0) {
+            throw new ApiShipValidationException(
+                "Не удалось определить тариф заказа #{$orderId}: расчёт его не сохранил, а в профиле выбрано не ровно одно значение"
+            );
+        }
+
+        $lines = ShipmentLinesReader::read($shipment);
+        if ($lines === []) {
+            throw new ApiShipValidationException("В отгрузке заказа #{$orderId} нет товаров");
+        }
+
+        $parcel = ShipmentParcelBuilder::build($shipment, [
+            'weight' => $this->options->defaultWeight,
+            'width'  => $this->options->defaultWidth,
+            'height' => $this->options->defaultHeight,
+            'length' => $this->options->defaultLength,
+        ], $lines);
+
+        $codCost = CodResolver::sum($order);
+        $items = $this->itemsMapper->map($lines, $codCost > 0);
+
+        $pointOutId = (int)$this->propertyValue(
+            $order->getPropertyCollection(),
+            $this->options->propPickupPointId
+        );
+        $deliveryType = ($selected['deliveryType'] ?? 0) ?: ($config->deliveryType ?: ($pointOutId > 0 ? 2 : 1));
+        if ($deliveryType === 2 && $pointOutId <= 0) {
+            throw new ApiShipValidationException("Для доставки до ПВЗ в заказе #{$orderId} не выбран пункт выдачи");
+        }
+
+        $pickupType = $config->resolvedPickupType();
+
+        return CreateOrderDto::make([
+            'bitrixOrderId'     => $orderId,
+            'clientNumber'      => (string)$order->getField('ACCOUNT_NUMBER') ?: (string)$orderId,
+            'providerKey'       => $config->providerKey,
+            'providerConnectId' => $config->connectId,
+            'tariffId'          => $tariffId,
+            'pickupType'        => $pickupType,
+            'deliveryType'      => $deliveryType,
+            'pointInId'         => $pickupType === 2 && $config->pointInId > 0 ? $config->pointInId : null,
+            'pointOutId'        => $pointOutId > 0 ? $pointOutId : null,
+            'description'       => (string)$order->getField('USER_DESCRIPTION'),
+            'weight'            => $parcel['weight'],
+            'length'            => $parcel['length'],
+            'width'             => $parcel['width'],
+            'height'            => $parcel['height'],
+            'cost'              => $this->buildCost($shipment, $parcel['assessedCost'], $codCost),
+            'sender'            => $this->options->sender,
+            'recipient'         => $this->recipientReader->read($order),
+            'places'            => [[
+                'placeNumber' => '1',
+                'weight'      => $parcel['weight'],
+                'items'       => $items,
+            ]],
+        ]);
+    }
+
+    /** @return array<string,mixed> */
+    private function buildCost(Shipment $shipment, float $assessedCost, float $codCost): array
+    {
+        $isCod = $codCost > 0;
+        $vatId = $shipment->getDelivery()?->getVatId();
+
+        return [
+            'assessedCost'               => $assessedCost,
+            'codCost'                    => $codCost,
+            'deliveryCost'               => $isCod ? (float)$shipment->getPrice() : null,
+            'deliveryCostVat'            => static::vatToPercent($vatId > 0 ? (float)$shipment->getVatRate() : null),
+            'isDeliveryPayedByRecipient' => $isCod ? 1 : 0,
+            'paymentMethod'              => $isCod ? 1 : null,
+        ];
+    }
+
+    private function writeTrackingNumber(Order $order, Shipment $shipment, int $apiShipOrderId): void
     {
         try {
-            $order = Order::load($bitrixOrderId);
-            if ($order === null) {
-                return;
-            }
-            $shipment = ShipmentLocator::findApiShipShipment($order);
-            if ($shipment === null) {
-                return;
-            }
             $shipment->setField('TRACKING_NUMBER', (string)$apiShipOrderId);
             $order->save();
         } catch (\Throwable $e) {
             \AddMessage2Log('ApiShip: не удалось записать TRACKING_NUMBER: ' . $e->getMessage(), 'beeralex.apiship');
         }
-    }
-
-    private function buildRequest(CreateOrderDto $dto): CreateOrderRequest
-    {
-        $orderFields = [
-            'clientNumber', 'providerKey', 'providerConnectId', 'tariffId', 'pickupType', 'deliveryType',
-            'weight', 'description', 'barcode', 'height', 'length', 'width', 'pointInId', 'pointOutId',
-            'pickupDate', 'pickupTimeStart', 'pickupTimeEnd', 'deliveryDate', 'deliveryTimeStart', 'deliveryTimeEnd',
-        ];
-        $orderData = [];
-        foreach ($orderFields as $field) {
-            $orderData[$field] = $dto->$field;
-        }
-        $orderData['providerConnectId'] ??= $this->options->defaultProviderConnectId ?: null;
-
-        $request = (new CreateOrderRequest())
-            ->setOrder($this->hydrate(new OrderPart(), $orderData))
-            ->setCost($this->hydrate(new Cost(), array_filter($dto->cost, static fn($v) => $v !== [])))
-            ->setSender($this->hydrate(new Sender(), $dto->sender))
-            ->setRecipient($this->hydrate(new Recipient(), $dto->recipient));
-
-        if ($dto->returnAddress !== []) {
-            $request->setReturnAddress($this->hydrate(new ReturnAddress(), $dto->returnAddress));
-        }
-
-        foreach ($dto->places as $placeData) {
-            $place = $this->hydrate(new Place(), array_diff_key($placeData, ['items' => true]));
-            foreach ($placeData['items'] as $itemData) {
-                $place->addItem($this->hydrate(new Item(), $itemData));
-            }
-            $request->addPlace($place);
-        }
-
-        foreach ($dto->extraParams as $param) {
-            $request->addExtraParam($this->hydrate(new ExtraParam(), $param));
-        }
-
-        return $request;
     }
 }
