@@ -19,11 +19,11 @@ use Beeralex\Apiship\Support\Concerns\RequestHydrator;
 /**
  * Строит SDK-запрос {@see CreateOrderRequest} из {@see CreateOrderDto}. Без обращений к Bitrix.
  */
-final class OrderRequestBuilder
+class OrderRequestBuilder
 {
     use RequestHydrator;
 
-    private const ORDER_FIELDS = [
+    protected const ORDER_FIELDS = [
         'clientNumber',
         'providerKey',
         'providerConnectId',

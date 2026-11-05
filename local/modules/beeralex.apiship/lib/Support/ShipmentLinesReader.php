@@ -9,7 +9,7 @@ use Bitrix\Sale\BasketItemBase;
 use Bitrix\Main\Loader;
 use Bitrix\Sale\Shipment;
 
-final class ShipmentLinesReader
+class ShipmentLinesReader
 {
     /** @return ShipmentLine[] */
     public static function read(Shipment $shipment): array
@@ -26,7 +26,7 @@ final class ShipmentLinesReader
     /**
      * @return array<int,array{item:BasketItemBase,qty:float,price:float,weight:float,dims:?array{0:float,1:float,2:float}}>
      */
-    private static function collectRows(Shipment $shipment): array
+    protected static function collectRows(Shipment $shipment): array
     {
         $rows = [];
 
@@ -58,7 +58,7 @@ final class ShipmentLinesReader
      *
      * @param array<int,array<string,mixed>> $rows
      */
-    private static function fillFromCatalog(array &$rows): void
+    protected static function fillFromCatalog(array &$rows): void
     {
         $missing = [];
         foreach ($rows as $index => $row) {
@@ -102,7 +102,7 @@ final class ShipmentLinesReader
     /**
      * @return array{0:float,1:float,2:float}|null
      */
-    private static function readBasketDimensions(BasketItemBase $item): ?array
+    protected static function readBasketDimensions(BasketItemBase $item): ?array
     {
         $raw = $item->getField('DIMENSIONS');
 
@@ -119,7 +119,7 @@ final class ShipmentLinesReader
      *
      * @return array{0:float,1:float,2:float}|null
      */
-    private static function normalizeDimensions(array $raw): ?array
+    protected static function normalizeDimensions(array $raw): ?array
     {
         $sides = [
             (float)($raw['LENGTH'] ?? 0),

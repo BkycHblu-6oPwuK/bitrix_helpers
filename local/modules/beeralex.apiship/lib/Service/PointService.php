@@ -14,11 +14,11 @@ use Beeralex\Apiship\Support\QueryFilterBuilder;
 use Bitrix\Main\Data\Cache;
 use Bitrix\Sale\Order;
 
-final class PointService implements PointServiceContract
+class PointService implements PointServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory,
-        private readonly Options $options,
+        protected readonly ClientFactory $clientFactory,
+        protected readonly Options $options,
     ) {}
 
     /**
@@ -101,7 +101,7 @@ final class PointService implements PointServiceContract
         return $result->isSuccess();
     }
 
-    private function toDto(Point $point): PointDto
+    protected function toDto(Point $point): PointDto
     {
         $addressParts = array_filter([
             $point->getStreet(),

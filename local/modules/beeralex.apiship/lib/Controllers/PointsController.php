@@ -20,7 +20,6 @@ class PointsController extends Controller
     {
         return [
             'list'   => ['prefilters' => []],
-            'select' => [],
         ];
     }
 
@@ -49,35 +48,5 @@ class PointsController extends Controller
         $items = array_map(fn($dto) => $dto->toArray(), $result['items']);
 
         return ['items' => $items, 'total' => $result['total']];
-    }
-
-    /**
-     * Записывает выбранный ПВЗ в свойство заказа.
-     * Параметры (POST): orderId (int), pointId (string).
-     */
-    public function selectAction(): ?array
-    {
-        $request  = $this->getRequest();
-        $orderId  = (int)$request->getPost('orderId');
-        $pointId  = (string)$request->getPost('pointId');
-
-        if ($orderId <= 0 || $pointId === '') {
-            $this->addError(new Error('Необходимо передать orderId и pointId'));
-            return null;
-        }
-
-        try {
-            $ok = \service(PointServiceContract::class)->setPickupPoint($orderId, $pointId);
-        } catch (\Throwable $e) {
-            $this->addError(new Error($e->getMessage()));
-            return null;
-        }
-
-        if (!$ok) {
-            $this->addError(new Error('Не удалось сохранить ПВЗ для заказа #' . $orderId));
-            return null;
-        }
-
-        return ['saved' => true];
     }
 }

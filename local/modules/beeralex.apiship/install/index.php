@@ -38,11 +38,13 @@ class beeralex_apiship extends CModule
         if ($this->checkRequirements()) {
             ModuleManager::registerModule($this->MODULE_ID);
             Loader::includeModule($this->MODULE_ID);
+            Loader::includeModule('sale');
             $this->InstallDB();
+            $this->InstallOrderProperties();
             $this->InstallEvents();
         } else {
             $APPLICATION->ThrowException(
-                'Нет поддержки d7 в главном модуле или не установлен модуль beeralex.core'
+                'Нет поддержки d7 в главном модуле, не установлен модуль sale или beeralex.core'
             );
         }
         $APPLICATION->IncludeAdminFile('Установка модуля', __DIR__ . '/step.php');
@@ -51,7 +53,77 @@ class beeralex_apiship extends CModule
     public function checkRequirements(): bool
     {
         return version_compare(ModuleManager::getVersion('main'), '14.00.00') >= 0
+            && Loader::includeModule('sale')
             && Loader::includeModule('beeralex.core');
+    }
+
+    protected function InstallOrderProperties(): void
+    {
+        $propertyCode = 'API_SHIP_CALCULATED_TARIFF';
+
+        $personTypes = \Bitrix\Sale\PersonTypeTable::getList([
+            'select' => ['ID'],
+            'order' => ['ID' => 'ASC'],
+        ])->fetchAll();
+
+        foreach ($personTypes as $personType) {
+            $personTypeId = (int)($personType['ID'] ?? 0);
+            if ($personTypeId <= 0) {
+                continue;
+            }
+
+            $existing = \Bitrix\Sale\Internals\OrderPropsTable::getList([
+                'filter' => [
+                    '=PERSON_TYPE_ID' => $personTypeId,
+                    '=CODE' => $propertyCode,
+                ],
+                'select' => ['ID'],
+                'limit' => 1,
+            ])->fetch();
+
+            if ($existing) {
+                continue;
+            }
+
+            $group = \Bitrix\Sale\Internals\OrderPropsGroupTable::getList([
+                'filter' => ['=PERSON_TYPE_ID' => $personTypeId],
+                'order' => ['ID' => 'DESC'],
+                'select' => ['ID'],
+                'limit' => 1,
+            ])->fetch();
+
+            if (!$group) {
+                continue;
+            }
+
+            \Bitrix\Sale\Internals\OrderPropsTable::add([
+                'PERSON_TYPE_ID' => $personTypeId,
+                'NAME' => 'Рассчитанный тариф ApiShip',
+                'DESCRIPTION' => 'Свойство заказа хранит JSON-карту {"<deliveryId>": {"tariffId": 19, "deliveryType": 1}} (deliveryType - 1 — до двери, 2 — до ПВЗ)',
+                'CODE' => $propertyCode,
+                'TYPE' => 'STRING',
+                'REQUIRED' => 'N',
+                'DEFAULT_VALUE' => '',
+                'SORT' => 500,
+                'USER_PROPS' => 'N',
+                'IS_LOCATION' => 'N',
+                'IS_LOCATION4TAX' => 'N',
+                'IS_PROFILE_NAME' => 'N',
+                'IS_PAYER' => 'N',
+                'IS_ZIP' => 'N',
+                'IS_PHONE' => 'N',
+                'IS_ADDRESS' => 'N',
+                'IS_ADDRESS_FROM' => 'N',
+                'IS_ADDRESS_TO' => 'N',
+                'PROPS_GROUP_ID' => (int)$group['ID'],
+                'UTIL' => 'Y',
+                'MULTIPLE' => 'N',
+                'ACTIVE' => 'Y',
+                'SETTINGS' => '',
+                'ENTITY_REGISTRY_TYPE' => \Bitrix\Sale\Registry::ENTITY_ORDER,
+                'ENTITY_TYPE' => \Bitrix\Sale\Registry::ENTITY_ORDER,
+            ]);
+        }
     }
 
     public function InstallDB()

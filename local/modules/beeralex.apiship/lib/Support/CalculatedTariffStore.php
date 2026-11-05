@@ -13,7 +13,7 @@ use Bitrix\Sale\PropertyValue;
  * Свойство заказа хранит JSON-карту {"<deliveryId>": {"tariffId": 19, "deliveryType": 1}}:
  * профилей ApiShip в оформлении несколько, и расчёт каждого не должен затирать остальные.
  */
-final class CalculatedTariffStore
+class CalculatedTariffStore
 {
     public function __construct(private readonly Options $options) {}
 

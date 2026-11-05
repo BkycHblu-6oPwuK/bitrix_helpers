@@ -12,9 +12,9 @@ use Beeralex\Apiship\Dto\ParcelDto;
  * Правила валидации контекста расчёта доставки.
  * Не знает ни о SDK, ни о Bitrix — только бизнес-правила.
  */
-final class CalculationValidator
+class CalculationValidator
 {
-    private const TIME_PATTERN = '/^([01]\d|2[0-3]):[0-5]\d$/';
+    protected const TIME_PATTERN = '/^([01]\d|2[0-3]):[0-5]\d$/';
 
     /**
      * @return string[] Список ошибок (пустой массив — запрос валиден)
@@ -68,7 +68,7 @@ final class CalculationValidator
     /**
      * @return string[]
      */
-    private static function validateAddress(AddressDto $address, string $label): array
+    protected static function validateAddress(AddressDto $address, string $label): array
     {
         $errors = [];
 

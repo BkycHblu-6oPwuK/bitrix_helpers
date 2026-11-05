@@ -15,7 +15,7 @@ use Beeralex\Apiship\Support\Concerns\RequestHydrator;
  * Строит SDK-запрос {@see CalculatorRequest} из {@see CalculationContext}.
  * Транслирует все поля контекста в соответствующие сеттеры SDK-объекта.
  */
-final class CalculatorRequestBuilder
+class CalculatorRequestBuilder
 {
     use RequestHydrator;
 

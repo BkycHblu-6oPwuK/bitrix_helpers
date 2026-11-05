@@ -15,10 +15,10 @@ use Beeralex\Apiship\Exception\ApiShipException;
  *
  * До появления репозитория метод только сообщает "изменился ли статус" в рамках вызова.
  */
-final class StatusService implements StatusServiceContract
+class StatusService implements StatusServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory
+        protected readonly ClientFactory $clientFactory
     ) {}
 
     public function getStatus(int $apiShipOrderId): StatusDto
@@ -59,7 +59,7 @@ final class StatusService implements StatusServiceContract
         return $result;
     }
 
-    private function toDto(int $apiShipOrderId, StatusResponse $response): StatusDto
+    protected function toDto(int $apiShipOrderId, StatusResponse $response): StatusDto
     {
         $status = $response->getStatus();
 

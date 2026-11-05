@@ -5,33 +5,12 @@ declare(strict_types=1);
 namespace Beeralex\Api\Domain\User;
 
 use Beeralex\User\Contracts\UserRepositoryContract;
-use Bitrix\Main\HttpRequest;
 
 /**
  * Сервис для работы с пользователями в контексте API
  */
 class UserService
 {
-    public function extractJwtToken(HttpRequest $request): ?string
-    {
-        $cookie = $request->getCookie("access");
-        if ($cookie) {
-            return $cookie;
-        }
-
-        return null;
-    }
-
-    public function extractRefreshToken(HttpRequest $request): ?string
-    {
-        $cookie = $request->getCookie("refresh");
-        if ($cookie) {
-            return $cookie;
-        }
-
-        return null;
-    }
-
     public function getCurrentUserDTO(): UserDTO
     {
         $user = \service(UserRepositoryContract::class)->getCurrentUser();

@@ -9,7 +9,7 @@ use Bitrix\Main\Type\DateTime;
 /**
  * Парсинг дат из пейлоадов ApiShip в типы Bitrix ORM.
  */
-final class DateHelper
+class DateHelper
 {
     /**
      * ISO8601 (напр. "2023-10-17T12:19:44+03:00") -> Bitrix DateTime. Пусто/мусор -> null.

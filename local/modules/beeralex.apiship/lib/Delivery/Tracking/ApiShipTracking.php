@@ -12,7 +12,7 @@ use Beeralex\Apiship\Contracts\StatusServiceContract;
 class ApiShipTracking extends Base
 {
     /** Маппинг ключей статусов ApiShip -> константы Bitrix Statuses */
-    private const STATUS_MAP = [
+    protected const STATUS_MAP = [
         'delivered'            => Statuses::HANDED,
         'delivering'           => Statuses::ON_THE_WAY,
         'onWay'                => Statuses::ON_THE_WAY,

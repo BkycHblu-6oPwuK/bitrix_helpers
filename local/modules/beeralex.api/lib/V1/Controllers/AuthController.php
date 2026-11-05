@@ -8,19 +8,18 @@ use Itb\Altcha\ActionFilter\AltchaFilter;
 use Beeralex\User\Auth\ActionFilter\AuthFilter;
 use Beeralex\Api\ApiProcessResultTrait;
 use Beeralex\Api\ApiResult;
-use Beeralex\Api\Domain\User\UserDTO;
-use Beeralex\Api\Domain\User\UserService;
 use Beeralex\Api\Options;
 use Beeralex\Core\Http\Controllers\ApiController;
 use Beeralex\User\Auth\AuthService;
 use Beeralex\User\Auth\AuthCredentialsDto;
-use Beeralex\User\Contracts\UserRepositoryContract;
+use Beeralex\User\Auth\JwtTokenContextService;
 use Bitrix\Main\Error;
 
 class AuthController extends ApiController
 {
     use ApiProcessResultTrait;
     protected AuthService $authService;
+    protected JwtTokenContextService $jwtTokenContextService;
     protected Options $options;
 
     protected function init(): void
@@ -28,6 +27,7 @@ class AuthController extends ApiController
         parent::init();
         $this->authService = \service(AuthService::class);
         $this->options = \service(Options::class);
+        $this->jwtTokenContextService = \service(JwtTokenContextService::class);
     }
 
     public function configureActions(): array
@@ -88,8 +88,8 @@ class AuthController extends ApiController
 
             $data = $result->getData();
 
-            $this->setCookie('access', $data['accessToken'], $data['accessTokenExpired']);
-            $this->setCookie('refresh', $data['refreshToken'], $data['refreshTokenExpired']);
+            $this->jwtTokenContextService->setAccessTokenCookie($data['accessToken'], $data['accessTokenExpired']);
+            $this->jwtTokenContextService->setRefreshTokenCookie($data['refreshToken'], $data['refreshTokenExpired']);
 
             unset($data['accessToken'], $data['refreshToken'], $data['accessTokenExpired'], $data['refreshTokenExpired']);
 
@@ -124,7 +124,7 @@ class AuthController extends ApiController
     public function refreshAction()
     {
         return $this->process(function () {
-            $refreshToken = service(UserService::class)->extractRefreshToken($this->getRequest());
+            $refreshToken = $this->jwtTokenContextService->extractRefreshToken($this->getRequest());
             $apiResult = service(ApiResult::class);
             if (!$refreshToken) {
                 $apiResult->addError(new Error('Refresh token is missing', 'refresh_token_missing'));
@@ -137,8 +137,8 @@ class AuthController extends ApiController
             }
             $data = $result->getData();
 
-            $this->setCookie('access', $data['accessToken'], $data['accessTokenExpired']);
-            $this->setCookie('refresh', $data['refreshToken'], $data['refreshTokenExpired']);
+            $this->jwtTokenContextService->setAccessTokenCookie($data['accessToken'], $data['accessTokenExpired']);
+            $this->jwtTokenContextService->setRefreshTokenCookie($data['refreshToken'], $data['refreshTokenExpired']);
 
             return $apiResult;
         });
@@ -150,14 +150,14 @@ class AuthController extends ApiController
     public function logoutAction()
     {
         return $this->process(function () {
-            $refreshToken = service(UserService::class)->extractRefreshToken($this->getRequest());
+            $refreshToken = $this->jwtTokenContextService->extractRefreshToken($this->getRequest());
 
             if ($refreshToken) {
                 $this->authService->logout($refreshToken, true);
             }
 
-            $this->setCookie('access', '', time() - 3600);
-            $this->setCookie('refresh', '', time() - 3600);
+            $this->jwtTokenContextService->setAccessTokenCookie('', time() - 3600);
+            $this->jwtTokenContextService->setRefreshTokenCookie('', time() - 3600);
 
             return [];
         });
@@ -171,43 +171,5 @@ class AuthController extends ApiController
         return $this->process(function () {
             return $this->authService->getAvailableAuthMethods();
         });
-    }
-
-    public function meAction(): array
-    {
-        return $this->process(function () {
-            $user = \service(UserRepositoryContract::class)->getCurrentUser();
-            $result = \service(ApiResult::class);
-            $result->setData([
-                'user' => UserDTO::make([
-                    'id' => $user->getId(),
-                    'name' => $user->getName(),
-                    'lastName' => $user->getLastName(),
-                ])
-            ]);
-            return $result;
-        });
-    }
-
-    private function setCookie(
-        string $name,
-        string $value,
-        int $expires,
-        string $path = '/'
-    ): void {
-        if (!$this->options->spaApiEnabled) return;
-        global $APPLICATION;
-
-        $APPLICATION->set_cookie(
-            $name,
-            $value,
-            $expires,
-            $path,
-            false,
-            true,
-            true,
-            false,
-            true
-        );
     }
 }

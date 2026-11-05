@@ -11,10 +11,10 @@ use Beeralex\Apiship\Exception\ApiShipException;
 /**
  * История статусов заказа для отображения покупателю (трекинг).
  */
-final class TrackingService implements TrackingServiceContract
+class TrackingService implements TrackingServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory
+        protected readonly ClientFactory $clientFactory
     ) {}
 
     public function getHistory(int $apiShipOrderId): array

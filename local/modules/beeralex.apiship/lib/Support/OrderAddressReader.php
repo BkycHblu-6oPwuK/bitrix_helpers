@@ -8,7 +8,7 @@ use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Support\Concerns\ReadsOrderProperties;
 use Bitrix\Sale\Order;
 
-final class OrderAddressReader
+class OrderAddressReader
 {
     use ReadsOrderProperties;
 

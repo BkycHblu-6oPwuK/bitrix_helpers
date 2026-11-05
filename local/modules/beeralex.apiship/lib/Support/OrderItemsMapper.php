@@ -8,7 +8,7 @@ use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Support\Concerns\ConvertsUnits;
 use Bitrix\Main\Config\Option;
 
-final class OrderItemsMapper
+class OrderItemsMapper
 {
     use ConvertsUnits;
 
@@ -50,7 +50,7 @@ final class OrderItemsMapper
         return $items;
     }
 
-    private function itemUrl(string $path): ?string
+    protected function itemUrl(string $path): ?string
     {
         if ($path === '') {
             return null;

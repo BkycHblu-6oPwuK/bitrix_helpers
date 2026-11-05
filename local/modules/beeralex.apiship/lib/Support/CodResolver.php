@@ -6,7 +6,7 @@ namespace Beeralex\Apiship\Support;
 
 use Bitrix\Sale\Order;
 
-final class CodResolver
+class CodResolver
 {
     /** Сумма неоплаченных платежей наличной платёжной системы. > 0 — наложенный платёж. */
     public static function sum(Order $order): float

@@ -21,7 +21,7 @@ use Beeralex\Apiship\Service\ConnectionService;
 use Beeralex\Apiship\Service\CourierService;
 use Beeralex\Apiship\Service\OrderService;
 use Beeralex\Apiship\Service\PointService;
-use Beeralex\Apiship\Service\ProfileCalculator;
+use Beeralex\Apiship\Service\ProfileCalculatorService;
 use Beeralex\Apiship\Service\ProviderService;
 use Beeralex\Apiship\Service\StatusService;
 use Beeralex\Apiship\Service\TrackingService;
@@ -183,8 +183,8 @@ return [
                     service(OrderAddressReader::class)
                 ),
             ],
-            ProfileCalculator::class => [
-                'constructor' => static fn() => new ProfileCalculator(
+            ProfileCalculatorService::class => [
+                'constructor' => static fn() => new ProfileCalculatorService(
                     service(CalculatorServiceContract::class),
                     service(CalculationContextFactory::class),
                     service(TariffSelector::class)

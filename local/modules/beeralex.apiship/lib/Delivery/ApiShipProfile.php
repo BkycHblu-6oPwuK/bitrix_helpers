@@ -7,7 +7,7 @@ namespace Beeralex\Apiship\Delivery;
 use Beeralex\Apiship\Enum\DeliveryType;
 use Beeralex\Apiship\Exception\ApiShipProfileCalculationException;
 use Beeralex\Apiship\Enum\PickupType;
-use Beeralex\Apiship\Service\ProfileCalculator;
+use Beeralex\Apiship\Service\ProfileCalculatorService;
 use Beeralex\Apiship\Support\CalculatedTariffStore;
 use Beeralex\Apiship\Support\ProfileConfig;
 use Beeralex\Apiship\Support\ProfileFormOptions;
@@ -18,7 +18,7 @@ use Bitrix\Sale\Shipment;
 
 /**
  * Профиль доставки ApiShip. Только Bitrix-обвязка: форма настроек, совместимость, маппинг результата.
- * Расчёт — {@see ProfileCalculator}, списки формы — {@see ProfileFormOptions}.
+ * Расчёт — {@see ProfileCalculatorService}, списки формы — {@see ProfileFormOptions}.
  */
 class ApiShipProfile extends Base
 {
@@ -110,7 +110,7 @@ class ApiShipProfile extends Base
     {
         $result = new CalculationResult();
         try {
-            $tariff = \service(ProfileCalculator::class)->calculate($shipment, $this->profileConfig());
+            $tariff = \service(ProfileCalculatorService::class)->calculate($shipment, $this->profileConfig());
         } catch (ApiShipProfileCalculationException $e) {
             $result->addError(new Error('APISHIP_CALCULATION_ERROR', $e->getMessage()));
             return $result;

@@ -7,7 +7,7 @@ namespace Beeralex\Apiship\Support;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Shipment;
 
-final class ProfileConfig
+class ProfileConfig
 {
     /** @param int[] $tariffIds */
     public function __construct(

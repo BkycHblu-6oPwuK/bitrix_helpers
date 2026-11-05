@@ -13,15 +13,14 @@ use Beeralex\Apiship\Support\TariffSelector;
 use Bitrix\Sale\Shipment;
 
 /**
- * Расчёт доставки для профиля: контекст → API → выбор тарифа.
- * Не знает про CalculationResult Bitrix и не пишет в заказ.
+ * Расчёт доставки для профиля
  */
-final class ProfileCalculator
+class ProfileCalculatorService
 {
     public function __construct(
-        private readonly CalculatorServiceContract $calculator,
-        private readonly CalculationContextFactory $contextFactory,
-        private readonly TariffSelector $selector,
+        protected readonly CalculatorServiceContract $calculator,
+        protected readonly CalculationContextFactory $contextFactory,
+        protected readonly TariffSelector $selector,
     ) {}
 
     /**

@@ -3,7 +3,7 @@
 namespace Beeralex\Api;
 
 use Beeralex\Api\Domain\EventHandlers\CouponHandler;
-use Beeralex\Api\Domain\EventHandlers\JwtTokenHandler;
+use Beeralex\User\Auth\JwtTokenHandler;
 use Beeralex\Api\Domain\Services\CacheInvalidateService;
 use Beeralex\Core\Service\IblockService;
 use Bitrix\Main\Application;

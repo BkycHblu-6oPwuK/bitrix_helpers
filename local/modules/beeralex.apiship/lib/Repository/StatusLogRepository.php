@@ -15,7 +15,7 @@ use Bitrix\Main\SystemException;
  * Одна строка на каждое событие ORDER_STATUS. Историю переносов плановой даты доставки
  * здесь НЕ ведём (по требованию) — только статусы.
  */
-final class StatusLogRepository extends Repository
+class StatusLogRepository extends Repository
 {
     public function __construct()
     {

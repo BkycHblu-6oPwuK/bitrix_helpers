@@ -129,7 +129,7 @@ final class Options extends AbstractOptions
         $this->propAddress = (string)($options['prop_address'] ?? '') ?: 'ADDRESS';
         $this->propPickupPointId = (string)($options['prop_pickup_point_id'] ?? '') ?: 'PICKUP_POINT_ID';
         $this->propCountryCode = (string)($options['prop_country_code'] ?? '') ?: 'COUNTRY_CODE';
-        $this->propCalculatedTariff = (string)($options['prop_calculated_tariff'] ?? '') ?: 'API_SHIP_CALCULATED_TARIFF';
+        $this->propCalculatedTariff = 'API_SHIP_CALCULATED_TARIFF';
     }
 
     /**

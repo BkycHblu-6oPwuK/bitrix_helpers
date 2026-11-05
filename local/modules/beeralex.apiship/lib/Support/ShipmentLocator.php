@@ -16,7 +16,7 @@ use Bitrix\Sale\Shipment;
  * и маппер статусов (StatusMapper): системная отгрузка пропускается, обработчик доставки
  * сверяется с ApiShipHandler/ApiShipProfile.
  */
-final class ShipmentLocator
+class ShipmentLocator
 {
     public static function findApiShipShipment(Order $order): ?Shipment
     {

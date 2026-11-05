@@ -184,6 +184,6 @@ return Schema::make()
             $tab->input('prop_address',         'Код свойства заказа: адрес доставки', default: 'ADDRESS');
             $tab->input('prop_pickup_point_id', 'Код свойства заказа: ID ПВЗ (pointOutId)', default: 'PICKUP_POINT_ID');
             $tab->input('prop_country_code', 'Код свойства заказа: код страны (ISO, по умолчанию значение RU)', default: 'COUNTRY_CODE');
-            $tab->input('prop_calculated_tariff', 'Код свойства заказа: рассчитанный тариф', default: 'API_SHIP_CALCULATED_TARIFF');
+            $tab->staticText('Код свойства заказа для рассчитанного тарифа:', 'API_SHIP_CALCULATED_TARIFF');
         }
     );

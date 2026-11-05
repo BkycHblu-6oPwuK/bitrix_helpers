@@ -6,7 +6,7 @@ namespace Beeralex\Apiship\Support;
 
 use Beeralex\Apiship\Dto\TariffDto;
 
-final class TariffSelector
+class TariffSelector
 {
     /**
      * Самый дешёвый тариф среди разрешённых; при равной цене — с меньшим сроком.
@@ -30,7 +30,7 @@ final class TariffSelector
         return $best;
     }
 
-    private function isBetter(TariffDto $candidate, TariffDto $current): bool
+    protected function isBetter(TariffDto $candidate, TariffDto $current): bool
     {
         if ($candidate->deliveryCost !== $current->deliveryCost) {
             return $candidate->deliveryCost < $current->deliveryCost;

@@ -9,18 +9,18 @@ use Beeralex\Apiship\Contracts\ProviderServiceContract;
 use Beeralex\Apiship\Exception\ApiShipException;
 use Beeralex\Apiship\Support\QueryFilterBuilder;
 
-final class ProviderService implements ProviderServiceContract
+class ProviderService implements ProviderServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory
+        protected readonly ClientFactory $clientFactory
     ) {}
 
-    public function getProviders(array $filter = []): array
+    public function getProviders(int $limit = 20, int $offset = 0, array $filter = []): array
     {
         try {
             $response = $this->clientFactory->getClient()->lists()->getProviders(
-                999,
-                0,
+                $limit,
+                $offset,
                 QueryFilterBuilder::build($filter)
             );
         } catch (ResponseException $e) {
@@ -39,10 +39,10 @@ final class ProviderService implements ProviderServiceContract
         return $result;
     }
 
-    public function getTariffs(array $filter = [], array $fields = []): array
+    public function getTariffs(int $limit = 100, int $offset = 0, array $filter = [], array $fields = []): array
     {
         try {
-            $response = $this->clientFactory->getClient()->listsExtended()->getTariffs(999, 0, $filter, $fields);
+            $response = $this->clientFactory->getClient()->listsExtended()->getTariffs($limit, $offset, $filter, $fields);
         } catch (ResponseException $e) {
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
         }

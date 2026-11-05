@@ -12,14 +12,14 @@ use Beeralex\Apiship\Repository\StatusLogRepository;
 use Beeralex\Apiship\Repository\WebhookLogRepository;
 use Beeralex\Apiship\StatusMapper;
 use Bitrix\Main\Application;
-final class WebhookService implements WebhookServiceContract
+class WebhookService implements WebhookServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory,
-        private readonly WebhookLogRepository $webhookLogRepository,
-        private readonly OrderRepository $orderRepository,
-        private readonly StatusLogRepository $statusLogRepository,
-        private readonly StatusMapper $statusMapper,
+        protected readonly ClientFactory $clientFactory,
+        protected readonly WebhookLogRepository $webhookLogRepository,
+        protected readonly OrderRepository $orderRepository,
+        protected readonly StatusLogRepository $statusLogRepository,
+        protected readonly StatusMapper $statusMapper,
     ) {}
 
     public function subscribe(string $url, string $type): array
@@ -86,7 +86,7 @@ final class WebhookService implements WebhookServiceContract
      *
      * @return array<string,mixed>
      */
-    private function buildOrderFields(WebhookEventDto $event): array
+    protected function buildOrderFields(WebhookEventDto $event): array
     {
         return [
             'PROVIDER_NUMBER'             => $event->providerNumber,
@@ -109,7 +109,7 @@ final class WebhookService implements WebhookServiceContract
     /**
      * ORDER_STATUS: пишем строку в историю статусов и применяем статус к заказу/отгрузке Bitrix.
      */
-    private function handleOrderStatus(WebhookEventDto $event, ?int $bitrixOrderId): void
+    protected function handleOrderStatus(WebhookEventDto $event, ?int $bitrixOrderId): void
     {
         $this->statusLogRepository->addFromEvent($event, $bitrixOrderId);
 

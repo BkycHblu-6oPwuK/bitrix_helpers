@@ -10,11 +10,11 @@ use Beeralex\Apiship\Exception\ApiShipException;
 use Beeralex\Apiship\Options;
 use Bitrix\Main\Data\Cache;
 
-final class ConnectionService implements ConnectionServiceContract
+class ConnectionService implements ConnectionServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory,
-        private readonly Options $options,
+        protected readonly ClientFactory $clientFactory,
+        protected readonly Options $options,
     ) {}
 
     /**

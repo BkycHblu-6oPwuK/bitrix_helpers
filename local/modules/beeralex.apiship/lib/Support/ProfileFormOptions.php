@@ -90,7 +90,7 @@ final class ProfileFormOptions
         }
 
         $options = [];
-        foreach ($this->providerService->getTariffs(['providerKey' => $providerKey]) as $row) {
+        foreach ($this->providerService->getTariffs(limit: 999, filter: ['providerKey' => $providerKey]) as $row) {
             $id = (int)($row['id'] ?? 0);
             $name = trim((string)($row['name'] ?? ''));
             if ($id <= 0 || $name === '') {

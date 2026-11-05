@@ -19,12 +19,12 @@ use Bitrix\Main\Data\Cache;
 /**
  * Расчёт стоимости и сроков доставки через ApiShip.
  */
-final class CalculatorService implements CalculatorServiceContract
+class CalculatorService implements CalculatorServiceContract
 {
     public function __construct(
-        private readonly ClientFactory $clientFactory,
-        private readonly Options $options,
-        private readonly CalculatorRequestBuilder $requestBuilder
+        protected readonly ClientFactory $clientFactory,
+        protected readonly Options $options,
+        protected readonly CalculatorRequestBuilder $requestBuilder
     ) {}
 
     /**
@@ -76,7 +76,7 @@ final class CalculatorService implements CalculatorServiceContract
     /**
      * @return TariffDto[]
      */
-    private function normalizeResponse(CalculatorResponse $response): array
+    protected function normalizeResponse(CalculatorResponse $response): array
     {
         $result = [];
 
@@ -94,7 +94,7 @@ final class CalculatorService implements CalculatorServiceContract
     /**
      * @return TariffDto[]
      */
-    private function normalizeItem(CalculatorItem $item, int $deliveryType): array
+    protected function normalizeItem(CalculatorItem $item, int $deliveryType): array
     {
         $result = [];
 

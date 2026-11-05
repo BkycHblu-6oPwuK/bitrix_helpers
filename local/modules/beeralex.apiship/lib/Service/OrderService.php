@@ -27,19 +27,19 @@ use Beeralex\Apiship\Support\ShipmentParcelBuilder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\Shipment;
 
-final class OrderService implements OrderServiceContract
+class OrderService implements OrderServiceContract
 {
     use ConvertsUnits;
     use ReadsOrderProperties;
 
     public function __construct(
-        private readonly ClientFactory $clientFactory,
-        private readonly Options $options,
-        private readonly OrderRepository $orderRepository,
-        private readonly OrderRequestBuilder $requestBuilder,
-        private readonly OrderItemsMapper $itemsMapper,
-        private readonly RecipientReader $recipientReader,
-        private readonly CalculatedTariffStore $tariffStore,
+        protected readonly ClientFactory $clientFactory,
+        protected readonly Options $options,
+        protected readonly OrderRepository $orderRepository,
+        protected readonly OrderRequestBuilder $requestBuilder,
+        protected readonly OrderItemsMapper $itemsMapper,
+        protected readonly RecipientReader $recipientReader,
+        protected readonly CalculatedTariffStore $tariffStore,
     ) {}
 
     public function create(CreateOrderDto $dto): OrderResultDto
@@ -109,7 +109,7 @@ final class OrderService implements OrderServiceContract
         return $result;
     }
 
-    private function collectDto(Order $order, Shipment $shipment): CreateOrderDto
+    protected function collectDto(Order $order, Shipment $shipment): CreateOrderDto
     {
         $orderId = (int)$order->getId();
         $config = ProfileConfig::fromShipment($shipment);
@@ -179,7 +179,7 @@ final class OrderService implements OrderServiceContract
     }
 
     /** @return array<string,mixed> */
-    private function buildCost(Shipment $shipment, float $assessedCost, float $codCost): array
+    protected function buildCost(Shipment $shipment, float $assessedCost, float $codCost): array
     {
         $isCod = $codCost > 0;
         $vatId = $shipment->getDelivery()?->getVatId();
@@ -194,7 +194,7 @@ final class OrderService implements OrderServiceContract
         ];
     }
 
-    private function writeTrackingNumber(Order $order, Shipment $shipment, int $apiShipOrderId): void
+    protected function writeTrackingNumber(Order $order, Shipment $shipment, int $apiShipOrderId): void
     {
         try {
             $shipment->setField('TRACKING_NUMBER', (string)$apiShipOrderId);

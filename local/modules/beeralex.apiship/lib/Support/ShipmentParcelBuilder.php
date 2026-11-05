@@ -20,7 +20,7 @@ use Bitrix\Sale\Shipment;
  * единицы одного товара и разные товары укладываются стопкой. Длина и ширина коробки —
  * максимумы по товарам, высота — сумма высот.
  */
-final class ShipmentParcelBuilder
+class ShipmentParcelBuilder
 {
     use ConvertsUnits;
 

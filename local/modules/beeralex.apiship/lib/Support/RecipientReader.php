@@ -10,7 +10,7 @@ use Bitrix\Main\UserTable;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\PropertyValueCollectionBase;
 
-final class RecipientReader
+class RecipientReader
 {
     use ReadsOrderProperties;
 
@@ -32,7 +32,7 @@ final class RecipientReader
         ];
     }
 
-    private function contactName(PropertyValueCollectionBase $p, int $userId): string
+    protected function contactName(PropertyValueCollectionBase $p, int $userId): string
     {
         $name = $this->propertyValue($p, $this->options->propFio)
             ?? trim(($this->propertyValue($p, 'NAME') ?? '') . ' ' . ($this->propertyValue($p, 'LAST_NAME') ?? ''));

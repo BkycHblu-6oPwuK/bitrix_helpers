@@ -13,7 +13,7 @@ use Beeralex\Core\Repository\Repository;
 /**
  * Репозиторий связи заказ Bitrix <-> заказ ApiShip (таблица beeralex_apiship_order).
  */
-final class OrderRepository extends Repository
+class OrderRepository extends Repository
 {
     public function __construct()
     {

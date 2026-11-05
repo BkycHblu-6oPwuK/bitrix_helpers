@@ -9,7 +9,7 @@ use Beeralex\Apiship\Enum\PickupType;
 use Beeralex\Apiship\Options;
 use Bitrix\Sale\Shipment;
 
-final class CalculationContextFactory
+class CalculationContextFactory
 {
     public function __construct(
         private readonly Options $options,

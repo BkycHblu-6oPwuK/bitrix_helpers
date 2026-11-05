@@ -8,7 +8,7 @@ use Beeralex\Apiship\Exception\ApiShipException;
 use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Sdk\ExtendedApiship;
 
-final class ClientFactory
+class ClientFactory
 {
     private ?ExtendedApiship $client = null;
 

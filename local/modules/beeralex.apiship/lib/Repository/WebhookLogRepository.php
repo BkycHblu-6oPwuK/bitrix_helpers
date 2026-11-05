@@ -15,7 +15,7 @@ use Beeralex\Core\Repository\Repository;
  * WebhookLogTable), поэтому повторная вставка того же события завершится ошибкой —
  * это и есть признак дубликата.
  */
-final class WebhookLogRepository extends Repository
+class WebhookLogRepository extends Repository
 {
     public function __construct()
     {
@@ -72,7 +72,7 @@ final class WebhookLogRepository extends Repository
         }
     }
 
-    private function exists(string $eventId): bool
+    protected function exists(string $eventId): bool
     {
         return $this->one(['=EVENT_ID' => $eventId], ['ID']) !== null;
     }
@@ -81,7 +81,7 @@ final class WebhookLogRepository extends Repository
      * ApiShip не всегда присылает явный id события — если его нет, строим составной ключ
      * из типа+orderId+статуса+хэша тела, чтобы дедупликация всё равно работала.
      */
-    private function resolveEventId(WebhookEventDto $event, string $rawBody): string
+    protected function resolveEventId(WebhookEventDto $event, string $rawBody): string
     {
         $eventId = $event->eventId;
         if ($eventId !== '') {

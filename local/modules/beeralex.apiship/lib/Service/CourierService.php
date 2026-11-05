@@ -13,12 +13,12 @@ use Beeralex\Apiship\Support\Concerns\RequestHydrator;
 /**
  * Вызов курьера через ApiShip.
  */
-final class CourierService implements CourierServiceContract
+class CourierService implements CourierServiceContract
 {
     use RequestHydrator;
 
     public function __construct(
-        private readonly ClientFactory $clientFactory
+        protected readonly ClientFactory $clientFactory
     ) {}
 
     /**
