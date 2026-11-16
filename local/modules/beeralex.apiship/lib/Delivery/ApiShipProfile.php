@@ -112,12 +112,12 @@ class ApiShipProfile extends Base
         try {
             $tariff = \service(ProfileCalculatorService::class)->calculate($shipment, $this->profileConfig());
         } catch (ApiShipProfileCalculationException $e) {
-            $result->addError(new Error('APISHIP_CALCULATION_ERROR', $e->getMessage()));
+            $result->addError(new Error($e->getMessage(), 'APISHIP_CALCULATION_ERROR'));
             return $result;
         }
 
         if ($tariff === null) {
-            $result->addError(new Error('APISHIP_NO_TARIFF', 'Не удалось рассчитать стоимость доставки'));
+            $result->addError(new Error('Не удалось рассчитать стоимость доставки', 'APISHIP_NO_TARIFF'));
             return $result;
         }
         $result->setDeliveryPrice($tariff->deliveryCost);

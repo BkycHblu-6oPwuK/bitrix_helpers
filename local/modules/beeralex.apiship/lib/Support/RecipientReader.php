@@ -26,7 +26,7 @@ class RecipientReader
 
         return $this->address->read($order) + [
             'contactName' => $this->contactName($p, (int)$order->getUserId()),
-            'phone'       => $this->propertyValue($p, $this->options->propPhone),
+            'phone'       => PhoneNormalizer::normalize($this->propertyValue($p, $this->options->propPhone)),
             'email'       => $this->propertyValue($p, 'EMAIL'),
             'postIndex'   => $this->propertyValue($p, 'ZIP'),
         ];

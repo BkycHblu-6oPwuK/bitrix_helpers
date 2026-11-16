@@ -19,6 +19,9 @@ use Beeralex\Apiship\Support\Concerns\ConvertsUnits;
 use Beeralex\Apiship\Support\Concerns\ReadsOrderProperties;
 use Beeralex\Apiship\Support\OrderItemsMapper;
 use Beeralex\Apiship\Support\OrderRequestBuilder;
+use Beeralex\Apiship\Enum\DeliveryType;
+use Beeralex\Apiship\Enum\PickupType;
+use Beeralex\Apiship\Support\PhoneNormalizer;
 use Beeralex\Apiship\Support\ProfileConfig;
 use Beeralex\Apiship\Support\RecipientReader;
 use Beeralex\Apiship\Support\ShipmentLinesReader;
@@ -52,7 +55,17 @@ class OrderService implements OrderServiceContract
             throw new ApiShipException($e->getErrorMessage() ?: $e->getMessage(), (int)$e->getCode(), $e);
         }
 
-        return OrderResultDto::make(['orderId' => $response->orderId]);
+        $result = OrderResultDto::make([
+            'orderId' => $response->getOrderId(),
+            'created' => $response->getCreated(),
+        ]);
+
+        // связь заказ Bitrix <-> заказ ApiShip: от неё зависят идемпотентность и обработка вебхуков
+        if ($dto->bitrixOrderId > 0) {
+            $this->orderRepository->saveCreated($dto, $result, (string)$request->asJson());
+        }
+
+        return $result;
     }
 
     public function cancel(int $apiShipOrderId): bool
@@ -145,8 +158,9 @@ class OrderService implements OrderServiceContract
             $order->getPropertyCollection(),
             $this->options->propPickupPointId
         );
-        $deliveryType = ($selected['deliveryType'] ?? 0) ?: ($config->deliveryType ?: ($pointOutId > 0 ? 2 : 1));
-        if ($deliveryType === 2 && $pointOutId <= 0) {
+        $deliveryType = ($selected['deliveryType'] ?? 0)
+            ?: ($config->deliveryType ?: ($pointOutId > 0 ? DeliveryType::TO_POINT->value : DeliveryType::TO_DOOR->value));
+        if ($deliveryType === DeliveryType::TO_POINT->value && $pointOutId <= 0) {
             throw new ApiShipValidationException("Для доставки до ПВЗ в заказе #{$orderId} не выбран пункт выдачи");
         }
 
@@ -160,7 +174,7 @@ class OrderService implements OrderServiceContract
             'tariffId'          => $tariffId,
             'pickupType'        => $pickupType,
             'deliveryType'      => $deliveryType,
-            'pointInId'         => $pickupType === 2 && $config->pointInId > 0 ? $config->pointInId : null,
+            'pointInId'         => $pickupType === PickupType::SELF_DELIVERY->value && $config->pointInId > 0 ? $config->pointInId : null,
             'pointOutId'        => $pointOutId > 0 ? $pointOutId : null,
             'description'       => (string)$order->getField('USER_DESCRIPTION'),
             'weight'            => $parcel['weight'],
@@ -168,7 +182,7 @@ class OrderService implements OrderServiceContract
             'width'             => $parcel['width'],
             'height'            => $parcel['height'],
             'cost'              => $this->buildCost($shipment, $parcel['assessedCost'], $codCost),
-            'sender'            => $this->options->sender,
+            'sender'            => $this->sender(),
             'recipient'         => $this->recipientReader->read($order),
             'places'            => [[
                 'placeNumber' => '1',
@@ -176,6 +190,15 @@ class OrderService implements OrderServiceContract
                 'items'       => $items,
             ]],
         ]);
+    }
+
+    /** @return array<string,mixed> */
+    protected function sender(): array
+    {
+        $sender = $this->options->sender;
+        $sender['phone'] = PhoneNormalizer::normalize($sender['phone'] ?? null);
+
+        return $sender;
     }
 
     /** @return array<string,mixed> */
@@ -189,7 +212,7 @@ class OrderService implements OrderServiceContract
             'codCost'                    => $codCost,
             'deliveryCost'               => $isCod ? (float)$shipment->getPrice() : null,
             'deliveryCostVat'            => static::vatToPercent($vatId > 0 ? (float)$shipment->getVatRate() : null),
-            'isDeliveryPayedByRecipient' => $isCod ? 1 : 0,
+            'isDeliveryPayedByRecipient' => $isCod,
             'paymentMethod'              => $isCod ? 1 : null,
         ];
     }

@@ -10,7 +10,7 @@ interface ProviderServiceContract
      *
      * @return array<int,array<string,mixed>>
      */
-    public function getProviders(int $limit = 999, int $offset = 0, array $filter = []): array;
+    public function getProviders(int $limit = 100, int $offset = 0, array $filter = []): array;
 
     /**
      * Актуальные тарифы (для заполнения CONFIG профиля доставки).

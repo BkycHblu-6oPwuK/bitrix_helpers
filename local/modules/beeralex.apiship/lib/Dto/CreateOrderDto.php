@@ -9,7 +9,7 @@ use Beeralex\Core\Http\Resources\Resource;
 /**
  * Входные данные для создания заказа ApiShip (POST /orders).
  *
- * Собирается ApiShipOrderRequestBuilder из заказа Bitrix. Поля блока `order` — плоские,
+ * Собирается OrderService::collectDto() из заказа Bitrix, SDK-запрос строит OrderRequestBuilder. Поля блока `order` — плоские,
  * остальные блоки вложены (as array): cost — CostDto, sender/recipient/returnAddress — RecipientDto,
  * places — PlaceDto[].
  *
@@ -22,7 +22,7 @@ use Beeralex\Core\Http\Resources\Resource;
  * @property int $pickupType Тип забора: 1 — от двери клиента, 2 — клиент привозит на склад СД. Обязательно
  * @property int $deliveryType Тип доставки: 1 — до двери, 2 — до ПВЗ. Обязательно
  * @property int $weight Вес всего заказа, г. Обязательно. Пример: 100
- * @property int|null $providerConnectId ID подключения к СД (если договоров с одной СД несколько). Пример: 12
+ * @property string|null $providerConnectId ID подключения (в OpenAPI — строка) к СД (если договоров с одной СД несколько). Пример: 12
  * @property string|null $description Комментарий к заказу. Пример: Важный заказ
  * @property string|null $barcode Штрихкод заказа (при передаче places — указывается в place.barcode)
  * @property int|null $height Высота заказа, см
@@ -59,7 +59,7 @@ final class CreateOrderDto extends Resource
             'pickupType'        => (int)($data['pickupType'] ?? 1),
             'deliveryType'      => (int)($data['deliveryType'] ?? 1),
             'weight'            => (int)($data['weight'] ?? 0),
-            'providerConnectId' => static::nullableInt($data['providerConnectId'] ?? null),
+            'providerConnectId' => static::nullableString($data['providerConnectId'] ?? null),
             'description'       => static::nullableString($data['description'] ?? null),
             'barcode'           => static::nullableString($data['barcode'] ?? null),
             'height'            => static::nullableInt($data['height'] ?? null),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Support;
 
+use Beeralex\Apiship\Dto\ShipmentLine;
 use Beeralex\Apiship\Options;
 use Beeralex\Apiship\Support\Concerns\ConvertsUnits;
 use Bitrix\Main\Config\Option;
@@ -43,7 +44,7 @@ class OrderItemsMapper
                 'url'          => $this->itemUrl((string)$basketItem->getField('DETAIL_PAGE_URL')),
                 'companyName'  => $seller['companyName'] ?? null,
                 'companyInn'   => $seller['companyInn'] ?? null,
-                'companyPhone' => $seller['phone'] ?? null,
+                'companyPhone' => PhoneNormalizer::normalize($seller['phone'] ?? null),
             ];
         }
 

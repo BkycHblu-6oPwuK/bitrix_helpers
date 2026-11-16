@@ -34,19 +34,25 @@ class CalculationContextFactory
         // у ТК может быть несколько подключений — считаем по выбранному
         $extraParams = [];
         if ($config->providerKey !== '' && ctype_digit($config->connectId) && (int)$config->connectId > 0) {
-            $extraParams[$config->providerKey . '.providerConnectId'] = (int)$config->connectId;
+            // по OpenAPI значения extraParams — строки
+            $extraParams[$config->providerKey . '.providerConnectId'] = (string)(int)$config->connectId;
         }
 
         $sender = $this->options->sender;
         $selfDelivery = $config->pickupType === PickupType::SELF_DELIVERY->value;
 
         $context = CalculationContext::make([
-            'from' => [
+            // lat/lng нужны такси-службам, postIndex уходит как index
+            'from' => array_filter([
                 'city'          => $sender['city'] ?? null,
                 'cityGuid'      => $sender['cityGuid'] ?? null,
+                'region'        => $sender['region'] ?? null,
+                'postIndex'     => $sender['postIndex'] ?? null,
+                'lat'           => $sender['lat'] ?? null,
+                'lng'           => $sender['lng'] ?? null,
                 'addressString' => $sender['addressString'] ?? null,
                 'countryCode'   => $sender['countryCode'] ?? 'RU',
-            ],
+            ], static fn($v) => $v !== null && $v !== ''),
             'to'     => $to,
             'places' => [[
                 'weight' => $parcel['weight'],

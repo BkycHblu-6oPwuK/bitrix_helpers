@@ -11,9 +11,24 @@ trait ConvertsUnits
         return max(1, (int)ceil($mm / 10));
     }
 
-    /** Ставка Bitrix (доля, 0.2) -> процент ApiShip; null -> -1 (без НДС). */
+    /**
+     * Ставка Bitrix (доля, 0.2) -> процент ApiShip. null и ставки вне набора, который принимает API
+     * (например, устаревшие 18%), -> -1 (без НДС).
+     */
     protected static function vatToPercent(?float $rate): int
     {
-        return $rate === null ? -1 : (int)round($rate * 100);
+        if ($rate === null) {
+            return -1;
+        }
+
+        $percent = (int)round($rate * 100);
+
+        return in_array($percent, static::apiVatRates(), true) ? $percent : -1;
+    }
+
+    /** @return int[] допустимые значения costVat / deliveryCostVat из OpenAPI */
+    protected static function apiVatRates(): array
+    {
+        return [0, 5, 7, 10, 20, 22];
     }
 }

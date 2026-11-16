@@ -15,7 +15,7 @@ class ProviderService implements ProviderServiceContract
         protected readonly ClientFactory $clientFactory
     ) {}
 
-    public function getProviders(int $limit = 20, int $offset = 0, array $filter = []): array
+    public function getProviders(int $limit = 100, int $offset = 0, array $filter = []): array
     {
         try {
             $response = $this->clientFactory->getClient()->lists()->getProviders(
