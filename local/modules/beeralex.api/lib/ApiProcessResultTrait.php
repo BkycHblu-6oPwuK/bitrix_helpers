@@ -4,6 +4,7 @@ namespace Beeralex\Api;
 
 use Beeralex\Api\Enum\Errors;
 use Bitrix\Main\Error;
+use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Response;
 use Bitrix\Main\Result;
@@ -86,6 +87,7 @@ trait ApiProcessResultTrait
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ], true) . "\n");
+            Context::getCurrent()->getResponse()->setStatus(500);
             $this->addError(new Error('Internal Server Error', Errors::INTERNAL_ERROR->value));
             return [];
         }

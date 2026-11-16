@@ -8,7 +8,16 @@ const EXCLUDED_HEADERS = new Set([
     'if-modified-since',
     'if-match',
     'if-unmodified-since',
-    'if-range'
+    'if-range',
+    'transfer-encoding',
+    'keep-alive',
+    'upgrade',
+    'te',
+    'trailer',
+    'expect',
+    'proxy-authorization',
+    'proxy-connection',
+    'authorization', // удаляем заголовок Authorization если точно не нужен
 ])
 
 const EXCLUDED_COOKIES = new Set([
