@@ -3,21 +3,27 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Dto;
 
-use Beeralex\Core\Http\Resources\Resource;
+use Beeralex\Apiship\Support\Concerns\Arrayable;
 
 /**
  * Результат создания/получения заказа ApiShip.
- *
- * @property int $orderId ID заказа в ApiShip
- * @property string|null $created
  */
-final class OrderResultDto extends Resource
+final class OrderResultDto
 {
+    use Arrayable;
+
+    public function __construct(
+        /** ID заказа в ApiShip */
+        public readonly int $orderId,
+        /** Дата и время создания заказа */
+        public readonly ?string $created,
+    ) {}
+
     public static function make(array $data): static
     {
-        return new static([
-            'orderId' => (int)($data['orderId'] ?? 0),
-            'created' => isset($data['created']) ? (string)$data['created'] : null,
-        ]);
+        return new static(
+            orderId: (int)($data['orderId'] ?? 0),
+            created: isset($data['created']) ? (string)$data['created'] : null,
+        );
     }
 }

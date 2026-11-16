@@ -214,6 +214,14 @@ class beeralex_apiship extends CModule
         );
         $eventManager->registerEventHandler(
             'sale',
+            'OnSaleOrderSaved',
+            $this->MODULE_ID,
+            EventHandlers::class,
+            'onSaleOrderSaved'
+        );
+        // обработчик предыдущей версии: на обновляемых установках его надо убрать
+        $eventManager->unRegisterEventHandler(
+            'sale',
             'OnSaleStatusOrderChange',
             $this->MODULE_ID,
             EventHandlers::class,
@@ -232,13 +240,18 @@ class beeralex_apiship extends CModule
             ApiShipHandler::class,
             'onSaleDeliveryHandlersClassNamesBuildList'
         );
-        $eventManager->unRegisterEventHandler(
-            'sale',
-            'OnSaleStatusOrderChange',
-            $this->MODULE_ID,
-            EventHandlers::class,
-            'onSaleStatusOrderChange'
-        );
+        foreach ([
+            'OnSaleOrderSaved' => 'onSaleOrderSaved',
+            'OnSaleStatusOrderChange' => 'onSaleStatusOrderChange', // предыдущая версия
+        ] as $eventType => $method) {
+            $eventManager->unRegisterEventHandler(
+                'sale',
+                $eventType,
+                $this->MODULE_ID,
+                EventHandlers::class,
+                $method
+            );
+        }
     }
 
     public function DoUninstall()

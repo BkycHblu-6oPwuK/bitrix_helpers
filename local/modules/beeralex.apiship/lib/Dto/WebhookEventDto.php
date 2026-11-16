@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Beeralex\Apiship\Dto;
 
+use Beeralex\Apiship\Support\Concerns\Arrayable;
 use Beeralex\Apiship\Enum\WebhookEventType;
-use Beeralex\Core\Http\Resources\Resource;
 
 /**
  * Разобранное событие входящего вебхука ApiShip.
@@ -16,35 +16,42 @@ use Beeralex\Core\Http\Resources\Resource;
  *
  * plannedDelivery (если у заказа есть плановая дата) всегда приходит ВНУТРИ orderInfo.
  * make() разворачивает вложенную структуру (orderInfo/status/plannedDelivery) в плоские свойства.
- *
- * @property string $eventId         id/uuid события (пусто, если ApiShip не прислал)
- * @property string $type            eventType
- * @property bool $isOrderStatus     ORDER_STATUS (в т.ч. без eventType — по наличию status)
- * @property int $orderId
- * @property string|null $providerNumber
- * @property string|null $clientNumber
- * @property string|null $barcode
- * @property string|null $additionalProviderNumber
- * @property string|null $returnProviderNumber
- * @property string|null $checkUrl
- * @property string|null $trackingUrl
- * @property string|null $providerKey
- * @property string|null $statusKey
- * @property string|null $statusName
- * @property string|null $statusDescription
- * @property string|null $statusErrorCode
- * @property string|null $statusProviderCode
- * @property string|null $statusProviderName
- * @property string|null $statusProviderDescription
- * @property string|null $statusCreated
- * @property string|null $statusCreatedProvider
- * @property bool $hasPlannedDelivery
- * @property string|null $plannedDeliveryDate
- * @property string|null $plannedDeliveryTimeStart
- * @property string|null $plannedDeliveryTimeEnd
  */
-final class WebhookEventDto extends Resource
+class WebhookEventDto
 {
+    use Arrayable;
+
+    public function __construct(
+        /** id/uuid события (пусто, если ApiShip не прислал) */
+        public readonly string $eventId,
+        /** eventType */
+        public readonly string $type,
+        /** ORDER_STATUS (в т.ч. без eventType — по наличию status) */
+        public readonly bool $isOrderStatus,
+        public readonly int $orderId,
+        public readonly ?string $providerNumber,
+        public readonly ?string $clientNumber,
+        public readonly ?string $barcode,
+        public readonly ?string $additionalProviderNumber,
+        public readonly ?string $returnProviderNumber,
+        public readonly ?string $checkUrl,
+        public readonly ?string $trackingUrl,
+        public readonly ?string $providerKey,
+        public readonly ?string $statusKey,
+        public readonly ?string $statusName,
+        public readonly ?string $statusDescription,
+        public readonly ?string $statusErrorCode,
+        public readonly ?string $statusProviderCode,
+        public readonly ?string $statusProviderName,
+        public readonly ?string $statusProviderDescription,
+        public readonly ?string $statusCreated,
+        public readonly ?string $statusCreatedProvider,
+        public readonly bool $hasPlannedDelivery,
+        public readonly ?string $plannedDeliveryDate,
+        public readonly ?string $plannedDeliveryTimeStart,
+        public readonly ?string $plannedDeliveryTimeEnd,
+    ) {}
+
     public static function make(array $data): static
     {
         $orderInfo = is_array($data['orderInfo'] ?? null) ? $data['orderInfo'] : [];
@@ -54,34 +61,34 @@ final class WebhookEventDto extends Resource
         $type = (string)($data['eventType'] ?? '');
         $orderId = $orderInfo['orderId'] ?? null;
 
-        return new static([
-            'eventId'                   => (string)($data['id'] ?? $data['uuid'] ?? ''),
-            'type'                      => $type,
-            'isOrderStatus'             => $type === WebhookEventType::ORDER_STATUS->value
+        return new static(
+            eventId: (string)($data['id'] ?? $data['uuid'] ?? ''),
+            type: $type,
+            isOrderStatus: $type === WebhookEventType::ORDER_STATUS->value
                 || ($type === '' && $statusInfo !== []),
-            'orderId'                   => is_numeric($orderId) ? (int)$orderId : 0,
-            'providerNumber'            => static::str($orderInfo, 'providerNumber'),
-            'clientNumber'              => static::str($orderInfo, 'clientNumber'),
-            'barcode'                   => static::str($orderInfo, 'barcode'),
-            'additionalProviderNumber'  => static::str($orderInfo, 'additionalProviderNumber'),
-            'returnProviderNumber'      => static::str($orderInfo, 'returnProviderNumber'),
-            'checkUrl'                  => static::str($orderInfo, 'checkUrl'),
-            'trackingUrl'               => static::str($orderInfo, 'trackingUrl'),
-            'providerKey'               => static::str($orderInfo, 'providerKey'),
-            'statusKey'                 => static::str($statusInfo, 'key'),
-            'statusName'                => static::str($statusInfo, 'name'),
-            'statusDescription'         => static::str($statusInfo, 'description'),
-            'statusErrorCode'           => static::str($statusInfo, 'errorCode'),
-            'statusProviderCode'        => static::str($statusInfo, 'providerCode'),
-            'statusProviderName'        => static::str($statusInfo, 'providerName'),
-            'statusProviderDescription' => static::str($statusInfo, 'providerDescription'),
-            'statusCreated'             => static::str($statusInfo, 'created'),
-            'statusCreatedProvider'     => static::str($statusInfo, 'createdProvider'),
-            'hasPlannedDelivery'        => $plannedDelivery !== [],
-            'plannedDeliveryDate'       => static::str($plannedDelivery, 'date'),
-            'plannedDeliveryTimeStart'  => static::str($plannedDelivery, 'timeStart'),
-            'plannedDeliveryTimeEnd'    => static::str($plannedDelivery, 'timeEnd'),
-        ]);
+            orderId: is_numeric($orderId) ? (int)$orderId : 0,
+            providerNumber: static::str($orderInfo, 'providerNumber'),
+            clientNumber: static::str($orderInfo, 'clientNumber'),
+            barcode: static::str($orderInfo, 'barcode'),
+            additionalProviderNumber: static::str($orderInfo, 'additionalProviderNumber'),
+            returnProviderNumber: static::str($orderInfo, 'returnProviderNumber'),
+            checkUrl: static::str($orderInfo, 'checkUrl'),
+            trackingUrl: static::str($orderInfo, 'trackingUrl'),
+            providerKey: static::str($orderInfo, 'providerKey'),
+            statusKey: static::str($statusInfo, 'key'),
+            statusName: static::str($statusInfo, 'name'),
+            statusDescription: static::str($statusInfo, 'description'),
+            statusErrorCode: static::str($statusInfo, 'errorCode'),
+            statusProviderCode: static::str($statusInfo, 'providerCode'),
+            statusProviderName: static::str($statusInfo, 'providerName'),
+            statusProviderDescription: static::str($statusInfo, 'providerDescription'),
+            statusCreated: static::str($statusInfo, 'created'),
+            statusCreatedProvider: static::str($statusInfo, 'createdProvider'),
+            hasPlannedDelivery: $plannedDelivery !== [],
+            plannedDeliveryDate: static::str($plannedDelivery, 'date'),
+            plannedDeliveryTimeStart: static::str($plannedDelivery, 'timeStart'),
+            plannedDeliveryTimeEnd: static::str($plannedDelivery, 'timeEnd'),
+        );
     }
 
     /**

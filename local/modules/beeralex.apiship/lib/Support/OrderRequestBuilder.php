@@ -55,18 +55,18 @@ class OrderRequestBuilder
 
         $request = (new CreateOrderRequest())
             ->setOrder($this->hydrate(new OrderPart(), $orderData))
-            ->setCost($this->hydrate(new Cost(), array_filter($dto->cost, static fn($v) => $v !== [])))
-            ->setSender($this->hydrate(new Sender(), $dto->sender))
-            ->setRecipient($this->hydrate(new Recipient(), $dto->recipient));
+            ->setCost($this->hydrate(new Cost(), array_filter($dto->cost->toArray(), static fn($v) => $v !== [])))
+            ->setSender($this->hydrate(new Sender(), $dto->sender->toArray()))
+            ->setRecipient($this->hydrate(new Recipient(), $dto->recipient->toArray()));
 
-        if ($dto->returnAddress !== []) {
-            $request->setReturnAddress($this->hydrate(new ReturnAddress(), $dto->returnAddress));
+        if ($dto->returnAddress !== null) {
+            $request->setReturnAddress($this->hydrate(new ReturnAddress(), $dto->returnAddress->toArray()));
         }
 
-        foreach ($dto->places as $placeData) {
-            $place = $this->hydrate(new Place(), array_diff_key($placeData, ['items' => true]));
-            foreach ($placeData['items'] as $itemData) {
-                $place->addItem($this->hydrate(new Item(), $itemData));
+        foreach ($dto->places as $placeDto) {
+            $place = $this->hydrate(new Place(), array_diff_key($placeDto->toArray(), ['items' => true]));
+            foreach ($placeDto->items as $itemDto) {
+                $place->addItem($this->hydrate(new Item(), $itemDto->toArray()));
             }
             $request->addPlace($place);
         }

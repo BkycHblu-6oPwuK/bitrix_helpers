@@ -1,0 +1,1390 @@
+From 0c6bc8446d994f6171e0702565fb5daa6616f41b Mon Sep 17 00:00:00 2001
+From: claude <claude@example.com>
+Date: Mon, 16 Nov 2026 02:55:13 +0000
+Subject: [PATCH] =?UTF-8?q?apiship:=20=D0=BE=D1=82=D0=BF=D1=80=D0=B0=D0=B2?=
+ =?UTF-8?q?=D0=BA=D0=B0=20=D0=B7=D0=B0=D0=BA=D0=B0=D0=B7=D0=B0=20=D0=BD?=
+ =?UTF-8?q?=D0=B0=20OnSaleOrderSaved=20(=D0=BE=D1=82=D0=BB=D0=BE=D0=B6?=
+ =?UTF-8?q?=D0=B5=D0=BD=D0=BD=D0=BE),=20=D0=B2=D0=BD=D1=83=D1=82=D1=80?=
+ =?UTF-8?q?=D0=B5=D0=BD=D0=BD=D0=B8=D0=B5=20DTO=20=D0=BD=D0=B0=20readonly-?=
+ =?UTF-8?q?=D0=BA=D0=BB=D0=B0=D1=81=D1=81=D1=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../beeralex.apiship/install/index.php        |  27 ++-
+ .../beeralex.apiship/lib/Dto/AddressDto.php   |  64 ++++---
+ .../lib/Dto/CalculationContext.php            | 113 +++++++-----
+ .../beeralex.apiship/lib/Dto/CostDto.php      |  48 +++--
+ .../lib/Dto/CreateOrderDto.php                | 168 +++++++++++-------
+ .../beeralex.apiship/lib/Dto/ItemDto.php      | 103 ++++++-----
+ .../beeralex.apiship/lib/Dto/ParcelDto.php    |  30 ++--
+ .../beeralex.apiship/lib/Dto/PlaceDto.php     |  50 +++---
+ .../beeralex.apiship/lib/Dto/RecipientDto.php | 113 +++++++-----
+ .../beeralex.apiship/lib/Dto/TariffDto.php    |  54 +++---
+ .../lib/Dto/WebhookEventDto.php               | 117 ++++++------
+ .../beeralex.apiship/lib/EventHandlers.php    |  79 ++++++--
+ .../lib/Repository/OrderRepository.php        |   6 +-
+ .../lib/Service/CalculatorService.php         |   2 +-
+ .../lib/Support/Concerns/Arrayable.php        |  30 ++++
+ .../lib/Support/OrderRequestBuilder.php       |  18 +-
+ .../beeralex.apiship/options_schema.php       |   2 +-
+ 17 files changed, 626 insertions(+), 398 deletions(-)
+ create mode 100644 local/modules/beeralex.apiship/lib/Support/Concerns/Arrayable.php
+
+diff --git a/local/modules/beeralex.apiship/install/index.php b/local/modules/beeralex.apiship/install/index.php
+index fe62fc2..b5b7099 100644
+--- a/local/modules/beeralex.apiship/install/index.php
++++ b/local/modules/beeralex.apiship/install/index.php
+@@ -213,6 +213,14 @@ class beeralex_apiship extends CModule
+             'onSaleDeliveryHandlersClassNamesBuildList'
+         );
+         $eventManager->registerEventHandler(
++            'sale',
++            'OnSaleOrderSaved',
++            $this->MODULE_ID,
++            EventHandlers::class,
++            'onSaleOrderSaved'
++        );
++        // обработчик предыдущей версии: на обновляемых установках его надо убрать
++        $eventManager->unRegisterEventHandler(
+             'sale',
+             'OnSaleStatusOrderChange',
+             $this->MODULE_ID,
+@@ -232,13 +240,18 @@ class beeralex_apiship extends CModule
+             ApiShipHandler::class,
+             'onSaleDeliveryHandlersClassNamesBuildList'
+         );
+-        $eventManager->unRegisterEventHandler(
+-            'sale',
+-            'OnSaleStatusOrderChange',
+-            $this->MODULE_ID,
+-            EventHandlers::class,
+-            'onSaleStatusOrderChange'
+-        );
++        foreach ([
++            'OnSaleOrderSaved' => 'onSaleOrderSaved',
++            'OnSaleStatusOrderChange' => 'onSaleStatusOrderChange', // предыдущая версия
++        ] as $eventType => $method) {
++            $eventManager->unRegisterEventHandler(
++                'sale',
++                $eventType,
++                $this->MODULE_ID,
++                EventHandlers::class,
++                $method
++            );
++        }
+     }
+ 
+     public function DoUninstall()
+diff --git a/local/modules/beeralex.apiship/lib/Dto/AddressDto.php b/local/modules/beeralex.apiship/lib/Dto/AddressDto.php
+index 64c8458..7f337c6 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/AddressDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/AddressDto.php
+@@ -3,7 +3,8 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
+-use Beeralex\Core\Http\Resources\Resource;
++use Beeralex\Apiship\Support\Concerns\Arrayable;
++use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+ 
+ /**
+  * Адрес (отправитель/получатель/точка «от»/«до»).
+@@ -11,37 +12,42 @@ use Beeralex\Core\Http\Resources\Resource;
+  * Поля соответствуют структуре ApiShip Address/FromTo:
+  * countryCode, region, city, cityGuid, street, house, block, office,
+  * postIndex, lat, lng, addressString.
+- *
+- * @property string $countryCode
+- * @property string|null $region
+- * @property string $city
+- * @property string|null $cityGuid
+- * @property string|null $street
+- * @property string|null $house
+- * @property string|null $block
+- * @property string|null $office
+- * @property string|null $postIndex
+- * @property float|null $lat
+- * @property float|null $lng
+- * @property string $addressString
+  */
+-final class AddressDto extends Resource
++class AddressDto
+ {
++    use Arrayable;
++    use NormalizesValues;
++
++    public function __construct(
++        public readonly string $countryCode,
++        public readonly ?string $region,
++        public readonly string $city,
++        public readonly ?string $cityGuid,
++        public readonly ?string $street,
++        public readonly ?string $house,
++        public readonly ?string $block,
++        public readonly ?string $office,
++        public readonly ?string $postIndex,
++        public readonly ?float $lat,
++        public readonly ?float $lng,
++        public readonly string $addressString,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'countryCode'   => (string)($data['countryCode'] ?? 'RU'),
+-            'region'        => $data['region'] ?? null,
+-            'city'          => (string)($data['city'] ?? ''),
+-            'cityGuid'      => $data['cityGuid'] ?? null,
+-            'street'        => $data['street'] ?? null,
+-            'house'         => $data['house'] ?? null,
+-            'block'         => $data['block'] ?? null,
+-            'office'        => $data['office'] ?? null,
+-            'postIndex'     => $data['postIndex'] ?? null,
+-            'lat'           => isset($data['lat']) ? (float)$data['lat'] : null,
+-            'lng'           => isset($data['lng']) ? (float)$data['lng'] : null,
+-            'addressString' => (string)($data['addressString'] ?? ''),
+-        ]);
++        return new static(
++            countryCode: (string)($data['countryCode'] ?? 'RU'),
++            region: static::nullableString($data['region'] ?? null),
++            city: (string)($data['city'] ?? ''),
++            cityGuid: static::nullableString($data['cityGuid'] ?? null),
++            street: static::nullableString($data['street'] ?? null),
++            house: static::nullableString($data['house'] ?? null),
++            block: static::nullableString($data['block'] ?? null),
++            office: static::nullableString($data['office'] ?? null),
++            postIndex: static::nullableString($data['postIndex'] ?? null),
++            lat: isset($data['lat']) ? (float)$data['lat'] : null,
++            lng: isset($data['lng']) ? (float)$data['lng'] : null,
++            addressString: (string)($data['addressString'] ?? ''),
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/CalculationContext.php b/local/modules/beeralex.apiship/lib/Dto/CalculationContext.php
+index d5475b5..d448528 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/CalculationContext.php
++++ b/local/modules/beeralex.apiship/lib/Dto/CalculationContext.php
+@@ -4,74 +4,89 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Контекст запроса расчёта стоимости доставки — только данные и нормализация типов.
+  * Без валидации, без формирования SDK-запроса.
+  *
+  * Единицы: вес — граммы, габариты — сантиметры, деньги — рубли.
+- *
+- * @property AddressDto $from
+- * @property AddressDto $to
+- * @property ParcelDto[] $places
+- * @property float $assessedCost
+- * @property float $codCost
+- * @property bool $includeFees
+- * @property string $pickupDate         Y-m-d ('' = текущая)
+- * @property int[] $pickupTypes         1=забор от двери, 2=привоз на склад СД
+- * @property int[] $deliveryTypes       1=до двери, 2=до ПВЗ
+- * @property string[] $providerKeys
+- * @property int[] $tariffIds
+- * @property int $timeout               Ожидание ответа провайдеров, мс (0 = без ограничений)
+- * @property bool $skipTariffRules
+- * @property string $promoCode
+- * @property string $customCode
+- * @property int $pointInId             Склад СД для самозавоза (0 = не задан)
+- * @property int $pointOutId            ПВЗ получателя (0 = не задан)
+- * @property string $pickupTimeStart    ЧЧ:ММ
+- * @property string $pickupTimeEnd      ЧЧ:ММ
+- * @property string $deliveryTimeStart  ЧЧ:ММ
+- * @property string $deliveryTimeEnd    ЧЧ:ММ
+- * @property array<string,mixed> $extraParams  Например ['dpd.providerConnectId' => 1234]
+  */
+-final class CalculationContext extends Resource
++class CalculationContext
+ {
++    use Arrayable;
+     use NormalizesValues;
+ 
++    public function __construct(
++        public readonly AddressDto $from,
++        public readonly AddressDto $to,
++        /** @var ParcelDto[] */
++        public readonly array $places,
++        public readonly float $assessedCost,
++        public readonly float $codCost,
++        public readonly bool $includeFees,
++        /** Y-m-d ('' = текущая) */
++        public readonly string $pickupDate,
++        /** 1=забор от двери, 2=привоз на склад СД */
++        public readonly array $pickupTypes,
++        /** 1=до двери, 2=до ПВЗ */
++        public readonly array $deliveryTypes,
++        public readonly array $providerKeys,
++        public readonly array $tariffIds,
++        /** Ожидание ответа провайдеров, мс (0 = без ограничений) */
++        public readonly int $timeout,
++        public readonly bool $skipTariffRules,
++        public readonly string $promoCode,
++        public readonly string $customCode,
++        /** Склад СД для самозавоза (0 = не задан) */
++        public readonly int $pointInId,
++        /** ПВЗ получателя (0 = не задан) */
++        public readonly int $pointOutId,
++        /** ЧЧ:ММ */
++        public readonly string $pickupTimeStart,
++        /** ЧЧ:ММ */
++        public readonly string $pickupTimeEnd,
++        /** ЧЧ:ММ */
++        public readonly string $deliveryTimeStart,
++        /** ЧЧ:ММ */
++        public readonly string $deliveryTimeEnd,
++        /** Например ['dpd.providerConnectId' => 1234] */
++        public readonly array $extraParams,
++    ) {}
++
+     public static function make(array $data): static
+     {
+         $places = static::normalizePlaces((array)($data['places'] ?? []));
+ 
+-        return new static([
+-            'from'   => static::normalizeAddress($data['from'] ?? []),
+-            'to'     => static::normalizeAddress($data['to'] ?? []),
+-            'places' => $places,
++        return new static(
++            from: static::normalizeAddress($data['from'] ?? []),
++            to: static::normalizeAddress($data['to'] ?? []),
++            places: $places,
+ 
+-            'assessedCost'    => round(max(0.0, (float)($data['assessedCost'] ?? 0)), 2),
+-            'codCost'         => round(max(0.0, (float)($data['codCost'] ?? 0)), 2),
+-            'includeFees'     => (bool)($data['includeFees'] ?? false),
+-            'pickupDate'      => trim((string)($data['pickupDate'] ?? '')),
+-            'pickupTypes'     => static::intList($data['pickupTypes'] ?? []),
+-            'deliveryTypes'   => static::intList($data['deliveryTypes'] ?? []),
+-            'providerKeys'    => static::stringList($data['providerKeys'] ?? []),
+-            'tariffIds'       => static::intList($data['tariffIds'] ?? []),
+-            'timeout'         => max(0, (int)($data['timeout'] ?? 0)),
+-            'skipTariffRules' => (bool)($data['skipTariffRules'] ?? false),
+-            'promoCode'       => trim((string)($data['promoCode'] ?? '')),
+-            'customCode'      => trim((string)($data['customCode'] ?? '')),
+-            'pointInId'       => max(0, (int)($data['pointInId'] ?? 0)),
+-            'pointOutId'      => max(0, (int)($data['pointOutId'] ?? 0)),
+-            'pickupTimeStart'   => trim((string)($data['pickupTimeStart'] ?? '')),
+-            'pickupTimeEnd'     => trim((string)($data['pickupTimeEnd'] ?? '')),
+-            'deliveryTimeStart' => trim((string)($data['deliveryTimeStart'] ?? '')),
+-            'deliveryTimeEnd'   => trim((string)($data['deliveryTimeEnd'] ?? '')),
+-            'extraParams'     => array_filter(
++            assessedCost: round(max(0.0, (float)($data['assessedCost'] ?? 0)), 2),
++            codCost: round(max(0.0, (float)($data['codCost'] ?? 0)), 2),
++            includeFees: (bool)($data['includeFees'] ?? false),
++            pickupDate: trim((string)($data['pickupDate'] ?? '')),
++            pickupTypes: static::intList($data['pickupTypes'] ?? []),
++            deliveryTypes: static::intList($data['deliveryTypes'] ?? []),
++            providerKeys: static::stringList($data['providerKeys'] ?? []),
++            tariffIds: static::intList($data['tariffIds'] ?? []),
++            timeout: max(0, (int)($data['timeout'] ?? 0)),
++            skipTariffRules: (bool)($data['skipTariffRules'] ?? false),
++            promoCode: trim((string)($data['promoCode'] ?? '')),
++            customCode: trim((string)($data['customCode'] ?? '')),
++            pointInId: max(0, (int)($data['pointInId'] ?? 0)),
++            pointOutId: max(0, (int)($data['pointOutId'] ?? 0)),
++            pickupTimeStart: trim((string)($data['pickupTimeStart'] ?? '')),
++            pickupTimeEnd: trim((string)($data['pickupTimeEnd'] ?? '')),
++            deliveryTimeStart: trim((string)($data['deliveryTimeStart'] ?? '')),
++            deliveryTimeEnd: trim((string)($data['deliveryTimeEnd'] ?? '')),
++            extraParams: array_filter(
+                 (array)($data['extraParams'] ?? []),
+                 static fn($v) => $v !== null && $v !== ''
+             ),
+-        ]);
++        );
+     }
+ 
+     /**
+diff --git a/local/modules/beeralex.apiship/lib/Dto/CostDto.php b/local/modules/beeralex.apiship/lib/Dto/CostDto.php
+index ff9830a..4b601aa 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/CostDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/CostDto.php
+@@ -3,36 +3,46 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Блок `cost` запроса создания заказа ApiShip (суммы в рублях).
+- *
+- * @property float $assessedCost Оценочная стоимость / сумма страховки. Обязательно. Пример: 100.12
+- * @property float $codCost Сумма наложенного платежа с НДС (включает deliveryCost). Обязательно. Пример: 98.21
+- * @property float|null $deliveryCost Стоимость доставки с получателя. Пример: 50.12
+- * @property int|null $deliveryCostVat Ставка НДС доставки: -1 без НДС, 0, 5, 7, 10, 20, 22. Пример: 22
+- * @property bool|null $isDeliveryPayedByRecipient Кто платит доставку: false — отправитель, true — получатель (в OpenAPI — boolean)
+- * @property int|null $paymentMethod Способ оплаты: 1 наличные, 2 карта, 3 смешанная, 4 безналичная (по счёту)
+- * @property array<int,array{deliveryCost:float,threshold:float}> $deliveryCostThresholds Пороги стоимости доставки при частичном выкупе
+  */
+-final class CostDto extends Resource
++class CostDto
+ {
++    use Arrayable;
+     use NormalizesValues;
+ 
++    public function __construct(
++        /** Оценочная стоимость / сумма страховки. Обязательно. Пример: 100.12 */
++        public readonly float $assessedCost,
++        /** Сумма наложенного платежа с НДС (включает deliveryCost). Обязательно. Пример: 98.21 */
++        public readonly float $codCost,
++        /** Стоимость доставки с получателя. Пример: 50.12 */
++        public readonly ?float $deliveryCost,
++        /** Ставка НДС доставки: -1 без НДС, 0, 5, 7, 10, 20, 22. Пример: 22 */
++        public readonly ?int $deliveryCostVat,
++        /** Кто платит доставку: false — отправитель, true — получатель (в OpenAPI — boolean) */
++        public readonly ?bool $isDeliveryPayedByRecipient,
++        /** Способ оплаты: 1 наличные, 2 карта, 3 смешанная, 4 безналичная (по счёту) */
++        public readonly ?int $paymentMethod,
++        /** Пороги стоимости доставки при частичном выкупе */
++        public readonly array $deliveryCostThresholds,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'assessedCost'               => (float)($data['assessedCost'] ?? 0),
+-            'codCost'                    => (float)($data['codCost'] ?? 0),
+-            'deliveryCost'               => static::nullableFloat($data['deliveryCost'] ?? null),
+-            'deliveryCostVat'            => static::nullableInt($data['deliveryCostVat'] ?? null),
+-            'isDeliveryPayedByRecipient' => isset($data['isDeliveryPayedByRecipient']) && $data['isDeliveryPayedByRecipient'] !== ''
++        return new static(
++            assessedCost: (float)($data['assessedCost'] ?? 0),
++            codCost: (float)($data['codCost'] ?? 0),
++            deliveryCost: static::nullableFloat($data['deliveryCost'] ?? null),
++            deliveryCostVat: static::nullableInt($data['deliveryCostVat'] ?? null),
++            isDeliveryPayedByRecipient: isset($data['isDeliveryPayedByRecipient']) && $data['isDeliveryPayedByRecipient'] !== ''
+                 ? (bool)$data['isDeliveryPayedByRecipient']
+                 : null,
+-            'paymentMethod'              => static::nullableInt($data['paymentMethod'] ?? null),
+-            'deliveryCostThresholds'     => array_values((array)($data['deliveryCostThresholds'] ?? [])),
+-        ]);
++            paymentMethod: static::nullableInt($data['paymentMethod'] ?? null),
++            deliveryCostThresholds: array_values((array)($data['deliveryCostThresholds'] ?? [])),
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/CreateOrderDto.php b/local/modules/beeralex.apiship/lib/Dto/CreateOrderDto.php
+index 595c4b7..0c5020c 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/CreateOrderDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/CreateOrderDto.php
+@@ -3,87 +3,119 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Входные данные для создания заказа ApiShip (POST /orders).
+  *
+- * Собирается OrderService::collectDto() из заказа Bitrix, SDK-запрос строит OrderRequestBuilder. Поля блока `order` — плоские,
+- * остальные блоки вложены (as array): cost — CostDto, sender/recipient/returnAddress — RecipientDto,
+- * places — PlaceDto[].
++ * Собирается OrderService::collectDto() из заказа Bitrix, SDK-запрос строит OrderRequestBuilder.
++ * Поля блока `order` — плоские, остальные блоки вложены как DTO: cost — CostDto,
++ * sender/recipient/returnAddress — RecipientDto, places — PlaceDto[] (внутри ItemDto[]).
+  *
+- * @property int $bitrixOrderId ID заказа Bitrix (служебное поле, в ApiShip не уходит)
+- *
+- * Блок order:
+- * @property string $clientNumber Номер заказа в системе клиента. Обязательно. Пример: 123-456
+- * @property string $providerKey Код службы доставки. Обязательно. Пример: cdek
+- * @property int $tariffId ID тарифа СД. Обязательно. Пример: 1
+- * @property int $pickupType Тип забора: 1 — от двери клиента, 2 — клиент привозит на склад СД. Обязательно
+- * @property int $deliveryType Тип доставки: 1 — до двери, 2 — до ПВЗ. Обязательно
+- * @property int $weight Вес всего заказа, г. Обязательно. Пример: 100
+- * @property string|null $providerConnectId ID подключения (в OpenAPI — строка) к СД (если договоров с одной СД несколько). Пример: 12
+- * @property string|null $description Комментарий к заказу. Пример: Важный заказ
+- * @property string|null $barcode Штрихкод заказа (при передаче places — указывается в place.barcode)
+- * @property int|null $height Высота заказа, см
+- * @property int|null $length Длина заказа, см
+- * @property int|null $width Ширина заказа, см
+- * @property int|null $pointInId ID пункта приёма из /lists/points; обязателен при pickupType = 2
+- * @property int|null $pointOutId ID пункта выдачи из /lists/points; обязателен при deliveryType = 2
+- * @property string|null $pickupDate Планируемая дата передачи заказа в СД, Y-m-d. Пример: 2020-01-31
+- * @property string|null $pickupTimeStart Начало времени передачи в СД, H:i. Пример: 10:00
+- * @property string|null $pickupTimeEnd Конец времени передачи в СД, H:i. Пример: 18:00
+- * @property string|null $deliveryDate Желаемая дата доставки, Y-m-d
+- * @property string|null $deliveryTimeStart Начало времени доставки, H:i
+- * @property string|null $deliveryTimeEnd Конец времени доставки, H:i
+- *
+- * Вложенные блоки:
+- * @property array<string,mixed> $cost CostDto as array. Обязательно
+- * @property array<string,mixed> $sender RecipientDto as array. Обязательно
+- * @property array<string,mixed> $recipient RecipientDto as array. Обязательно
+- * @property array<string,mixed> $returnAddress RecipientDto as array; пусто — не передаётся
+- * @property array<int,array<string,mixed>> $places PlaceDto[] as array. Обязательно
+- * @property array<int,array{key:string,value:string}> $extraParams Доп. услуги СД. Пример: [['key' => 'cdek.InspectionAttachments', 'value' => '1']]
++ * make() принимает как готовые DTO, так и массивы и сам приводит типы.
+  */
+-final class CreateOrderDto extends Resource
++class CreateOrderDto
+ {
++    use Arrayable;
+     use NormalizesValues;
+ 
++    public function __construct(
++        /** ID заказа Bitrix (служебное поле, в ApiShip не уходит) */
++        public readonly int $bitrixOrderId,
++        /** Номер заказа в системе клиента. Обязательно. Пример: 123-456 */
++        public readonly string $clientNumber,
++        /** Код службы доставки. Обязательно. Пример: cdek */
++        public readonly string $providerKey,
++        /** ID тарифа СД. Обязательно. Пример: 1 */
++        public readonly int $tariffId,
++        /** Тип забора: 1 — от двери клиента, 2 — клиент привозит на склад СД. Обязательно */
++        public readonly int $pickupType,
++        /** Тип доставки: 1 — до двери, 2 — до ПВЗ. Обязательно */
++        public readonly int $deliveryType,
++        /** Вес всего заказа, г. Обязательно. Пример: 100 */
++        public readonly int $weight,
++        /** ID подключения (в OpenAPI — строка) к СД (если договоров с одной СД несколько). Пример: 12 */
++        public readonly ?string $providerConnectId,
++        /** Комментарий к заказу. Пример: Важный заказ */
++        public readonly ?string $description,
++        /** Штрихкод заказа (при передаче places — указывается в place.barcode) */
++        public readonly ?string $barcode,
++        /** Высота заказа, см */
++        public readonly ?int $height,
++        /** Длина заказа, см */
++        public readonly ?int $length,
++        /** Ширина заказа, см */
++        public readonly ?int $width,
++        /** ID пункта приёма из /lists/points; обязателен при pickupType = 2 */
++        public readonly ?int $pointInId,
++        /** ID пункта выдачи из /lists/points; обязателен при deliveryType = 2 */
++        public readonly ?int $pointOutId,
++        /** Планируемая дата передачи заказа в СД, Y-m-d. Пример: 2020-01-31 */
++        public readonly ?string $pickupDate,
++        /** Начало времени передачи в СД, H:i. Пример: 10:00 */
++        public readonly ?string $pickupTimeStart,
++        /** Конец времени передачи в СД, H:i. Пример: 18:00 */
++        public readonly ?string $pickupTimeEnd,
++        /** Желаемая дата доставки, Y-m-d */
++        public readonly ?string $deliveryDate,
++        /** Начало времени доставки, H:i */
++        public readonly ?string $deliveryTimeStart,
++        /** Конец времени доставки, H:i */
++        public readonly ?string $deliveryTimeEnd,
++        /** Обязательно */
++        public readonly CostDto $cost,
++        /** Отправитель. Обязательно */
++        public readonly RecipientDto $sender,
++        /** Получатель. Обязательно */
++        public readonly RecipientDto $recipient,
++        /** null — не передаётся */
++        public readonly ?RecipientDto $returnAddress,
++        /** @var PlaceDto[] Грузовые места. Обязательно */
++        public readonly array $places,
++        /** Доп. услуги СД. Пример: [['key' => 'cdek.InspectionAttachments', 'value' => '1']] */
++        public readonly array $extraParams,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'bitrixOrderId'     => (int)($data['bitrixOrderId'] ?? 0),
+-            'clientNumber'      => (string)($data['clientNumber'] ?? ''),
+-            'providerKey'       => (string)($data['providerKey'] ?? ''),
+-            'tariffId'          => (int)($data['tariffId'] ?? 0),
+-            'pickupType'        => (int)($data['pickupType'] ?? 1),
+-            'deliveryType'      => (int)($data['deliveryType'] ?? 1),
+-            'weight'            => (int)($data['weight'] ?? 0),
+-            'providerConnectId' => static::nullableString($data['providerConnectId'] ?? null),
+-            'description'       => static::nullableString($data['description'] ?? null),
+-            'barcode'           => static::nullableString($data['barcode'] ?? null),
+-            'height'            => static::nullableInt($data['height'] ?? null),
+-            'length'            => static::nullableInt($data['length'] ?? null),
+-            'width'             => static::nullableInt($data['width'] ?? null),
+-            'pointInId'         => static::nullableInt($data['pointInId'] ?? null),
+-            'pointOutId'        => static::nullableInt($data['pointOutId'] ?? null),
+-            'pickupDate'        => static::nullableString($data['pickupDate'] ?? null),
+-            'pickupTimeStart'   => static::nullableString($data['pickupTimeStart'] ?? null),
+-            'pickupTimeEnd'     => static::nullableString($data['pickupTimeEnd'] ?? null),
+-            'deliveryDate'      => static::nullableString($data['deliveryDate'] ?? null),
+-            'deliveryTimeStart' => static::nullableString($data['deliveryTimeStart'] ?? null),
+-            'deliveryTimeEnd'   => static::nullableString($data['deliveryTimeEnd'] ?? null),
+-            'cost'              => CostDto::make((array)($data['cost'] ?? []))->toArray(),
+-            'sender'            => RecipientDto::make((array)($data['sender'] ?? []))->toArray(),
+-            'recipient'         => RecipientDto::make((array)($data['recipient'] ?? []))->toArray(),
+-            'returnAddress'     => empty($data['returnAddress'])
+-                ? []
+-                : RecipientDto::make((array)$data['returnAddress'])->toArray(),
+-            'places'            => array_map(
+-                static fn($place) => PlaceDto::make((array)$place)->toArray(),
++        return new static(
++            bitrixOrderId: (int)($data['bitrixOrderId'] ?? 0),
++            clientNumber: (string)($data['clientNumber'] ?? ''),
++            providerKey: (string)($data['providerKey'] ?? ''),
++            tariffId: (int)($data['tariffId'] ?? 0),
++            pickupType: (int)($data['pickupType'] ?? 1),
++            deliveryType: (int)($data['deliveryType'] ?? 1),
++            weight: (int)($data['weight'] ?? 0),
++            providerConnectId: static::nullableString($data['providerConnectId'] ?? null),
++            description: static::nullableString($data['description'] ?? null),
++            barcode: static::nullableString($data['barcode'] ?? null),
++            height: static::nullableInt($data['height'] ?? null),
++            length: static::nullableInt($data['length'] ?? null),
++            width: static::nullableInt($data['width'] ?? null),
++            pointInId: static::nullableInt($data['pointInId'] ?? null),
++            pointOutId: static::nullableInt($data['pointOutId'] ?? null),
++            pickupDate: static::nullableString($data['pickupDate'] ?? null),
++            pickupTimeStart: static::nullableString($data['pickupTimeStart'] ?? null),
++            pickupTimeEnd: static::nullableString($data['pickupTimeEnd'] ?? null),
++            deliveryDate: static::nullableString($data['deliveryDate'] ?? null),
++            deliveryTimeStart: static::nullableString($data['deliveryTimeStart'] ?? null),
++            deliveryTimeEnd: static::nullableString($data['deliveryTimeEnd'] ?? null),
++            cost: $data['cost'] instanceof CostDto ? $data['cost'] : CostDto::make((array)($data['cost'] ?? [])),
++            sender: static::contact($data['sender'] ?? []),
++            recipient: static::contact($data['recipient'] ?? []),
++            returnAddress: empty($data['returnAddress']) ? null : static::contact($data['returnAddress']),
++            places: array_map(
++                static fn($place) => $place instanceof PlaceDto ? $place : PlaceDto::make((array)$place),
+                 array_values((array)($data['places'] ?? []))
+             ),
+-            'extraParams'       => array_values((array)($data['extraParams'] ?? [])),
+-        ]);
++            extraParams: array_values((array)($data['extraParams'] ?? [])),
++        );
++    }
++
++    /** @param array<string,mixed>|RecipientDto $contact */
++    protected static function contact(mixed $contact): RecipientDto
++    {
++        return $contact instanceof RecipientDto ? $contact : RecipientDto::make((array)$contact);
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/ItemDto.php b/local/modules/beeralex.apiship/lib/Dto/ItemDto.php
+index c375c5f..588044e 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/ItemDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/ItemDto.php
+@@ -3,56 +3,77 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Товарная позиция (`places[].items[]` запроса создания заказа ApiShip).
+- *
+- * @property string $description Наименование товара. Обязательно. Пример: Кирпич
+- * @property int $quantity Количество. Обязательно. Пример: 2
+- * @property int $weight Вес единицы, г. Обязательно. Пример: 100
+- * @property string|null $articul Артикул. Пример: 123-456
+- * @property string|null $barcode Штрихкод предмета. Пример: 123456
+- * @property float|null $assessedCost Оценочная стоимость единицы, руб. Сумма assessedCost × quantity должна равняться cost.assessedCost
+- * @property float|null $cost Наложенная стоимость единицы, руб. Пример: 100.20
+- * @property int|null $costVat Ставка НДС: -1 без НДС, 0, 5, 7, 10, 20, 22
+- * @property int|null $height Высота единицы, см
+- * @property int|null $length Длина единицы, см
+- * @property int|null $width Ширина единицы, см
+- * @property string|null $markCode Код маркировки. Пример: 010468006347633
+- * @property string|null $companyName Поставщик/продавец: наименование
+- * @property string|null $companyInn Поставщик/продавец: ИНН. Пример: 1234567890
+- * @property string|null $companyPhone Поставщик/продавец: телефон. Пример: 79887776655
+- * @property string|null $tnved Код ТН ВЭД. Пример: 6810190009
+- * @property string|null $url Ссылка на страницу товара в магазине
+- * @property array<int,string>|null $photoLinks Внешние URL фото товара (до 2048 символов каждый); null — не менять, [] — очистить
+  */
+-final class ItemDto extends Resource
++class ItemDto
+ {
++    use Arrayable;
+     use NormalizesValues;
+ 
++    public function __construct(
++        /** Наименование товара. Обязательно. Пример: Кирпич */
++        public readonly string $description,
++        /** Количество. Обязательно. Пример: 2 */
++        public readonly int $quantity,
++        /** Вес единицы, г. Обязательно. Пример: 100 */
++        public readonly int $weight,
++        /** Артикул. Пример: 123-456 */
++        public readonly ?string $articul,
++        /** Штрихкод предмета. Пример: 123456 */
++        public readonly ?string $barcode,
++        /** Оценочная стоимость единицы, руб. Сумма assessedCost × quantity должна равняться cost.assessedCost */
++        public readonly ?float $assessedCost,
++        /** Наложенная стоимость единицы, руб. Пример: 100.20 */
++        public readonly ?float $cost,
++        /** Ставка НДС: -1 без НДС, 0, 5, 7, 10, 20, 22 */
++        public readonly ?int $costVat,
++        /** Высота единицы, см */
++        public readonly ?int $height,
++        /** Длина единицы, см */
++        public readonly ?int $length,
++        /** Ширина единицы, см */
++        public readonly ?int $width,
++        /** Код маркировки. Пример: 010468006347633 */
++        public readonly ?string $markCode,
++        /** Поставщик/продавец: наименование */
++        public readonly ?string $companyName,
++        /** Поставщик/продавец: ИНН. Пример: 1234567890 */
++        public readonly ?string $companyInn,
++        /** Поставщик/продавец: телефон. Пример: 79887776655 */
++        public readonly ?string $companyPhone,
++        /** Код ТН ВЭД. Пример: 6810190009 */
++        public readonly ?string $tnved,
++        /** Ссылка на страницу товара в магазине */
++        public readonly ?string $url,
++        /** Внешние URL фото товара (до 2048 символов каждый); null — не менять, [] — очистить */
++        public readonly ?array $photoLinks,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'description'  => (string)($data['description'] ?? ''),
+-            'quantity'     => (int)($data['quantity'] ?? 1),
+-            'weight'       => (int)($data['weight'] ?? 0),
+-            'articul'      => static::nullableString($data['articul'] ?? null),
+-            'barcode'      => static::nullableString($data['barcode'] ?? null),
+-            'assessedCost' => static::nullableFloat($data['assessedCost'] ?? null),
+-            'cost'         => static::nullableFloat($data['cost'] ?? null),
+-            'costVat'      => static::nullableInt($data['costVat'] ?? null),
+-            'height'       => static::nullableInt($data['height'] ?? null),
+-            'length'       => static::nullableInt($data['length'] ?? null),
+-            'width'        => static::nullableInt($data['width'] ?? null),
+-            'markCode'     => static::nullableString($data['markCode'] ?? null),
+-            'companyName'  => static::nullableString($data['companyName'] ?? null),
+-            'companyInn'   => static::nullableString($data['companyInn'] ?? null),
+-            'companyPhone' => static::nullableString($data['companyPhone'] ?? null),
+-            'tnved'        => static::nullableString($data['tnved'] ?? null),
+-            'url'          => static::nullableString($data['url'] ?? null),
+-            'photoLinks'   => isset($data['photoLinks']) ? array_values(array_map('strval', (array)$data['photoLinks'])) : null,
+-        ]);
++        return new static(
++            description: (string)($data['description'] ?? ''),
++            quantity: (int)($data['quantity'] ?? 1),
++            weight: (int)($data['weight'] ?? 0),
++            articul: static::nullableString($data['articul'] ?? null),
++            barcode: static::nullableString($data['barcode'] ?? null),
++            assessedCost: static::nullableFloat($data['assessedCost'] ?? null),
++            cost: static::nullableFloat($data['cost'] ?? null),
++            costVat: static::nullableInt($data['costVat'] ?? null),
++            height: static::nullableInt($data['height'] ?? null),
++            length: static::nullableInt($data['length'] ?? null),
++            width: static::nullableInt($data['width'] ?? null),
++            markCode: static::nullableString($data['markCode'] ?? null),
++            companyName: static::nullableString($data['companyName'] ?? null),
++            companyInn: static::nullableString($data['companyInn'] ?? null),
++            companyPhone: static::nullableString($data['companyPhone'] ?? null),
++            tnved: static::nullableString($data['tnved'] ?? null),
++            url: static::nullableString($data['url'] ?? null),
++            photoLinks: isset($data['photoLinks']) ? array_values(array_map('strval', (array)$data['photoLinks'])) : null,
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/ParcelDto.php b/local/modules/beeralex.apiship/lib/Dto/ParcelDto.php
+index 9668133..6313ce4 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/ParcelDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/ParcelDto.php
+@@ -4,26 +4,30 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
+-use Beeralex\Core\Http\Resources\Resource;
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ 
+ /**
+  * Одно грузовое место.
+  * Единицы: вес — граммы, габариты — сантиметры.
+- *
+- * @property int $weight
+- * @property int $width
+- * @property int $height
+- * @property int $length
+  */
+-final class ParcelDto extends Resource
++class ParcelDto
+ {
++    use Arrayable;
++
++    public function __construct(
++        public readonly int $weight,
++        public readonly int $width,
++        public readonly int $height,
++        public readonly int $length,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'weight' => max(0, (int)ceil((float)($data['weight'] ?? 0))),
+-            'width'  => max(0, (int)ceil((float)($data['width'] ?? 0))),
+-            'height' => max(0, (int)ceil((float)($data['height'] ?? 0))),
+-            'length' => max(0, (int)ceil((float)($data['length'] ?? 0))),
+-        ]);
++        return new static(
++            weight: max(0, (int)ceil((float)($data['weight'] ?? 0))),
++            width: max(0, (int)ceil((float)($data['width'] ?? 0))),
++            height: max(0, (int)ceil((float)($data['height'] ?? 0))),
++            length: max(0, (int)ceil((float)($data['length'] ?? 0))),
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/PlaceDto.php b/local/modules/beeralex.apiship/lib/Dto/PlaceDto.php
+index 54f12a6..c0c4ae4 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/PlaceDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/PlaceDto.php
+@@ -3,37 +3,47 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Грузовое место (`places[]` запроса создания заказа ApiShip; также используется в расчёте).
+- *
+- * @property int $weight Вес места, г. Обязательно. Пример: 100
+- * @property array<int,array<string,mixed>> $items Содержимое места (ItemDto as array). Обязательно
+- * @property string|null $placeNumber Номер места в системе клиента. Пример: 1
+- * @property string|null $barcode Штрихкод места. Пример: 011-819
+- * @property int|null $height Высота, см
+- * @property int|null $width Ширина, см
+- * @property int|null $length Длина, см
+  */
+-final class PlaceDto extends Resource
++class PlaceDto
+ {
++    use Arrayable;
+     use NormalizesValues;
+ 
++    public function __construct(
++        /** Вес места, г. Обязательно. Пример: 100 */
++        public readonly int $weight,
++        /** @var ItemDto[] Содержимое места. Обязательно */
++        public readonly array $items,
++        /** Номер места в системе клиента. Пример: 1 */
++        public readonly ?string $placeNumber,
++        /** Штрихкод места. Пример: 011-819 */
++        public readonly ?string $barcode,
++        /** Высота, см */
++        public readonly ?int $height,
++        /** Ширина, см */
++        public readonly ?int $width,
++        /** Длина, см */
++        public readonly ?int $length,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'weight'      => (int)($data['weight'] ?? 0),
+-            'items'       => array_map(
+-                static fn($item) => ItemDto::make((array)$item)->toArray(),
++        return new static(
++            weight: (int)($data['weight'] ?? 0),
++            items: array_map(
++                static fn($item) => $item instanceof ItemDto ? $item : ItemDto::make((array)$item),
+                 array_values((array)($data['items'] ?? []))
+             ),
+-            'placeNumber' => static::nullableString($data['placeNumber'] ?? null),
+-            'barcode'     => static::nullableString($data['barcode'] ?? null),
+-            'height'      => static::nullableInt($data['height'] ?? null),
+-            'width'       => static::nullableInt($data['width'] ?? null),
+-            'length'      => static::nullableInt($data['length'] ?? null),
+-        ]);
++            placeNumber: static::nullableString($data['placeNumber'] ?? null),
++            barcode: static::nullableString($data['barcode'] ?? null),
++            height: static::nullableInt($data['height'] ?? null),
++            width: static::nullableInt($data['width'] ?? null),
++            length: static::nullableInt($data['length'] ?? null),
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/RecipientDto.php b/local/modules/beeralex.apiship/lib/Dto/RecipientDto.php
+index 2aeaae7..76f5187 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/RecipientDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/RecipientDto.php
+@@ -3,63 +3,86 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Support\Concerns\NormalizesValues;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Контакт с адресом: `recipient`, `sender` и `returnAddress` запроса создания заказа ApiShip.
+  *
+  * Если не заполнены countryCode/region/city/street, обязателен addressString (ApiShip разберёт его сам).
+  * brandName относится только к sender, companyInn — к sender и recipient.
+- *
+- * @property string $phone Контактный телефон. Обязательно. Пример: +7(925)111-11-11
+- * @property string $contactName ФИО контактного лица. Обязательно. Пример: Иванов Иван
+- * @property string $countryCode Код страны ISO 3166-1 alpha-2. Обязательно. Пример: RU
+- * @property string|null $region Область/республика/край. Пример: Москва
+- * @property string|null $city Город/населённый пункт. Пример: Москва
+- * @property string|null $street Улица. Пример: Нижняя Красносельская
+- * @property string|null $house Дом. Пример: 1a
+- * @property string|null $block Строение/корпус. Пример: 1
+- * @property string|null $office Офис/квартира. Пример: 1
+- * @property string|null $addressString Адрес одной строкой. Пример: 105066, Москва, Нижняя Красносельская улица, 14А
+- * @property string|null $email Контактный email
+- * @property string|null $postIndex Почтовый индекс. Пример: 100100
+- * @property string|null $area Район. Пример: Кировский
+- * @property string|null $cityGuid ID города в ФИАС. Пример: 0c5b2444-70a0-4932-980c-b4dc0d3f02b5
+- * @property float|null $lat Широта. Пример: 55.756499
+- * @property float|null $lng Долгота. Пример: 37.621864
+- * @property string|null $comment Комментарий. Пример: Позвонить с проходной
+- * @property string|null $companyName Название компании. Пример: ООО КНД
+- * @property string|null $companyInn ИНН компании. Пример: 1234567890
+- * @property string|null $brandName Бренд продавца (только sender). Пример: ApiShip
+  */
+-final class RecipientDto extends Resource
++class RecipientDto
+ {
++    use Arrayable;
+     use NormalizesValues;
+ 
++    public function __construct(
++        /** Контактный телефон. Обязательно. Пример: +7(925)111-11-11 */
++        public readonly string $phone,
++        /** ФИО контактного лица. Обязательно. Пример: Иванов Иван */
++        public readonly string $contactName,
++        /** Код страны ISO 3166-1 alpha-2. Обязательно. Пример: RU */
++        public readonly string $countryCode,
++        /** Область/республика/край. Пример: Москва */
++        public readonly ?string $region,
++        /** Город/населённый пункт. Пример: Москва */
++        public readonly ?string $city,
++        /** Улица. Пример: Нижняя Красносельская */
++        public readonly ?string $street,
++        /** Дом. Пример: 1a */
++        public readonly ?string $house,
++        /** Строение/корпус. Пример: 1 */
++        public readonly ?string $block,
++        /** Офис/квартира. Пример: 1 */
++        public readonly ?string $office,
++        /** Адрес одной строкой. Пример: 105066, Москва, Нижняя Красносельская улица, 14А */
++        public readonly ?string $addressString,
++        /** Контактный email */
++        public readonly ?string $email,
++        /** Почтовый индекс. Пример: 100100 */
++        public readonly ?string $postIndex,
++        /** Район. Пример: Кировский */
++        public readonly ?string $area,
++        /** ID города в ФИАС. Пример: 0c5b2444-70a0-4932-980c-b4dc0d3f02b5 */
++        public readonly ?string $cityGuid,
++        /** Широта. Пример: 55.756499 */
++        public readonly ?float $lat,
++        /** Долгота. Пример: 37.621864 */
++        public readonly ?float $lng,
++        /** Комментарий. Пример: Позвонить с проходной */
++        public readonly ?string $comment,
++        /** Название компании. Пример: ООО КНД */
++        public readonly ?string $companyName,
++        /** ИНН компании. Пример: 1234567890 */
++        public readonly ?string $companyInn,
++        /** Бренд продавца (только sender). Пример: ApiShip */
++        public readonly ?string $brandName,
++    ) {}
++
+     public static function make(array $data): static
+     {
+-        return new static([
+-            'phone'         => (string)($data['phone'] ?? ''),
+-            'contactName'   => (string)($data['contactName'] ?? ''),
+-            'countryCode'   => (string)($data['countryCode'] ?? 'RU'),
+-            'region'        => static::nullableString($data['region'] ?? null),
+-            'city'          => static::nullableString($data['city'] ?? null),
+-            'street'        => static::nullableString($data['street'] ?? null),
+-            'house'         => static::nullableString($data['house'] ?? null),
+-            'block'         => static::nullableString($data['block'] ?? null),
+-            'office'        => static::nullableString($data['office'] ?? null),
+-            'addressString' => static::nullableString($data['addressString'] ?? null),
+-            'email'         => static::nullableString($data['email'] ?? null),
+-            'postIndex'     => static::nullableString($data['postIndex'] ?? null),
+-            'area'          => static::nullableString($data['area'] ?? null),
+-            'cityGuid'      => static::nullableString($data['cityGuid'] ?? null),
+-            'lat'           => static::nullableFloat($data['lat'] ?? null),
+-            'lng'           => static::nullableFloat($data['lng'] ?? null),
+-            'comment'       => static::nullableString($data['comment'] ?? null),
+-            'companyName'   => static::nullableString($data['companyName'] ?? null),
+-            'companyInn'    => static::nullableString($data['companyInn'] ?? null),
+-            'brandName'     => static::nullableString($data['brandName'] ?? null),
+-        ]);
++        return new static(
++            phone: (string)($data['phone'] ?? ''),
++            contactName: (string)($data['contactName'] ?? ''),
++            countryCode: (string)($data['countryCode'] ?? 'RU'),
++            region: static::nullableString($data['region'] ?? null),
++            city: static::nullableString($data['city'] ?? null),
++            street: static::nullableString($data['street'] ?? null),
++            house: static::nullableString($data['house'] ?? null),
++            block: static::nullableString($data['block'] ?? null),
++            office: static::nullableString($data['office'] ?? null),
++            addressString: static::nullableString($data['addressString'] ?? null),
++            email: static::nullableString($data['email'] ?? null),
++            postIndex: static::nullableString($data['postIndex'] ?? null),
++            area: static::nullableString($data['area'] ?? null),
++            cityGuid: static::nullableString($data['cityGuid'] ?? null),
++            lat: static::nullableFloat($data['lat'] ?? null),
++            lng: static::nullableFloat($data['lng'] ?? null),
++            comment: static::nullableString($data['comment'] ?? null),
++            companyName: static::nullableString($data['companyName'] ?? null),
++            companyInn: static::nullableString($data['companyInn'] ?? null),
++            brandName: static::nullableString($data['brandName'] ?? null),
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/TariffDto.php b/local/modules/beeralex.apiship/lib/Dto/TariffDto.php
+index 053b806..9f89412 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/TariffDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/TariffDto.php
+@@ -3,37 +3,45 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
+-use Beeralex\Core\Http\Resources\Resource;
++use Beeralex\Apiship\Enum\DeliveryType;
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ 
+ /**
+  * Нормализованный тариф расчёта доставки.
+- *
+- * @property string $providerKey
+- * @property int $tariffId
+- * @property string $tariffName
+- * @property float $deliveryCost
+- * @property int $daysMin
+- * @property int $daysMax
+- * @property int $deliveryType 1 — до двери, 2 — до ПВЗ
+- * @property bool $isToPoint
+- * @property array<int,string> $pointIds
+  */
+-final class TariffDto extends Resource
++class TariffDto
+ {
++    use Arrayable;
++
++    public readonly bool $isToPoint;
++
++    public function __construct(
++        public readonly string $providerKey,
++        public readonly int $tariffId,
++        public readonly string $tariffName,
++        public readonly float $deliveryCost,
++        public readonly int $daysMin,
++        public readonly int $daysMax,
++        /** 1 — до двери, 2 — до ПВЗ */
++        public readonly int $deliveryType,
++        public readonly array $pointIds,
++    ) {
++        $this->isToPoint = $deliveryType === DeliveryType::TO_POINT->value;
++    }
++
+     public static function make(array $data): static
+     {
+         $deliveryType = (int)($data['deliveryType'] ?? 0);
+ 
+-        return new static([
+-            'providerKey'  => (string)($data['providerKey'] ?? ''),
+-            'tariffId'     => (int)($data['tariffId'] ?? 0),
+-            'tariffName'   => (string)($data['tariffName'] ?? ''),
+-            'deliveryCost' => (float)($data['deliveryCost'] ?? 0),
+-            'daysMin'      => (int)($data['daysMin'] ?? 0),
+-            'daysMax'      => (int)($data['daysMax'] ?? 0),
+-            'deliveryType' => $deliveryType,
+-            'isToPoint'    => $deliveryType === 2,
+-            'pointIds'     => (array)($data['pointIds'] ?? []),
+-        ]);
++        return new static(
++            providerKey: (string)($data['providerKey'] ?? ''),
++            tariffId: (int)($data['tariffId'] ?? 0),
++            tariffName: (string)($data['tariffName'] ?? ''),
++            deliveryCost: (float)($data['deliveryCost'] ?? 0),
++            daysMin: (int)($data['daysMin'] ?? 0),
++            daysMax: (int)($data['daysMax'] ?? 0),
++            deliveryType: $deliveryType,
++            pointIds: (array)($data['pointIds'] ?? []),
++        );
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Dto/WebhookEventDto.php b/local/modules/beeralex.apiship/lib/Dto/WebhookEventDto.php
+index 2ab22ce..718a9b2 100644
+--- a/local/modules/beeralex.apiship/lib/Dto/WebhookEventDto.php
++++ b/local/modules/beeralex.apiship/lib/Dto/WebhookEventDto.php
+@@ -3,8 +3,8 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship\Dto;
+ 
++use Beeralex\Apiship\Support\Concerns\Arrayable;
+ use Beeralex\Apiship\Enum\WebhookEventType;
+-use Beeralex\Core\Http\Resources\Resource;
+ 
+ /**
+  * Разобранное событие входящего вебхука ApiShip.
+@@ -16,35 +16,42 @@ use Beeralex\Core\Http\Resources\Resource;
+  *
+  * plannedDelivery (если у заказа есть плановая дата) всегда приходит ВНУТРИ orderInfo.
+  * make() разворачивает вложенную структуру (orderInfo/status/plannedDelivery) в плоские свойства.
+- *
+- * @property string $eventId         id/uuid события (пусто, если ApiShip не прислал)
+- * @property string $type            eventType
+- * @property bool $isOrderStatus     ORDER_STATUS (в т.ч. без eventType — по наличию status)
+- * @property int $orderId
+- * @property string|null $providerNumber
+- * @property string|null $clientNumber
+- * @property string|null $barcode
+- * @property string|null $additionalProviderNumber
+- * @property string|null $returnProviderNumber
+- * @property string|null $checkUrl
+- * @property string|null $trackingUrl
+- * @property string|null $providerKey
+- * @property string|null $statusKey
+- * @property string|null $statusName
+- * @property string|null $statusDescription
+- * @property string|null $statusErrorCode
+- * @property string|null $statusProviderCode
+- * @property string|null $statusProviderName
+- * @property string|null $statusProviderDescription
+- * @property string|null $statusCreated
+- * @property string|null $statusCreatedProvider
+- * @property bool $hasPlannedDelivery
+- * @property string|null $plannedDeliveryDate
+- * @property string|null $plannedDeliveryTimeStart
+- * @property string|null $plannedDeliveryTimeEnd
+  */
+-final class WebhookEventDto extends Resource
++class WebhookEventDto
+ {
++    use Arrayable;
++
++    public function __construct(
++        /** id/uuid события (пусто, если ApiShip не прислал) */
++        public readonly string $eventId,
++        /** eventType */
++        public readonly string $type,
++        /** ORDER_STATUS (в т.ч. без eventType — по наличию status) */
++        public readonly bool $isOrderStatus,
++        public readonly int $orderId,
++        public readonly ?string $providerNumber,
++        public readonly ?string $clientNumber,
++        public readonly ?string $barcode,
++        public readonly ?string $additionalProviderNumber,
++        public readonly ?string $returnProviderNumber,
++        public readonly ?string $checkUrl,
++        public readonly ?string $trackingUrl,
++        public readonly ?string $providerKey,
++        public readonly ?string $statusKey,
++        public readonly ?string $statusName,
++        public readonly ?string $statusDescription,
++        public readonly ?string $statusErrorCode,
++        public readonly ?string $statusProviderCode,
++        public readonly ?string $statusProviderName,
++        public readonly ?string $statusProviderDescription,
++        public readonly ?string $statusCreated,
++        public readonly ?string $statusCreatedProvider,
++        public readonly bool $hasPlannedDelivery,
++        public readonly ?string $plannedDeliveryDate,
++        public readonly ?string $plannedDeliveryTimeStart,
++        public readonly ?string $plannedDeliveryTimeEnd,
++    ) {}
++
+     public static function make(array $data): static
+     {
+         $orderInfo = is_array($data['orderInfo'] ?? null) ? $data['orderInfo'] : [];
+@@ -54,34 +61,34 @@ final class WebhookEventDto extends Resource
+         $type = (string)($data['eventType'] ?? '');
+         $orderId = $orderInfo['orderId'] ?? null;
+ 
+-        return new static([
+-            'eventId'                   => (string)($data['id'] ?? $data['uuid'] ?? ''),
+-            'type'                      => $type,
+-            'isOrderStatus'             => $type === WebhookEventType::ORDER_STATUS->value
++        return new static(
++            eventId: (string)($data['id'] ?? $data['uuid'] ?? ''),
++            type: $type,
++            isOrderStatus: $type === WebhookEventType::ORDER_STATUS->value
+                 || ($type === '' && $statusInfo !== []),
+-            'orderId'                   => is_numeric($orderId) ? (int)$orderId : 0,
+-            'providerNumber'            => static::str($orderInfo, 'providerNumber'),
+-            'clientNumber'              => static::str($orderInfo, 'clientNumber'),
+-            'barcode'                   => static::str($orderInfo, 'barcode'),
+-            'additionalProviderNumber'  => static::str($orderInfo, 'additionalProviderNumber'),
+-            'returnProviderNumber'      => static::str($orderInfo, 'returnProviderNumber'),
+-            'checkUrl'                  => static::str($orderInfo, 'checkUrl'),
+-            'trackingUrl'               => static::str($orderInfo, 'trackingUrl'),
+-            'providerKey'               => static::str($orderInfo, 'providerKey'),
+-            'statusKey'                 => static::str($statusInfo, 'key'),
+-            'statusName'                => static::str($statusInfo, 'name'),
+-            'statusDescription'         => static::str($statusInfo, 'description'),
+-            'statusErrorCode'           => static::str($statusInfo, 'errorCode'),
+-            'statusProviderCode'        => static::str($statusInfo, 'providerCode'),
+-            'statusProviderName'        => static::str($statusInfo, 'providerName'),
+-            'statusProviderDescription' => static::str($statusInfo, 'providerDescription'),
+-            'statusCreated'             => static::str($statusInfo, 'created'),
+-            'statusCreatedProvider'     => static::str($statusInfo, 'createdProvider'),
+-            'hasPlannedDelivery'        => $plannedDelivery !== [],
+-            'plannedDeliveryDate'       => static::str($plannedDelivery, 'date'),
+-            'plannedDeliveryTimeStart'  => static::str($plannedDelivery, 'timeStart'),
+-            'plannedDeliveryTimeEnd'    => static::str($plannedDelivery, 'timeEnd'),
+-        ]);
++            orderId: is_numeric($orderId) ? (int)$orderId : 0,
++            providerNumber: static::str($orderInfo, 'providerNumber'),
++            clientNumber: static::str($orderInfo, 'clientNumber'),
++            barcode: static::str($orderInfo, 'barcode'),
++            additionalProviderNumber: static::str($orderInfo, 'additionalProviderNumber'),
++            returnProviderNumber: static::str($orderInfo, 'returnProviderNumber'),
++            checkUrl: static::str($orderInfo, 'checkUrl'),
++            trackingUrl: static::str($orderInfo, 'trackingUrl'),
++            providerKey: static::str($orderInfo, 'providerKey'),
++            statusKey: static::str($statusInfo, 'key'),
++            statusName: static::str($statusInfo, 'name'),
++            statusDescription: static::str($statusInfo, 'description'),
++            statusErrorCode: static::str($statusInfo, 'errorCode'),
++            statusProviderCode: static::str($statusInfo, 'providerCode'),
++            statusProviderName: static::str($statusInfo, 'providerName'),
++            statusProviderDescription: static::str($statusInfo, 'providerDescription'),
++            statusCreated: static::str($statusInfo, 'created'),
++            statusCreatedProvider: static::str($statusInfo, 'createdProvider'),
++            hasPlannedDelivery: $plannedDelivery !== [],
++            plannedDeliveryDate: static::str($plannedDelivery, 'date'),
++            plannedDeliveryTimeStart: static::str($plannedDelivery, 'timeStart'),
++            plannedDeliveryTimeEnd: static::str($plannedDelivery, 'timeEnd'),
++        );
+     }
+ 
+     /**
+diff --git a/local/modules/beeralex.apiship/lib/EventHandlers.php b/local/modules/beeralex.apiship/lib/EventHandlers.php
+index 6c36f1a..d132ec2 100644
+--- a/local/modules/beeralex.apiship/lib/EventHandlers.php
++++ b/local/modules/beeralex.apiship/lib/EventHandlers.php
+@@ -3,41 +3,90 @@ declare(strict_types=1);
+ 
+ namespace Beeralex\Apiship;
+ 
+-use Bitrix\Main\Event;
+-use Bitrix\Sale\Order;
+ use Beeralex\Apiship\Contracts\OrderServiceContract;
+ use Beeralex\Apiship\Support\ShipmentLocator;
++use Bitrix\Main\Application;
++use Bitrix\Main\Event;
++use Bitrix\Sale\Order;
+ 
+-final class EventHandlers
++class EventHandlers
+ {
+-    public static function onSaleStatusOrderChange(Event $event): void
++    /** @var array<int,true> Заказы, для которых отправка уже запланирована в этом хите. */
++    protected static array $scheduled = [];
++
++    /**
++     * Заказ сохранён: если он сейчас в статусе «отправлять в ApiShip» и у него доставка ApiShip,
++     * планируем создание заказа в ApiShip.
++     *
++     * Почему OnSaleOrderSaved, а не OnSaleStatusOrderChange: тот срабатывает только в момент смены
++     * статуса и внутри ещё не завершённого сохранения. Если нужный статус выставляется заказу сразу
++     * при создании (или был выставлен раньше, а отправка не удалась), событие смены не придёт,
++     * а у нового заказа ID может быть ещё не известен. Повторные вызовы безопасны:
++     * OrderService::createForBitrixOrder() идемпотентен.
++     */
++    public static function onSaleOrderSaved(Event $event): void
+     {
+         $options = \service(Options::class);
+         if ($options->sendOnStatusId === '') {
+             return;
+         }
+ 
+-        $parameters = $event->getParameters();
+-        /** @var Order|null $order */
+-        $order = $parameters['ENTITY'] ?? null;
+-        $newStatus = $parameters['VALUE'] ?? null;
++        $order = $event->getParameter('ENTITY');
++        if (!$order instanceof Order) {
++            return;
++        }
++
++        $orderId = (int)$order->getId();
++        if ($orderId <= 0 || isset(static::$scheduled[$orderId])) {
++            return;
++        }
+ 
+-        if (!$order instanceof Order || $newStatus !== $options->sendOnStatusId) {
++        if ((string)$order->getField('STATUS_ID') !== $options->sendOnStatusId) {
+             return;
+         }
+ 
+-        // Пропускаем заказы без доставки ApiShip — это норма, не ошибка
++        // заказы без доставки ApiShip — это норма, не ошибка
+         if (ShipmentLocator::findApiShipShipment($order) === null) {
+             return;
+         }
+ 
++        static::$scheduled[$orderId] = true;
++        static::runAfterSave($orderId);
++    }
++
++    /**
++     * Устаревший обработчик OnSaleStatusOrderChange. Оставлен пустым, чтобы уже зарегистрированное
++     * в БД событие не падало до переустановки обработчиков; отправку делает onSaleOrderSaved().
++     *
++     * @deprecated
++     */
++    public static function onSaleStatusOrderChange(Event $event): void
++    {
++    }
++
++    /**
++     * Создание заказа — HTTP-запрос к ApiShip и повторное сохранение заказа (TRACKING_NUMBER).
++     * Делаем это не внутри сохранения заказа, а после его завершения: в фоновой задаче
++     * (после отправки ответа клиенту), а если фоновых задач нет — сразу.
++     */
++    protected static function runAfterSave(int $orderId): void
++    {
++        $app = Application::getInstance();
++
++        if (method_exists($app, 'addBackgroundJob')) {
++            $app->addBackgroundJob([static::class, 'send'], [$orderId]);
++            return;
++        }
++
++        static::send($orderId);
++    }
++
++    public static function send(int $orderId): void
++    {
+         try {
+-            \service(OrderServiceContract::class)->createForBitrixOrder($order->getId());
++            \service(OrderServiceContract::class)->createForBitrixOrder($orderId);
+         } catch (\Throwable $e) {
+-            \AddMessage2Log(
+-                "ApiShip: не удалось отправить заказ #{$order->getId()}: {$e->getMessage()}",
+-                'beeralex.apiship'
+-            );
++            \AddMessage2Log("ApiShip: не удалось отправить заказ #{$orderId}: {$e->getMessage()}", 'beeralex.apiship');
+         }
+     }
+ }
+diff --git a/local/modules/beeralex.apiship/lib/Repository/OrderRepository.php b/local/modules/beeralex.apiship/lib/Repository/OrderRepository.php
+index 3419749..811862e 100644
+--- a/local/modules/beeralex.apiship/lib/Repository/OrderRepository.php
++++ b/local/modules/beeralex.apiship/lib/Repository/OrderRepository.php
+@@ -37,9 +37,9 @@ class OrderRepository extends Repository
+             'POINT_IN_ID'        => $dto->pointInId,
+             'POINT_OUT_ID'       => $dto->pointOutId,
+             'WEIGHT'             => $dto->weight,
+-            'ASSESSED_COST'      => $dto->cost['assessedCost'] ?? null,
+-            'COD_COST'           => $dto->cost['codCost'] ?? null,
+-            'DELIVERY_COST'      => $dto->cost['deliveryCost'] ?? null,
++            'ASSESSED_COST'      => $dto->cost->assessedCost,
++            'COD_COST'           => $dto->cost->codCost,
++            'DELIVERY_COST'      => $dto->cost->deliveryCost,
+             'PICKUP_DATE'        => DateHelper::toDate($dto->pickupDate),
+             'DELIVERY_DATE'      => DateHelper::toDate($dto->deliveryDate),
+             'APISHIP_CREATED_AT' => DateHelper::toDateTime($result->created),
+diff --git a/local/modules/beeralex.apiship/lib/Service/CalculatorService.php b/local/modules/beeralex.apiship/lib/Service/CalculatorService.php
+index 0278fdf..b3d7520 100644
+--- a/local/modules/beeralex.apiship/lib/Service/CalculatorService.php
++++ b/local/modules/beeralex.apiship/lib/Service/CalculatorService.php
+@@ -39,7 +39,7 @@ class CalculatorService implements CalculatorServiceContract
+         if ($this->options->cacheEnabled) {
+             $cache = Cache::createInstance();
+             // v1 — поднимать при изменении TariffDto
+-            $cacheKey = 'calc_v1_' . md5(serialize($context));
++            $cacheKey = 'calc_v2_' . md5(serialize($context));
+             if ($cache->initCache($this->options->cacheTtl, $cacheKey, '/beeralex/apiship/calculator')) {
+                 return $cache->getVars();
+             }
+diff --git a/local/modules/beeralex.apiship/lib/Support/Concerns/Arrayable.php b/local/modules/beeralex.apiship/lib/Support/Concerns/Arrayable.php
+new file mode 100644
+index 0000000..4552c04
+--- /dev/null
++++ b/local/modules/beeralex.apiship/lib/Support/Concerns/Arrayable.php
+@@ -0,0 +1,30 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Beeralex\Apiship\Support\Concerns;
++
++/**
++ * toArray() для DTO на readonly-свойствах: вложенные DTO и массивы DTO разворачиваются рекурсивно.
++ */
++trait Arrayable
++{
++    /** @return array<string,mixed> */
++    public function toArray(): array
++    {
++        return static::arrayify(get_object_vars($this));
++    }
++
++    private static function arrayify(mixed $value): mixed
++    {
++        if (is_object($value) && method_exists($value, 'toArray')) {
++            return $value->toArray();
++        }
++
++        if (is_array($value)) {
++            return array_map(static fn($item) => static::arrayify($item), $value);
++        }
++
++        return $value;
++    }
++}
+diff --git a/local/modules/beeralex.apiship/lib/Support/OrderRequestBuilder.php b/local/modules/beeralex.apiship/lib/Support/OrderRequestBuilder.php
+index fcd4909..b0b940a 100644
+--- a/local/modules/beeralex.apiship/lib/Support/OrderRequestBuilder.php
++++ b/local/modules/beeralex.apiship/lib/Support/OrderRequestBuilder.php
+@@ -55,18 +55,18 @@ class OrderRequestBuilder
+ 
+         $request = (new CreateOrderRequest())
+             ->setOrder($this->hydrate(new OrderPart(), $orderData))
+-            ->setCost($this->hydrate(new Cost(), array_filter($dto->cost, static fn($v) => $v !== [])))
+-            ->setSender($this->hydrate(new Sender(), $dto->sender))
+-            ->setRecipient($this->hydrate(new Recipient(), $dto->recipient));
++            ->setCost($this->hydrate(new Cost(), array_filter($dto->cost->toArray(), static fn($v) => $v !== [])))
++            ->setSender($this->hydrate(new Sender(), $dto->sender->toArray()))
++            ->setRecipient($this->hydrate(new Recipient(), $dto->recipient->toArray()));
+ 
+-        if ($dto->returnAddress !== []) {
+-            $request->setReturnAddress($this->hydrate(new ReturnAddress(), $dto->returnAddress));
++        if ($dto->returnAddress !== null) {
++            $request->setReturnAddress($this->hydrate(new ReturnAddress(), $dto->returnAddress->toArray()));
+         }
+ 
+-        foreach ($dto->places as $placeData) {
+-            $place = $this->hydrate(new Place(), array_diff_key($placeData, ['items' => true]));
+-            foreach ($placeData['items'] as $itemData) {
+-                $place->addItem($this->hydrate(new Item(), $itemData));
++        foreach ($dto->places as $placeDto) {
++            $place = $this->hydrate(new Place(), array_diff_key($placeDto->toArray(), ['items' => true]));
++            foreach ($placeDto->items as $itemDto) {
++                $place->addItem($this->hydrate(new Item(), $itemDto->toArray()));
+             }
+             $request->addPlace($place);
+         }
+diff --git a/local/modules/beeralex.apiship/options_schema.php b/local/modules/beeralex.apiship/options_schema.php
+index bb4c259..9011d08 100644
+--- a/local/modules/beeralex.apiship/options_schema.php
++++ b/local/modules/beeralex.apiship/options_schema.php
+@@ -54,7 +54,7 @@ return Schema::make()
+             $tab->select(
+                 'send_on_status_id',
+                 'Статус заказа Bitrix для отправки в ApiShip',
+-                $orderStatuses,
++                ['' => '— не отправлять автоматически —'] + $orderStatuses,
+             );
+ 
+             // JSON-хранилище карт (скрываются JS-скриптом; значения задаются через таблицу ниже)
+-- 
+2.43.0

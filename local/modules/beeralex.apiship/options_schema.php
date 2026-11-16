@@ -54,7 +54,7 @@ return Schema::make()
             $tab->select(
                 'send_on_status_id',
                 'Статус заказа Bitrix для отправки в ApiShip',
-                $orderStatuses,
+                ['' => '— не отправлять автоматически —'] + $orderStatuses,
             );
 
             // JSON-хранилище карт (скрываются JS-скриптом; значения задаются через таблицу ниже)

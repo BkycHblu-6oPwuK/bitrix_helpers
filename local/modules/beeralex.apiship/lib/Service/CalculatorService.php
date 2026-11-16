@@ -39,7 +39,7 @@ class CalculatorService implements CalculatorServiceContract
         if ($this->options->cacheEnabled) {
             $cache = Cache::createInstance();
             // v1 — поднимать при изменении TariffDto
-            $cacheKey = 'calc_v1_' . md5(serialize($context));
+            $cacheKey = 'calc_v2_' . md5(serialize($context));
             if ($cache->initCache($this->options->cacheTtl, $cacheKey, '/beeralex/apiship/calculator')) {
                 return $cache->getVars();
             }
