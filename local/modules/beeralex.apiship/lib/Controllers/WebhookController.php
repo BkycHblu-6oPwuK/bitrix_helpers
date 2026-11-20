@@ -9,6 +9,7 @@ use Bitrix\Main\Error;
 use Bitrix\Main\Web\Json;
 use Beeralex\Apiship\Contracts\WebhookServiceContract;
 use Beeralex\Apiship\Dto\WebhookEventDto;
+use function Beeralex\Apiship\log;
 
 /**
  * Приём входящих вебхуков ApiShip (server-to-server).
@@ -59,10 +60,7 @@ class WebhookController extends Controller
                 );
                 $isNew ? $processed++ : $duplicates++;
             } catch (\Throwable $e) {
-                \AddMessage2Log(
-                    'ApiShip: ошибка при обработке вебхука: ' . $e->getMessage(),
-                    'beeralex.apiship'
-                );
+                log('ApiShip: ошибка при обработке вебхука: ' . $e->getMessage());
                 // 5xx → ApiShip повторит запрос
                 \Bitrix\Main\Context::getCurrent()->getResponse()->setStatus('500 Internal Server Error');
                 $this->addError(new Error('Internal Server Error'));

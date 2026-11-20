@@ -8,6 +8,7 @@ use Beeralex\Apiship\Support\ShipmentLocator;
 use Bitrix\Main\Application;
 use Bitrix\Main\Event;
 use Bitrix\Sale\Order;
+use function Beeralex\Apiship\log;
 
 class EventHandlers
 {
@@ -86,7 +87,7 @@ class EventHandlers
         try {
             \service(OrderServiceContract::class)->createForBitrixOrder($orderId);
         } catch (\Throwable $e) {
-            \AddMessage2Log("ApiShip: не удалось отправить заказ #{$orderId}: {$e->getMessage()}", 'beeralex.apiship');
+            log("ApiShip: не удалось отправить заказ #{$orderId}: {$e->getMessage()}");
         }
     }
 }

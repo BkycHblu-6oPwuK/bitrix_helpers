@@ -42,4 +42,22 @@ class StatusLogRepository extends Repository
             'CREATED'              => DateHelper::toDateTime($event->statusCreated),
         ]);
     }
+
+    /**
+     * История статусов заказа Bitrix, новые сверху.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function getHistory(int $bitrixOrderId, int $limit = 50): array
+    {
+        return $this->getList([
+            'select' => [
+                'ID', 'STATUS_KEY', 'STATUS_NAME', 'DESCRIPTION', 'ERROR_CODE',
+                'PROVIDER_NAME', 'PROVIDER_DESCRIPTION', 'CREATED_PROVIDER', 'CREATED', 'CREATED_AT',
+            ],
+            'filter' => ['=BITRIX_ORDER_ID' => $bitrixOrderId],
+            'order'  => ['ID' => 'DESC'],
+            'limit'  => max(1, $limit),
+        ])->fetchAll();
+    }
 }

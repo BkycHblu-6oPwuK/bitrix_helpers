@@ -1,6 +1,7 @@
 <?php
 
 use Beeralex\Apiship\Delivery\ApiShipHandler;
+use Beeralex\Apiship\Admin\OrderViewBlock;
 use Beeralex\Apiship\EventHandlers;
 use Beeralex\Apiship\Model\OrderTable;
 use Beeralex\Apiship\Model\StatusLogTable;
@@ -219,6 +220,14 @@ class beeralex_apiship extends CModule
             EventHandlers::class,
             'onSaleOrderSaved'
         );
+        // блок «Доставка ApiShip» в карточке заказа (админка)
+        $eventManager->registerEventHandler(
+            'main',
+            'OnAdminSaleOrderViewDraggable',
+            $this->MODULE_ID,
+            OrderViewBlock::class,
+            'onInit'
+        );
         // обработчик предыдущей версии: на обновляемых установках его надо убрать
         $eventManager->unRegisterEventHandler(
             'sale',
@@ -239,6 +248,13 @@ class beeralex_apiship extends CModule
             $this->MODULE_ID,
             ApiShipHandler::class,
             'onSaleDeliveryHandlersClassNamesBuildList'
+        );
+        $eventManager->unRegisterEventHandler(
+            'main',
+            'OnAdminSaleOrderViewDraggable',
+            $this->MODULE_ID,
+            OrderViewBlock::class,
+            'onInit'
         );
         foreach ([
             'OnSaleOrderSaved' => 'onSaleOrderSaved',

@@ -26,6 +26,18 @@ class DateHelper
     }
 
     /**
+     * Значение ORM-поля (Date/DateTime) -> строка для вывода в админке. Пусто -> null.
+     */
+    public static function format(mixed $value, bool $withTime = true): ?string
+    {
+        if ($value instanceof Date) {
+            return $value->format($withTime && $value instanceof DateTime ? 'd.m.Y H:i' : 'd.m.Y');
+        }
+
+        return is_string($value) && trim($value) !== '' ? $value : null;
+    }
+
+    /**
      * "YYYY-MM-DD" -> Bitrix Date. Пусто/мусор -> null.
      */
     public static function toDate(?string $value): ?Date

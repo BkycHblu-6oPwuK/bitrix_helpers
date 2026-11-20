@@ -17,6 +17,7 @@ use Beeralex\Apiship\Support\CalculatedTariffStore;
 use Beeralex\Apiship\Support\CodResolver;
 use Beeralex\Apiship\Support\Concerns\ConvertsUnits;
 use Beeralex\Apiship\Support\Concerns\ReadsOrderProperties;
+use Beeralex\Apiship\Support\OrderErrorMarker;
 use Beeralex\Apiship\Support\OrderItemsMapper;
 use Beeralex\Apiship\Support\OrderRequestBuilder;
 use Beeralex\Apiship\Enum\DeliveryType;
@@ -29,6 +30,7 @@ use Beeralex\Apiship\Support\ShipmentLocator;
 use Beeralex\Apiship\Support\ShipmentParcelBuilder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\Shipment;
+use function Beeralex\Apiship\log;
 
 class OrderService implements OrderServiceContract
 {
@@ -43,6 +45,7 @@ class OrderService implements OrderServiceContract
         protected readonly OrderItemsMapper $itemsMapper,
         protected readonly RecipientReader $recipientReader,
         protected readonly CalculatedTariffStore $tariffStore,
+        protected readonly OrderErrorMarker $errorMarker,
     ) {}
 
     public function create(CreateOrderDto $dto): OrderResultDto
@@ -113,9 +116,16 @@ class OrderService implements OrderServiceContract
         $shipment = ShipmentLocator::findApiShipShipment($order)
             ?? throw new ApiShipValidationException("В заказе #{$bitrixOrderId} нет доставки ApiShip");
 
-        $result = $this->create($this->collectDto($order, $shipment));
+        try {
+            $result = $this->create($this->collectDto($order, $shipment));
+        } catch (\Throwable $e) {
+            // ошибку видно менеджеру в карточке и списке заказов, а не только в логе
+            $this->errorMarker->mark($order, $e->getMessage());
+            throw $e;
+        }
 
         if ($result->orderId > 0) {
+            $this->errorMarker->clear($order);
             $this->writeTrackingNumber($order, $shipment, $result->orderId);
         }
 
@@ -223,7 +233,7 @@ class OrderService implements OrderServiceContract
             $shipment->setField('TRACKING_NUMBER', (string)$apiShipOrderId);
             $order->save();
         } catch (\Throwable $e) {
-            \AddMessage2Log('ApiShip: не удалось записать TRACKING_NUMBER: ' . $e->getMessage(), 'beeralex.apiship');
+            log('ApiShip: не удалось записать TRACKING_NUMBER: ' . $e->getMessage());
         }
     }
 }

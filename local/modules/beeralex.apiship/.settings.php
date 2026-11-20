@@ -31,6 +31,8 @@ use Beeralex\Apiship\Support\CalculatedTariffStore;
 use Beeralex\Apiship\Support\CalculationContextFactory;
 use Beeralex\Apiship\Support\OrderAddressReader;
 use Beeralex\Apiship\Support\RecipientReader;
+use Beeralex\Apiship\Support\OrderErrorMarker;
+use Beeralex\Apiship\Support\OrderInfoReader;
 use Beeralex\Apiship\Support\OrderItemsMapper;
 use Beeralex\Apiship\Support\ProfileFormOptions;
 use Beeralex\Apiship\Support\TariffSelector;
@@ -78,7 +80,19 @@ return [
                     service(OrderRequestBuilder::class),
                     service(OrderItemsMapper::class),
                     service(RecipientReader::class),
-                    service(CalculatedTariffStore::class)
+                    service(CalculatedTariffStore::class),
+                    service(OrderErrorMarker::class)
+                ),
+            ],
+            // Карточка заказа в админке: пометка заказа при ошибке и данные для блока ApiShip.
+            OrderErrorMarker::class => [
+                'className' => OrderErrorMarker::class,
+            ],
+            OrderInfoReader::class => [
+                'constructor' => static fn() => new OrderInfoReader(
+                    service(OrderRepository::class),
+                    service(StatusLogRepository::class),
+                    service(WebhookLogRepository::class)
                 ),
             ],
             CourierServiceContract::class => [
@@ -201,6 +215,9 @@ return [
     ],
     'controllers' => [
         'value' => [
+            'namespaces' => [
+                '\\Beeralex\\Apiship\\Controllers' => 'api'
+            ],
             'defaultNamespace' => '\\Beeralex\\Apiship\\Controllers',
         ],
         'readonly' => true,

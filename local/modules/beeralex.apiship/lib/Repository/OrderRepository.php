@@ -63,6 +63,30 @@ class OrderRepository extends Repository
         return $row ? (int)$row['APISHIP_ORDER_ID'] : null;
     }
 
+    /**
+     * Данные для карточки заказа в админке (без REQUEST_JSON — он тяжёлый и там не нужен).
+     *
+     * @return array<string,mixed>|null
+     */
+    public function findByBitrixOrderId(int $bitrixOrderId): ?array
+    {
+        $row = $this->getList([
+            'select' => [
+                'ID', 'BITRIX_ORDER_ID', 'APISHIP_ORDER_ID', 'PROVIDER_KEY', 'TARIFF_ID', 'PROVIDER_CONNECT_ID',
+                'PICKUP_TYPE', 'DELIVERY_TYPE', 'POINT_IN_ID', 'POINT_OUT_ID', 'WEIGHT',
+                'ASSESSED_COST', 'COD_COST', 'DELIVERY_COST', 'PICKUP_DATE', 'DELIVERY_DATE',
+                'PROVIDER_NUMBER', 'CLIENT_NUMBER', 'BARCODE', 'ADDITIONAL_PROVIDER_NUMBER', 'RETURN_PROVIDER_NUMBER',
+                'CHECK_URL', 'TRACKING_URL', 'STATUS_KEY', 'STATUS_NAME', 'STATUS_DATE',
+                'PLANNED_DELIVERY_DATE', 'PLANNED_DELIVERY_TIME_START', 'PLANNED_DELIVERY_TIME_END',
+                'PLANNED_DELIVERY_CHANGED', 'APISHIP_CREATED_AT', 'CREATED_AT', 'UPDATED_AT', 'STATUS',
+            ],
+            'filter' => ['=BITRIX_ORDER_ID' => $bitrixOrderId],
+            'limit'  => 1,
+        ])->fetch();
+
+        return $row ?: null;
+    }
+
     public function markCancelled(int $apiShipOrderId): void
     {
         $row = $this->one(['=APISHIP_ORDER_ID' => $apiShipOrderId], ['ID']);

@@ -101,7 +101,7 @@ class CreateOrderDto
             deliveryDate: static::nullableString($data['deliveryDate'] ?? null),
             deliveryTimeStart: static::nullableString($data['deliveryTimeStart'] ?? null),
             deliveryTimeEnd: static::nullableString($data['deliveryTimeEnd'] ?? null),
-            cost: $data['cost'] instanceof CostDto ? $data['cost'] : CostDto::make((array)($data['cost'] ?? [])),
+            cost: ($data['cost'] ?? null) instanceof CostDto ? $data['cost'] : CostDto::make((array)($data['cost'] ?? [])),
             sender: static::contact($data['sender'] ?? []),
             recipient: static::contact($data['recipient'] ?? []),
             returnAddress: empty($data['returnAddress']) ? null : static::contact($data['returnAddress']),

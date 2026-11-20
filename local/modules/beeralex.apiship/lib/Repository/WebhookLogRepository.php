@@ -90,4 +90,19 @@ class WebhookLogRepository extends Repository
 
         return $event->type . ':' . $event->orderId . ':' . $event->statusKey . ':' . md5($rawBody);
     }
+
+    /**
+     * Журнал вебхуков по заказу ApiShip, новые сверху. RAW_BODY не выбирается: он большой.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function getByApiShipOrderId(int $apiShipOrderId, int $limit = 50): array
+    {
+        return $this->getList([
+            'select' => ['ID', 'EVENT_ID', 'EVENT_TYPE', 'PROCESSED', 'ERROR_MESSAGE', 'CREATED_AT'],
+            'filter' => ['=APISHIP_ORDER_ID' => $apiShipOrderId],
+            'order'  => ['ID' => 'DESC'],
+            'limit'  => max(1, $limit),
+        ])->fetchAll();
+    }
 }
